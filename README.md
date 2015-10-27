@@ -44,7 +44,7 @@ steps:
   - name: "Pre-build"
   - plugins:
       toolmantim/docker-compose:
-        - build-and-push: app
+        build-and-push: app
 ```
 
 This step assumes you have private registry credentials are already configured on the build agent.
