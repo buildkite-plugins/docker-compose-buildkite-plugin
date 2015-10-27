@@ -1,0 +1,4 @@
+{
+  name: "docker-compose",
+  description: "Run any CI step in isolated Docker containers using Docker Compose"
+}

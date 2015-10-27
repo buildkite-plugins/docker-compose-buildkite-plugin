@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -ueo pipefail
+
+BUILDKITE_PROMPT="\033[90m$\033[0m"
+
+# Shows the command about to be run, and exits if it fails
+function buildkite-run {
+  echo -e "$BUILDKITE_PROMPT $1"
+  eval "$1"
+  EVAL_EXIT_STATUS=$?
+
+  if [[ $EVAL_EXIT_STATUS -ne 0 ]]; then
+    exit $EVAL_EXIT_STATUS
+  fi
+}
+
+# Compose strips dashes and underscores, so we'll remove them to match the docker container names
+COMPOSE_PROJ_NAME="buildkite"${BUILDKITE_JOB_ID//-}
+
+# The name of the docker container compose creates when it creates the adhoc run
+COMPOSE_CONTAINER_NAME=$COMPOSE_PROJ_NAME"_"$BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONTAINER
+COMPOSE_COMMAND="docker-compose -f ${BUILDKITE_DOCKER_COMPOSE_FILE:-docker-compose.yml} -p $COMPOSE_PROJ_NAME"
+
+function compose-cleanup {
+  echo "~~~ Cleaning up Docker containers"
+  buildkite-run "$COMPOSE_COMMAND kill || true"
+  buildkite-run "$COMPOSE_COMMAND rm --force -v || true"
+
+  # The adhoc run container isn't cleaned up by compose, so we have to do it ourselves
+  buildkite-run "docker rm -f -v ${COMPOSE_CONTAINER_NAME}_run_1 || true"
+}
+
+trap compose-cleanup EXIT
+
+echo "~~~ Creating build script"
+
+COMPOSE_SCRIPT_PATH="buildkite-script-$BUILDKITE_JOB_ID"
+
+# Generate a different script depending on whether or not it's a script to
+# execute
+if [[ -f "$BUILDKITE_COMMAND" ]]; then
+  # Make sure the script they're trying to execute has chmod +x. We can't do
+  # this inside the script we generate because it fails within Docker:
+  # https://github.com/docker/docker/issues/9547
+  buildkite-run "chmod +x \"$BUILDKITE_COMMAND\""
+  echo -e '#!/bin/bash'"\n./\"$BUILDKITE_COMMAND\"" > "$COMPOSE_SCRIPT_PATH"
+else
+  echo -e '#!/bin/bash'"\n$BUILDKITE_COMMAND" > "$COMPOSE_SCRIPT_PATH"
+fi
+
+buildkite-run "cat $COMPOSE_SCRIPT_PATH"
+
+# Ensure the temporary build script can be executed
+chmod +x "$COMPOSE_SCRIPT_PATH"
+
+# Build the Docker images using Compose, namespaced to the job
+echo "~~~ Building Docker images"
+buildkite-run "$COMPOSE_COMMAND build"
+
+# Run the build script command in the service specified in BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONTAINER
+echo "~~~ Running command (in Docker Compose container)"
+buildkite-run "$COMPOSE_COMMAND run $BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONTAINER \"./$COMPOSE_SCRIPT_PATH\""
