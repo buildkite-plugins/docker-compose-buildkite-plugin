@@ -4,19 +4,28 @@ A [Buildkite plugin](https://buildkite.com/plugins) to run any CI step in isolat
 
 * Containers are built, run and linked on demand using Docker Compose
 * Containers are namespaced to each build job, and cleaned up after use
-* Supports pre-building and pushing of images to a private registry, for fast parallel builds across distributed agents
+* Supports using pre-built images created with [docker-compose-prebuild plugin](https://github.com/toolmantim/docker-compose-prebuild-buildkite-plugin), allowing for fast parallel builds across distributed agents
 
 ## Example
 
-The following is an example Docker Compose build pipeline which builds the app container first, pushes to a private registry, and then runs 25 parallel test jobs in isolated containers (including any necessary linked containers):
+The following pipeline will run the `test.sh` command inside the `app` container using Docker Compose, the equivalent to running `docker-compose run app test.sh`:
+
+```yml
+  - command: test.sh
+    plugins:
+      toolmantim/docker-compose:
+        command-container: app
+```
+
+For a more complete example, the following uses the prebuild plugin to build the image on a dedicated builder agent, store the docker image as a build artifact, and then run 25 parallel test jobs in isolated containers (including any necessary linked containers) across a cluster of agents using that docker image:
 
 ```yml
 steps:
   - agents:
-      queue: docker-builder
+      queue: docker-compose-builder
     plugins:
-      toolmantim/docker-compose:
-        - build-and-push: app
+      toolmantim/docker-compose-prebuild:
+        prebuild-container: app
     
   - waiter
 
@@ -26,25 +35,19 @@ steps:
       queue: docker-compose
     plugins:
       toolmantim/docker-compose:
-        - container: app
+        command-container: app
 ```
 
 ## Options
 
-### `container`
+### `command-container`
 
 The name of the container the command should be run within.
 
-### `build-and-push`
+## Related plugins
 
-This steps builds the image, pushes it to a registry, and stores that image name as build meta-data, speeding up all following steps in the build pipeline that use that same service (regardless of which machine they run on)>
+* [docker-compose-prebuild](https://github.com/toolmantim/docker-compose-prebuild-buildkite-plugin)
 
-```yml
-steps:
-  - name: "Pre-build"
-  - plugins:
-      toolmantim/docker-compose:
-        build-and-push: app
-```
+## License
 
-This step assumes you have private registry credentials are already configured on the build agent.
+MIT (see [LICENSE](LICENSE))
