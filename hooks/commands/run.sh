@@ -19,4 +19,8 @@ compose_force_cleanup() {
 
 echo "~~~ Running command in Docker Compose service: $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 
+echo "TODO"
+
+exit 1
+
 run_docker_compose "run $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN \"$BUILDKITE_COMMAND\""
