@@ -2,17 +2,10 @@
 
 set -ueo pipefail
 
-BUILDKITE_PROMPT="\033[90m$\033[0m"
-
-# Shows the command about to be run, and exits if it fails
-function buildkite-run {
-  echo -e "$BUILDKITE_PROMPT $1"
-  eval "$1"
-  EVAL_EXIT_STATUS=$?
-
-  if [[ $EVAL_EXIT_STATUS -ne 0 ]]; then
-    exit $EVAL_EXIT_STATUS
-  fi
-}
+# Turn the old school BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_GIT_
+# environment variables into the desired BUILDKITE_PLUGIN_DOCKER_COMPOSE_
+# variables. This can be removed once we update the bootstrap for this new
+# plugin naming convention.
+eval $(env | grep "_BUILDKITE_PLUGIN_GIT_" | sed "s/_BUILDKITE_PLUGIN_GIT_/_/g" | sed 's/^/export /')
 
 buildkite-run env
