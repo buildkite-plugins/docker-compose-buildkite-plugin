@@ -45,7 +45,7 @@ steps:
 
 ### `build`
 
-One or more services to build and store, allowing following pipeline steps to run faster as they won't need to build the image.
+One or more services to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step’s `command` will be ignored and does not need to be specified.
 
 ### `run`
 
