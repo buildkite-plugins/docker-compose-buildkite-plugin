@@ -8,4 +8,4 @@ set -ueo pipefail
 # plugin naming convention.
 eval $(env | grep "_BUILDKITE_PLUGIN_GIT_" | sed "s/_BUILDKITE_PLUGIN_GIT_/_/g" | sed 's/^/export /')
 
-buildkite-run env
+env
