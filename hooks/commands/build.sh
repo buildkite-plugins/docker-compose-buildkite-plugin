@@ -5,7 +5,7 @@ compose_service_name() {
 }
 
 service_docker_image_name() {
-  docker_compose_container_name compose_service_name
+  docker_compose_container_name "$(compose_service_name)"
 }
 
 save_image_as_artifact() {

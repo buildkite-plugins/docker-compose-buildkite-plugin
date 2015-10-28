@@ -21,6 +21,7 @@ function buildkite-run {
 
 # Returns the name of the docker compose project for this build
 docker_compose_project_name() {
+  # No dashes or underscores because docker-compose will remove them anyways
   echo "buildkite"${BUILDKITE_JOB_ID//-}
 }
 
