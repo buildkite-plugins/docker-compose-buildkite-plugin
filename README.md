@@ -26,6 +26,7 @@ steps:
     plugins:
       buildkite/docker-compose:
         build: app
+        image-store: myorg/app
     agents:
       queue: docker-compose-builders
     
@@ -57,10 +58,17 @@ The file name of the Docker Compose configuration file to use.
 
 Default: `docker-compose.yml`
 
+## `image_store` (optional)
+
+By default images will be stored and restored using build artifacts. To use a Docker registry simply set this be the image location you would use for `docker push`, or example `"index.docker.io/myorg/myimage"`.
+
+Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
+
+This option can also be set on the agent with the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_STORE`.
+
 ## Roadmap
 
 * Support pre-building of multiple services
-* Add a `build-storage` option that allows you to change it from `artifact` (current option) to `registry`, which does a docker push/pull instead of artifact upload/download.
 
 ## License
 
