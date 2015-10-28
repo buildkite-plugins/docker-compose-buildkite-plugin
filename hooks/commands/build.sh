@@ -2,6 +2,6 @@
 
 echo "~~~ Building Docker Compose images for services: ${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}"
 
-echo "TODO"
+run_docker_compose build $BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD
 
-exit 1
+echo "TODO: Store some"

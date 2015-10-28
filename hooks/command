@@ -19,6 +19,13 @@ function buildkite-run {
   fi
 }
 
+run_docker_compose() {
+  local project_name="buildkite"${BUILDKITE_JOB_ID//-}
+  local config="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
+
+  buildkite-run "docker-compose -f $config -p $project_name $1"
+}
+
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:-}" ]]; then

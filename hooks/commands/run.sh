@@ -7,13 +7,6 @@ check_required_args() {
   fi
 }
 
-run_docker_compose() {
-  local project_name="buildkite"${BUILDKITE_JOB_ID//-}
-  local config="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
-
-  buildkite-run "docker-compose -f $config -p $project_name $1"
-}
-
 create_compose_script() {
   # Generate a different script depending on whether or not it's a script to
   # execute
@@ -56,7 +49,7 @@ echo "~~~ Building Docker Compose service images"
 
 echo "None found. Building..."
 
-run_docker_compose "build"
+run_docker_compose build
 
 echo "~~~ Running command in Docker Compose service: $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 
