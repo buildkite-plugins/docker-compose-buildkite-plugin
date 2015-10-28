@@ -8,4 +8,23 @@ set -ueo pipefail
 # plugin naming convention.
 eval $(env | grep "_BUILDKITE_PLUGIN_GIT_" | sed "s/_BUILDKITE_PLUGIN_GIT_/_/g" | sed 's/^/export /')
 
-env
+# Shows the command about to be run, and exits if it fails
+function buildkite-run {
+  echo -e "\033[90m$\033[0m $1"
+  eval "$1"
+  EVAL_EXIT_STATUS=$?
+
+  if [[ $EVAL_EXIT_STATUS -ne 0 ]]; then
+    exit $EVAL_EXIT_STATUS
+  fi
+}
+
+if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:-}" ]]; then
+  source "./hooks/commands/build.sh"
+elif [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN:-}" ]]; then
+  source "./hooks/commands/run.sh"
+else
+  echo "--- Docker Compose plugin error"
+  echo "No build or run options were specified"
+  exit 1
+fi

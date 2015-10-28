@@ -51,9 +51,9 @@ One or more services to build and store, allowing following pipeline steps to ru
 
 The name of the service the command should be run within. If the docker-compose command would usually be `docker-compose run app test.sh` then the value would be `app`.
 
-### `compose-config` (optional)
+### `config` (optional)
 
-The name of the Docker Compose configuration file to use.
+The file name of the Docker Compose configuration file to use.
 
 Default: `docker-compose.yml`
 
