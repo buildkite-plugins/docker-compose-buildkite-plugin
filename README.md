@@ -4,7 +4,7 @@ A [Buildkite plugin](https://buildkite.com/plugins) to run any CI step in isolat
 
 * Containers are built, run and linked on demand using Docker Compose
 * Containers are namespaced to each build job, and cleaned up after use
-* Supports using pre-built images created with [docker-compose-prebuild plugin](https://github.com/toolmantim/docker-compose-prebuild-buildkite-plugin), allowing for fast parallel builds across distributed agents
+* Supports using pre-built images created with [docker-compose-prebuilder plugin](https://github.com/toolmantim/docker-compose-prebuilder-buildkite-plugin), allowing for fast parallel builds across distributed agents
 
 ## Example
 
@@ -22,9 +22,9 @@ For a more complete example, the following uses the prebuild plugin to build the
 ```yml
 steps:
   - agents:
-      queue: docker-compose-builder
+      queue: docker-compose-prebuilder
     plugins:
-      toolmantim/docker-compose-prebuild:
+      toolmantim/docker-compose-prebuilder:
         prebuild-container: app
     
   - waiter
@@ -52,7 +52,7 @@ Default: `docker-compose.yml`
 
 ## Related plugins
 
-* [docker-compose-prebuild](https://github.com/toolmantim/docker-compose-prebuild-buildkite-plugin)
+* [docker-compose-prebuilder](https://github.com/toolmantim/docker-compose-prebuilder-buildkite-plugin)
 
 ## License
 
