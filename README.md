@@ -44,6 +44,12 @@ steps:
 
 The name of the container the command should be run within.
 
+### `compose-config`
+
+The name of the Docker Compose configuration file to use.
+
+Default: `docker-compose.yml`
+
 ## Related plugins
 
 * [docker-compose-prebuild](https://github.com/toolmantim/docker-compose-prebuild-buildkite-plugin)
