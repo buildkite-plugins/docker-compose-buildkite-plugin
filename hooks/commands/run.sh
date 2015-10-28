@@ -5,7 +5,9 @@ check_required_args() {
     echo "No command to run. Did you provide a 'command' for this step?"
     exit 1
   fi
-} && check_required_args
+}
+
+check_required_args
 
 compose_force_cleanup() {
   echo "~~~ Cleaning up Docker containers"
@@ -13,9 +15,12 @@ compose_force_cleanup() {
   run_docker_compose "kill" || true
   run_docker_compose "rm --force -v" || true
 
-  # The adhoc run container isn't cleaned up by compose, so we have to do it ourselves
-  buildkite-run "docker rm -f -v $(docker_compose_project_name)_${BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN}_run_1" || true
-} && trap compose_force_cleanup EXIT
+  # This isn't cleaned up by compose, so we have to do it ourselves
+  local adhoc_run_container_name="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN}_run_1"
+  buildkite-run "docker rm -f -v $(docker_compose_container_name \"$adhoc_run_container_name\")" || true
+}
+
+trap compose_force_cleanup EXIT
 
 echo "~~~ Running command in Docker Compose service: $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 

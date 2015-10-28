@@ -26,7 +26,7 @@ docker_compose_project_name() {
 
 # Returns the name of the docker compose container that corresponds to the given service
 docker_compose_container_name() {
-  echo "$(docker_compose_project_name)_$1_$2"
+  echo "$(docker_compose_project_name)_$1"
 }
 
 # Runs the docker-compose command, scoped to the project, with the given arguments
