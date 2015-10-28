@@ -40,13 +40,17 @@ steps:
 
 ## Options
 
-### `command-container` - required
+### `command-container` (required)
 
-The name of the container the command should be run within. For example, if the docker-compose command would usually be `docker-compose run app test.sh` then the `command-container` would be `app`.
+The name of the container the command should be run within.
 
-### `compose-config` - default: `docker-compose.yml`
+For example, if the docker-compose command would usually be `docker-compose run app test.sh` then the `command-container` would be `app`.
+
+### `compose-config`
 
 The name of the Docker Compose configuration file to use.
+
+Default: `docker-compose.yml`
 
 ## Related plugins
 
