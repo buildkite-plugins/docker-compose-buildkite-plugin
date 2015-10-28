@@ -19,12 +19,24 @@ function buildkite-run {
   fi
 }
 
+# Returns the name of the docker compose project for this build
+docker_compose_project_name() {
+  echo "buildkite"${BUILDKITE_JOB_ID//-}
+}
+
+# Returns the name of the docker compose container that corresponds to the given service
+docker_compose_container_name() {
+  echo "$(docker_compose_project_name)_$1_$2"
+}
+
+# Runs the docker-compose command, scoped to the project, with the given arguments
 run_docker_compose() {
-  local project_name="buildkite"${BUILDKITE_JOB_ID//-}
   local config="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
 
-  buildkite-run "docker-compose -f $config -p $project_name $1"
+  buildkite-run "docker-compose -f $config -p $(docker_compose_project_name) $1"
 }
+
+## build or run
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
@@ -33,7 +45,7 @@ if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:-}" ]]; then
 elif [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN:-}" ]]; then
   . "$DIR/hooks/commands/run.sh"
 else
-  echo "--- Docker Compose plugin error"
+  echo "+++ Docker Compose plugin error"
   echo "No build or run options were specified"
   exit 1
 fi

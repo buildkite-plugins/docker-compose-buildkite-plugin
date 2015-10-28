@@ -45,7 +45,7 @@ steps:
 
 ### `build`
 
-One or more services to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step’s `command` will be ignored and does not need to be specified.
+The name of a service to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step’s `command` will be ignored and does not need to be specified.
 
 ### `run`
 
@@ -59,6 +59,7 @@ Default: `docker-compose.yml`
 
 ## Roadmap
 
+* Support pre-building of multiple services
 * Add a `build-storage` option that allows you to change it from `artifact` (current option) to `registry`, which does a docker push/pull instead of artifact upload/download.
 
 ## License
