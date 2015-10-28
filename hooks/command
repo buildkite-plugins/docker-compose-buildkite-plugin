@@ -19,10 +19,12 @@ function buildkite-run {
   fi
 }
 
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
 if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:-}" ]]; then
-  source "./hooks/commands/build.sh"
+  . "$DIR/hooks/commands/build.sh"
 elif [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN:-}" ]]; then
-  source "./hooks/commands/run.sh"
+  . "$DIR/hooks/commands/run.sh"
 else
   echo "--- Docker Compose plugin error"
   echo "No build or run options were specified"
