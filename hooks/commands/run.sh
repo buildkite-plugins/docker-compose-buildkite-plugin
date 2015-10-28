@@ -31,13 +31,19 @@ restore_image_from_artifact() {
   local artifact_name="$(buildkite-run "buildkite-agent meta-data get \"$BUILD_META_DATA_ARTIFACT_KEY\"")"
 
   if [[ ! -z "$artifact_name" ]]; then
-    echo "Docker image stored in artifact \"$artifact_name\""
+    echo "Docker image found in artifact \"$artifact_name\""
+    buildkite-run "buildkite-agent artifact download \"$artifact_name\""
+
+    echo "Loading into docker..."
+    buildkite-run "gunzip -c \"$artifact_name\" | docker load"
   fi
 }
 
-echo "~~~ Running command in Docker Compose service: $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
+echo "~~~ Checking for pre-build images"
 
 restore_image_from_artifact
+
+echo "~~~ Running command in Docker Compose service: $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 
 echo "TODO"
 
