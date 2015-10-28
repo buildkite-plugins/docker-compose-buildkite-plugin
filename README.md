@@ -11,6 +11,7 @@ A [Buildkite plugin](https://buildkite.com/plugins) allow you to create a build 
 The following pipeline will run the `test.sh` command inside a one-off `app` service container using Docker Compose, the equivalent to running `docker-compose run app test.sh`:
 
 ```yml
+steps:
   - command: test.sh
     plugins:
       buildkite/docker-compose:
