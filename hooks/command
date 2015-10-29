@@ -34,7 +34,7 @@ docker_compose_container_name() {
 run_docker_compose() {
   local config="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
 
-  buildkite-run "docker-compose -f $config -p $(docker_compose_project_name) $@"
+  buildkite-run "docker-compose -f $config -p $(docker_compose_project_name) $1"
 }
 
 build_meta_data_artifact_key() {

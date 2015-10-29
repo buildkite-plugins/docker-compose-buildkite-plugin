@@ -38,7 +38,7 @@ save_image_to_docker_repository() {
 
 echo "+++ Building Docker Compose images for service $COMPOSE_SERVICE_NAME"
 
-run_docker_compose "build" "$COMPOSE_SERVICE_NAME"
+run_docker_compose "build $COMPOSE_SERVICE_NAME"
 
 echo "~~~ Listing docker images"
 
@@ -48,7 +48,7 @@ echo "~~~ Storing the image"
 
 # In the future we can branch based on artifact or private registry storage
 
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:-artifact}" -e "artifact" ]]; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:-artifact}" -eq "artifact" ]]; then
   save_image_as_artifact
 else
   save_image_to_docker_repository
