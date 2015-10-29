@@ -42,9 +42,8 @@ try_image_restore_from_docker_repository() {
   if [[ ! -z "$tag" ]]; then
     echo "Docker image found in repository \"$tag\""
 
-    echo "TODO: Rewrite Docker Compose config"
-
-    exit 1
+    echo "Rewriting Docker Compose config..."
+    buildkite-run "sed -i.orig \"s/build: \./image: $tag/\" \"$(docker_compose_config_file)\""
   fi
 }
 
@@ -54,9 +53,5 @@ try_image_restore_from_artifact
 try_image_restore_from_docker_repository
 
 echo "~~~ Running command in Docker Compose service: $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
-
-echo "TODO"
-
-exit 1
 
 run_docker_compose "run $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN \"$BUILDKITE_COMMAND\""
