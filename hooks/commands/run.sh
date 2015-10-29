@@ -25,7 +25,7 @@ compose_force_cleanup() {
 trap compose_force_cleanup EXIT
 
 try_image_restore_from_artifact() {
-  local artifact_name=$(buildkite-agent meta-data get "$(build_meta_data_artifact_key "$COMPOSE_SERVICE_NAME")")
+  local artifact_name=$(buildkite-agent meta-data get "$(build_meta_data_artifact_key "$COMPOSE_SERVICE_NAME")" 2>/dev/null)
 
   if [[ ! -z "$artifact_name" ]]; then
     echo "Docker image found in artifact \"$artifact_name\""
@@ -37,7 +37,7 @@ try_image_restore_from_artifact() {
 }
 
 try_image_restore_from_docker_repository() {
-  local tag=$(buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")")
+  local tag=$(buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" 2>/dev/null)
 
   if [[ ! -z "$tag" ]]; then
     echo "Docker image found in repository \"$tag\""
