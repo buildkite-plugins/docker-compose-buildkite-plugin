@@ -42,6 +42,7 @@ run_docker_compose "build" "$COMPOSE_SERVICE_NAME"
 
 echo "~~~ Listing docker images"
 
+buildkite-run "docker ps"
 buildkite-run "docker ps | grep buildkite"
 buildkite-run "docker images | grep buildkite"
 
