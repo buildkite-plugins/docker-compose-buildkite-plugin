@@ -40,7 +40,7 @@ try_image_restore_from_docker_repository() {
   local tag=$(buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")")
 
   if [[ ! -z "$tag" ]]; then
-    echo "Docker image found in repository with key \"$build_meta_data_image_tag_key\""
+    echo "Docker image found in repository \"$tag\""
 
     echo "TODO: Rewrite Docker Compose config"
 
