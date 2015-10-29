@@ -25,7 +25,7 @@ compose_force_cleanup() {
 trap compose_force_cleanup EXIT
 
 try_image_restore_from_artifact() {
-  local artifact_name=$(buildkite-agent meta-data get "$(build_meta_data_artifact_key "$COMPOSE_SERVICE_NAME")")
+  local artifact_name=$(buildkite-run "buildkite-agent meta-data get \"$(build_meta_data_artifact_key "$COMPOSE_SERVICE_NAME")\"")
 
   if [[ ! -z "$artifact_name" ]]; then
     echo "Docker image found in artifact \"$artifact_name\""
