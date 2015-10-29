@@ -43,7 +43,8 @@ try_image_restore_from_docker_repository() {
     echo "Docker image found in repository \"$tag\""
 
     echo "Rewriting Docker Compose config..."
-    buildkite-run "sed -i.orig \"s/build: \./image: $tag/\" \"$(docker_compose_config_file)\""
+    local escaped_tag_for_sed=$(echo "$tag" | sed -e 's/[\/&]/\\&/g')
+    buildkite-run "sed -i.orig \"s/build: \./image: $escaped_tag_for_sed/\" \"$(docker_compose_config_file)\""
   fi
 }
 
