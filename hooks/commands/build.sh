@@ -48,7 +48,7 @@ echo "~~~ Storing the image"
 
 # In the future we can branch based on artifact or private registry storage
 
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:-artifact}" -eq "artifact" ]]; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:-artifact}" == "artifact" ]]; then
   save_image_as_artifact
 else
   save_image_to_docker_repository
