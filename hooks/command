@@ -41,6 +41,10 @@ build_meta_data_artifact_key() {
   echo "docker-compose-plugin-built-image-artifact-$1"
 }
 
+build_meta_data_image_tag_key() {
+  echo "docker-compose-plugin-built-image-tag-$1"
+}
+
 ## build or run
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"

@@ -24,11 +24,8 @@ compose_force_cleanup() {
 
 trap compose_force_cleanup EXIT
 
-restore_image_from_artifact() {
-  # Store as build meta-data
-  local build_meta_data_key="$(build_meta_data_artifact_key "$COMPOSE_SERVICE_NAME")"
-
-  local artifact_name="$(buildkite-run "buildkite-agent meta-data get \"$BUILD_META_DATA_ARTIFACT_KEY\"")"
+try_image_restore_from_artifact() {
+  local artifact_name=$(buildkite-agent meta-data get "$(build_meta_data_artifact_key "$COMPOSE_SERVICE_NAME")")
 
   if [[ ! -z "$artifact_name" ]]; then
     echo "Docker image found in artifact \"$artifact_name\""
@@ -39,9 +36,22 @@ restore_image_from_artifact() {
   fi
 }
 
-echo "~~~ Checking for pre-build images"
+try_image_restore_from_docker_repository() {
+  local tag=$(buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")")
 
-restore_image_from_artifact
+  if [[ ! -z "$tag" ]]; then
+    echo "Docker image found in repository with key \"$build_meta_data_image_tag_key\""
+
+    echo "TODO: Rewrite Docker Compose config"
+
+    exit 1
+  fi
+}
+
+echo "~~~ Checking for pre-built images"
+
+try_image_restore_from_artifact
+try_image_restore_from_docker_repository
 
 echo "~~~ Running command in Docker Compose service: $BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 
