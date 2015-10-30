@@ -8,8 +8,10 @@ set -ueo pipefail
 # plugin naming convention.
 eval $(env | grep "_BUILDKITE_PLUGIN_GIT_" | sed "s/_BUILDKITE_PLUGIN_GIT_/_/g" | sed 's/^/export /')
 
+## SET UP SHARED FUNCTIONS
+
 # Shows the command about to be run, and exits if it fails
-function buildkite-run {
+buildkite-run() {
   echo -e "\033[90m$\033[0m $1"
   eval "$1"
   EVAL_EXIT_STATUS=$?
@@ -39,15 +41,11 @@ run_docker_compose() {
   buildkite-run "docker-compose -f $(docker_compose_config_file) -p $(docker_compose_project_name) $1"
 }
 
-build_meta_data_artifact_key() {
-  echo "docker-compose-plugin-built-image-artifact-$1"
-}
-
 build_meta_data_image_tag_key() {
   echo "docker-compose-plugin-built-image-tag-$1"
 }
 
-## build or run
+## BUILD OR RUN
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
