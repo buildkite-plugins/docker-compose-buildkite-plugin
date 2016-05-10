@@ -12,14 +12,36 @@ check_required_args() {
 check_required_args
 
 compose_force_cleanup() {
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "true" ]]; then
+    local remove_volume_flag=""
+  else
+    local remove_volume_flag="-v"
+  fi
+
   echo "~~~ :docker: Cleaning up Docker containers"
 
+  # Send them a friendly kill
   run_docker_compose "kill" || true
-  run_docker_compose "rm --force -v" || true
 
-  # This isn't cleaned up by compose, so we have to do it ourselves
-  local adhoc_run_container_name="${COMPOSE_SERVICE_NAME}_run_1"
-  buildkite-run "docker rm -f -v $(docker_compose_container_name \"$adhoc_run_container_name\")" || true
+  if [[ $(run_docker_compose --version) == *1.6* ]]; then
+    # 1.6
+
+    # There's no --all flag to remove adhoc containers
+    run_docker_compose "rm --force $remove_volume_flag" || true
+
+    # So now we remove the adhoc container
+    # This isn't cleaned up by compose, so we have to do it ourselves
+    local adhoc_run_container_name="${COMPOSE_SERVICE_NAME}_run_1"
+    buildkite-run "docker rm -f $remove_volume_flag $(docker_compose_container_name \"$adhoc_run_container_name\")" || true
+  else
+    # 1.7+
+
+    # `compose down` doesn't support force removing images, so we use `rm --force`
+    run_docker_compose "rm --force --all $remove_volume_flag" || true
+
+    # Stop and remove all the linked services and network
+    run_docker_compose "down" || true
+  fi
 }
 
 trap compose_force_cleanup EXIT
