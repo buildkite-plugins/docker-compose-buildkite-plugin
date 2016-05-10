@@ -69,4 +69,4 @@ try_image_restore_from_docker_repository
 
 echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
 
-run_docker_compose "run --rm \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
+run_docker_compose "run \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
