@@ -7,7 +7,7 @@ set -ueo pipefail
 # variables. This can be removed once we update the bootstrap for this new
 # plugin naming convention.
 eval $(env | grep "_BUILDKITE_PLUGIN_GIT_" | sed "s/_BUILDKITE_PLUGIN_GIT_/_/g" | sed 's/^/export /')
-eval $(env | grep "BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_" | sed "s/BUILDKITE_PLUGIN_DOCKER_COMPOSE_/_/g" | sed 's/^/export /')
+eval $(env | grep "BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_" | sed "s/BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_/BUILDKITE_PLUGIN_DOCKER_COMPOSE_/g" | sed 's/^/export /')
 
 ## SET UP SHARED FUNCTIONS
 
