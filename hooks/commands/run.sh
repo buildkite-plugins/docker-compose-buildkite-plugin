@@ -12,13 +12,13 @@ check_required_args() {
 check_required_args
 
 compose_force_cleanup() {
+  echo "~~~ :docker: Cleaning up Docker containers"
+
   if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "true" ]]; then
     local remove_volume_flag=""
   else
     local remove_volume_flag="-v"
   fi
-
-  echo "~~~ :docker: Cleaning up Docker containers"
 
   # Send them a friendly kill
   run_docker_compose "kill" || true
@@ -53,9 +53,6 @@ try_image_restore_from_docker_repository() {
     echo "~~~ :docker: Pulling docker image $tag"
 
     buildkite-run "docker pull \"$tag\""
-
-    # Remove the image on exit
-    trap "docker rmi -f $tag || true" EXIT
 
     echo "~~~ :docker: Creating a modified Docker Compose config"
 
