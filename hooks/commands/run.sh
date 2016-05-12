@@ -25,19 +25,18 @@ compose_force_cleanup() {
   # Send them a friendly kill
   run_docker_compose "kill" || true
 
-  if [[ $(run_docker_compose --version) == *1.6* ]]; then
-    # 1.6
+  local docker_compose_version
+  docker_compose_version=$(run_docker_compose --version)
 
+  if [[ "$docker_compose_version" == *1.4* || "$docker_compose_version" == *1.5* || "$docker_compose_version" == *1.6* ]]; then
     # There's no --all flag to remove adhoc containers
     run_docker_compose "rm --force $remove_volume_flag" || true
 
     # So now we remove the adhoc container
     # This isn't cleaned up by compose, so we have to do it ourselves
     local adhoc_run_container_name="${COMPOSE_SERVICE_NAME}_run_1"
-    buildkite-run "docker rm -f $remove_volume_flag $(docker_compose_container_name \"$adhoc_run_container_name\")" || true
+    buildkite-run "docker rm -f $remove_volume_flag $(docker_compose_container_name \""$adhoc_run_container_name"\")" || true
   else
-    # 1.7+
-
     # `compose down` doesn't support force removing images, so we use `rm --force`
     run_docker_compose "rm --force --all $remove_volume_flag" || true
 
