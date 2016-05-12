@@ -2,11 +2,6 @@
 
 COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 
-# We can't just "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER:=$(id -u)}" because we want to allow empty string as a value
-if ! env | grep -q "BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER="; then
-  : "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER:=$(id -u)}"
-fi
-
 check_required_args() {
   if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
     echo "No command to run. Did you provide a 'command' for this step?"
@@ -69,4 +64,4 @@ try_image_restore_from_docker_repository
 
 echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
 
-run_docker_compose "run -u \"$BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER\" \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
+run_docker_compose "run \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
