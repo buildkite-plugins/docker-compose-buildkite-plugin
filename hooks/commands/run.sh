@@ -2,8 +2,6 @@
 
 COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 
-: "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER:=$(id -u)}"
-
 check_required_args() {
   if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
     echo "No command to run. Did you provide a 'command' for this step?"
@@ -35,7 +33,7 @@ compose_force_cleanup() {
     # So now we remove the adhoc container
     # This isn't cleaned up by compose, so we have to do it ourselves
     local adhoc_run_container_name="${COMPOSE_SERVICE_NAME}_run_1"
-    buildkite-run "docker rm -f $remove_volume_flag $(docker_compose_container_name \""$adhoc_run_container_name"\")" || true
+    buildkite-run "docker rm -f $remove_volume_flag $(docker_compose_container_name \""$adhoc_run_container_name"\") || true"
   else
     # `compose down` doesn't support force removing images, so we use `rm --force`
     run_docker_compose "rm --force --all $remove_volume_flag" || true
@@ -69,4 +67,4 @@ try_image_restore_from_docker_repository
 
 echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
 
-run_docker_compose "run -u \"$BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER\" \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
+run_docker_compose "run \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
