@@ -2,6 +2,8 @@
 
 COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 
+: "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER:=$(id -u)}"
+
 check_required_args() {
   if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
     echo "No command to run. Did you provide a 'command' for this step?"
@@ -47,7 +49,8 @@ compose_force_cleanup() {
 trap compose_force_cleanup EXIT
 
 try_image_restore_from_docker_repository() {
-  local tag=$(buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" 2>/dev/null)
+  local tag
+  tag=$(buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" 2>/dev/null)
 
   if [[ ! -z "$tag" ]]; then
     echo "~~~ :docker: Pulling docker image $tag"
@@ -57,7 +60,8 @@ try_image_restore_from_docker_repository() {
     echo "~~~ :docker: Creating a modified Docker Compose config"
 
     # TODO: Fix this el-dodgo method
-    local escaped_tag_for_sed=$(echo "$tag" | sed -e 's/[\/&]/\\&/g')
+    local escaped_tag_for_sed
+    escaped_tag_for_sed=$(echo "$tag" | sed -e 's/[\/&]/\\&/g')
     buildkite-run "sed -i.orig \"s/build: \./image: $escaped_tag_for_sed/\" \"$(docker_compose_config_file)\""
   fi
 }
@@ -66,4 +70,4 @@ try_image_restore_from_docker_repository
 
 echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
 
-run_docker_compose "run \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
+run_docker_compose "run -u \"$BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER\" \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
