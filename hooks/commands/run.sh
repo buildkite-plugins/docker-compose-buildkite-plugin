@@ -2,6 +2,11 @@
 
 COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 
+# We can't just "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER:=$(id -u)}" because we want to allow empty string as a value
+if ! env | grep -q "BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER="; then
+  : "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER:=$(id -u)}"
+fi
+
 check_required_args() {
   if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
     echo "No command to run. Did you provide a 'command' for this step?"
@@ -23,8 +28,7 @@ compose_force_cleanup() {
   # Send them a friendly kill
   run_docker_compose "kill" || true
 
-  local docker_compose_version
-  docker_compose_version=$(run_docker_compose --version)
+  local docker_compose_version=$(run_docker_compose --version)
 
   if [[ "$docker_compose_version" == *1.4* || "$docker_compose_version" == *1.5* || "$docker_compose_version" == *1.6* ]]; then
     # There's no --all flag to remove adhoc containers
@@ -65,4 +69,4 @@ try_image_restore_from_docker_repository
 
 echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
 
-run_docker_compose "run \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
+run_docker_compose "run -u \"$BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER\" \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
