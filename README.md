@@ -1,6 +1,6 @@
 # Docker Compose Buildkite Plugin
 
-__This is designed to run with the upcoming version of 2.2 of Buildkite Agent. Plugins are not yet supported in version 2.1__
+__This is designed to run with the upcoming version of 3.0 of Buildkite Agent (currently in beta). Plugins are not yet supported in version 2.1. See the [Docker Based Builds](https://buildkite.com/docs/guides/docker-containerized-builds) guide for running builds in Docker with the current stable version of the Buildkite Agent.__
 
 A [Buildkite plugin](https://buildkite.com/plugins) allowing you to create a build system capable of running any project or tool with a [Docker Compose](https://docs.docker.com/compose/) config file in its repository.
 
