@@ -16,7 +16,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      buildkite/docker-compose:
+      docker-compose:
         run: app
 ```
 
@@ -26,7 +26,7 @@ You can also specify a custom Docker Compose config file if you need:
 steps:
   - command: test.sh
     plugins:
-      buildkite/docker-compose:
+      docker-compose:
         run: app
         config: docker-compose.tests.yml
 ```
@@ -39,7 +39,7 @@ To speed up run parallel steps you can add a pre-building step to your pipeline,
 steps:
   - name: ":docker: Build"
     plugins:
-      buildkite/docker-compose:
+      docker-compose:
         build: app
 
   - wait
@@ -48,7 +48,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      buildkite/docker-compose:
+      docker-compose:
         run: app
 ```
 
@@ -60,7 +60,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      buildkite/docker-compose:
+      docker-compose:
         build: app
         image-repository: index.docker.io/org/repo
     
@@ -72,7 +72,7 @@ steps:
     agents:
       queue: docker-runner
     plugins:
-      buildkite/docker-compose:
+      docker-compose:
         run: app
 ```
 
