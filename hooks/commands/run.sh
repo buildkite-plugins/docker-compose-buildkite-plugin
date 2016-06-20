@@ -64,4 +64,8 @@ try_image_restore_from_docker_repository
 
 echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
 
-run_docker_compose "run \"$COMPOSE_SERVICE_NAME\" \"$BUILDKITE_COMMAND\""
+# $BUILDKITE_COMMAND needs to be unquoted because:
+#   docker-compose run "app" "go test"
+# does not work whereas the follow down:
+#   docker-compose run "app" go test
+run_docker_compose "run \"$COMPOSE_SERVICE_NAME\" $BUILDKITE_COMMAND"
