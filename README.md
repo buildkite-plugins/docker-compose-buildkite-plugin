@@ -105,6 +105,7 @@ This option can also be configured on the agent machine using the environment va
 ## Roadmap
 
 * Support pre-building of multiple Docker Compose services
+* Support specifying multiple docker-compose config files
 
 ## License
 
