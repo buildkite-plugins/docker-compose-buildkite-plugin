@@ -52,7 +52,7 @@ function docker_compose_container_name() {
 
 # Runs the docker-compose command, scoped to the project, with the given arguments
 function run_docker_compose() {
-  command=(docker-compose)
+  local command=(docker-compose)
 
   # Append docker compose file
   command+=(-f "$(docker_compose_config_file)")
