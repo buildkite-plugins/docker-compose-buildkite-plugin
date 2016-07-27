@@ -55,6 +55,8 @@ function run_docker_compose() {
   local command=(docker-compose)
 
   # Append potentially multiple docker compose file
+  declare file
+  declare -a files
   IFS=":" read -ra files <<< "$(docker_compose_config_file)"
   for file in "${files[@]}"; do
     command+=(-f "$file")
