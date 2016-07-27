@@ -6,64 +6,43 @@ set -ueo pipefail
 # environment variables into the desired BUILDKITE_PLUGIN_DOCKER_COMPOSE_
 # variables. This can be removed once we update the bootstrap for this new
 # plugin naming convention.
-export $(env | grep "_BUILDKITE_PLUGIN_GIT_" | sed "s/_BUILDKITE_PLUGIN_GIT_/_/")
-export $(env | grep "BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_" | sed "s/BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_/BUILDKITE_PLUGIN_DOCKER_COMPOSE_/g")
+eval $(env | grep "_BUILDKITE_PLUGIN_GIT_" | sed "s/_BUILDKITE_PLUGIN_GIT_/_/g" | sed 's/^/export /')
+eval $(env | grep "BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_" | sed "s/BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_/BUILDKITE_PLUGIN_DOCKER_COMPOSE_/g" | sed 's/^/export /')
 
 ## SET UP SHARED FUNCTIONS
 
-# Show a prompt for a command
-function buildkite-prompt {
-  # Output "$" prefix in a pleasant grey...
-  echo -ne "\033[90m$\033[0m"
-
-  # ...each positional parameter with spaces and correct escaping for copy/pasting...
-  printf " %q" "$@"
-
-  # ...and a trailing newline.
-  echo
-}
-
-# Shows the command being run, and runs it
-function buildkite-prompt-and-run {
-  buildkite-prompt "$@"
-  "$@"
-}
-
 # Shows the command about to be run, and exits if it fails
-function buildkite-run {
-  buildkite-prompt-and-run "$@" || exit $?
-}
+buildkite-run() {
+  echo -e "\033[90m$\033[0m $1"
+  eval "$1"
+  EVAL_EXIT_STATUS=$?
 
-# Returns the configured docker compose config file name
-function docker_compose_config_file() {
-  echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
+  if [[ $EVAL_EXIT_STATUS -ne 0 ]]; then
+    exit $EVAL_EXIT_STATUS
+  fi
 }
 
 # Returns the name of the docker compose project for this build
-function docker_compose_project_name() {
+docker_compose_project_name() {
   # No dashes or underscores because docker-compose will remove them anyways
   echo "buildkite${BUILDKITE_JOB_ID//-}"
 }
 
 # Returns the name of the docker compose container that corresponds to the given service
-function docker_compose_container_name() {
+docker_compose_container_name() {
   echo "$(docker_compose_project_name)_$1"
 }
 
-# Runs the docker-compose command, scoped to the project, with the given arguments
-function run_docker_compose() {
-  local command=(docker-compose)
-
-  # Append docker compose file
-  command+=(-f "$(docker_compose_config_file)")
-
-  # Append project name
-  command+=(-p "$(docker_compose_project_name)")
-
-  buildkite-run "${command[@]}" "$@"
+docker_compose_config_file() {
+  echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
 }
 
-function build_meta_data_image_tag_key() {
+# Runs the docker-compose command, scoped to the project, with the given arguments
+run_docker_compose() {
+  buildkite-run "docker-compose -f $(docker_compose_config_file) -p $(docker_compose_project_name) $1"
+}
+
+build_meta_data_image_tag_key() {
   echo "docker-compose-plugin-built-image-tag-$1"
 }
 
