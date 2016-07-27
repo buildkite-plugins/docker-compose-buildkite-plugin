@@ -12,7 +12,7 @@ export $(env | grep "BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_" | sed "s
 ## SET UP SHARED FUNCTIONS
 
 # Show a prompt for a command
-function buildkite-prompt {
+function plugin_prompt {
   # Output "$" prefix in a pleasant grey...
   echo -ne "\033[90m$\033[0m"
 
@@ -24,13 +24,13 @@ function buildkite-prompt {
 }
 
 # Shows the command being run, and runs it
-function buildkite-prompt-and-run {
-  buildkite-prompt "$@"
+function plugin_prompt_and_run {
+  plugin_prompt "$@"
   "$@"
 }
 
 # Shows the command about to be run, and exits if it fails
-function buildkite-run {
+function plugin_prompt_and_must_run {
   buildkite-prompt-and-run "$@" || exit $?
 }
 
@@ -60,7 +60,7 @@ function run_docker_compose() {
   # Append project name
   command+=(-p "$(docker_compose_project_name)")
 
-  buildkite-run "${command[@]}" "$@"
+  plugin_prompt_and_run "${command[@]}" "$@"
 }
 
 function build_meta_data_image_tag_key() {
