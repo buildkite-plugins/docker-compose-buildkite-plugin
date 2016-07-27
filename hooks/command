@@ -54,8 +54,11 @@ function docker_compose_container_name() {
 function run_docker_compose() {
   local command=(docker-compose)
 
-  # Append docker compose file
-  command+=(-f "$(docker_compose_config_file)")
+  # Append potentially multiple docker compose file
+  IFS=":" read -ra files <<< "$(docker_compose_config_file)"
+  for file in "${files[@]}"; do
+    command+=(-f "$file")
+  done
 
   # Append project name
   command+=(-p "$(docker_compose_project_name)")
