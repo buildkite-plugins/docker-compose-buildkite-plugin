@@ -31,7 +31,7 @@ function plugin_prompt_and_run {
 
 # Shows the command about to be run, and exits if it fails
 function plugin_prompt_and_must_run {
-  buildkite-prompt-and-run "$@" || exit $?
+  plugin_prompt_and_run "$@" || exit $?
 }
 
 # Returns the configured docker compose config file name
