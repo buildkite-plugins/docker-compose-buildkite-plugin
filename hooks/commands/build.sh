@@ -10,8 +10,12 @@ image_file_name() {
   # The project slug env variable includes the org (e.g. "org/project"), so we
   # have to strip the org from the front (e.g. "project")
   local project_name=$(echo "$BUILDKITE_PROJECT_SLUG" | sed 's/^\([^\/]*\/\)//g')
-
-  echo "$project_name-$COMPOSE_SERVICE_NAME-build-$BUILDKITE_BUILD_NUMBER"
+  # look for custom image tag string (i.e. "latest")
+  if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_TAG:-}" ]]; then
+    echo "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_TAG"
+  else
+    echo "$project_name-$COMPOSE_SERVICE_NAME-build-$BUILDKITE_BUILD_NUMBER"
+  fi
 }
 
 push_image_to_docker_repository() {
