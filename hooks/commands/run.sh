@@ -63,6 +63,7 @@ try_image_restore_from_docker_repository() {
     local escaped_tag_for_sed=$(echo "$tag" | sed -e 's/[\/&]/\\&/g')
     # dogde ++
     if [[ ! -z "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG" ]]; then
+      echo "EXCONF"
       plugin_prompt_and_must_run sed -i.orig "s/build: \./image: $escaped_tag_for_sed/" "docker-compose.yml"
     else
       plugin_prompt_and_must_run sed -i.orig "s/build: \./image: $escaped_tag_for_sed/" "$(docker_compose_config_file)"
