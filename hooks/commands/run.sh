@@ -56,10 +56,7 @@ try_image_restore_from_docker_repository() {
     echo "~~~ :docker: Pulling docker image $tag"
 
     plugin_prompt_and_must_run docker pull "$tag"
-    if [[ ! -z $BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG ]]; then
-      echo "### exconf ###"
-    fi
-    echo "~~~ :docker: Creating a modified Docker Compose config test?"
+    echo "~~~ :docker: Creating a modified Docker Compose config"
 
     # TODO: Fix this el-dodgo method
     local escaped_tag_for_sed=$(echo "$tag" | sed -e 's/[\/&]/\\&/g')
@@ -69,7 +66,7 @@ try_image_restore_from_docker_repository() {
 
 try_image_restore_from_docker_repository
 
-echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME TEST"
+echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
 
 # $BUILDKITE_COMMAND needs to be unquoted because:
 #   docker-compose run "app" "go test"
