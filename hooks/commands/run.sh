@@ -69,7 +69,7 @@ try_image_restore_from_docker_repository() {
 
 try_image_restore_from_docker_repository
 
-echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
+echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME TEST"
 
 # $BUILDKITE_COMMAND needs to be unquoted because:
 #   docker-compose run "app" "go test"
