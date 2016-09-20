@@ -58,10 +58,8 @@ function run_docker_compose() {
   command+=(-f "$(docker_compose_config_file)")
 
   # Append docker compose exconf file
-  echo "--- I am a teapot"
-  if [[ ! -z "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG" ]]; then
-    echo "########### EXCONF ###############"
-    command+=(-f "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG")
+  if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG:-}" ]]; then
+    command+=(-f "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG:-}")
   fi
   
   # Append project name
