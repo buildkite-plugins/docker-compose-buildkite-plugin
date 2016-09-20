@@ -59,10 +59,8 @@ function run_docker_compose() {
 
   # Append the configured docker compose config exetension file name
   # https://docs.docker.com/compose/extends/
-  if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG:-}" ]]; then
-    command+=(-f "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG:-}")
-  fi
-
+  command+=("$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG")
+  
   # Append project name
   command+=(-p "$(docker_compose_project_name)")
 
