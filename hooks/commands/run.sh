@@ -73,7 +73,7 @@ echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_N
 #   docker-compose run "app" "go test"
 # does not work whereas the follow down:
 #   docker-compose run "app" go test
-run_docker_compose "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG" run "$COMPOSE_SERVICE_NAME" $BUILDKITE_COMMAND
+run_docker_compose run "$COMPOSE_SERVICE_NAME" $BUILDKITE_COMMAND
 
 if [[ ! -z "$DOCKER_IMAGE_REPOSITORY" ]]; then
   echo "~~~ :docker: Pushing image $COMPOSE_SERVICE_DOCKER_IMAGE_NAME to $DOCKER_IMAGE_REPOSITORY"

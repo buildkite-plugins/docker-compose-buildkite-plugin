@@ -36,7 +36,11 @@ function plugin_prompt_and_must_run {
 
 # Returns the configured docker compose config file name
 function docker_compose_config_file() {
-  echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
+  if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG:-}" ]]; then
+    echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml} -f ${BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG:-}"
+  else
+    echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
+  fi
 }
 
 # Returns the name of the docker compose project for this build
@@ -57,10 +61,6 @@ function run_docker_compose() {
   # Append docker compose file
   command+=(-f "$(docker_compose_config_file)")
 
-  # Append the configured docker compose config exetension file name
-  # https://docs.docker.com/compose/extends/
-  # command+=("$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG")
-  
   # Append project name
   command+=(-p "$(docker_compose_project_name)")
 
