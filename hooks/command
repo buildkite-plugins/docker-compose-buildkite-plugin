@@ -39,12 +39,6 @@ function docker_compose_config_file() {
   echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
 }
 
-# Returns the configured docker compose config exetension file name
-# https://docs.docker.com/compose/extends/
-function docker_compose_config_extend_file() {
-  echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG:-}"
-}
-
 # Returns the name of the docker compose project for this build
 function docker_compose_project_name() {
   # No dashes or underscores because docker-compose will remove them anyways
@@ -63,9 +57,10 @@ function run_docker_compose() {
   # Append docker compose file
   command+=(-f "$(docker_compose_config_file)")
 
-  # Append docker compose file
-  if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG:-}" ]]; then
-    command+=(-f "$(docker_compose_config_extend_file)")
+  # Append the configured docker compose config exetension file name
+  # https://docs.docker.com/compose/extends/
+  if [[ ! -z "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG" ]]; then
+    command+=(-f "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG")
   fi
 
   # Append project name
