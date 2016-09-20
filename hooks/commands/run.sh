@@ -56,7 +56,7 @@ try_image_restore_from_docker_repository() {
     echo "~~~ :docker: Pulling docker image $tag"
 
     plugin_prompt_and_must_run docker pull "$tag"
-    if [[ ! -z "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG" ]]; then
+    if [[ ! -z $BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG ]]; then
       echo "### exconf ###"
     fi
     echo "~~~ :docker: Creating a modified Docker Compose config"
