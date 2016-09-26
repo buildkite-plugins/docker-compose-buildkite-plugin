@@ -67,6 +67,10 @@ function build_meta_data_image_tag_key() {
   echo "docker-compose-plugin-built-image-tag-$1"
 }
 
+function short_sha(){
+  git rev-parse --short "$BUILDKITE_COMMIT"
+}
+
 ## BUILD OR RUN
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"

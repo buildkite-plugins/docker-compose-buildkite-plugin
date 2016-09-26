@@ -16,10 +16,14 @@ image_file_name() {
 
 push_image_to_docker_repository() {
   local tag="$DOCKER_IMAGE_REPOSITORY:$(image_file_name)"
+  local sha_tag="$DOCKER_IMAGE_REPOSITORY:$(short_sha)"
 
   plugin_prompt_and_must_run docker tag "$COMPOSE_SERVICE_DOCKER_IMAGE_NAME" "$tag"
+  plugin_prompt_and_must_run docker tag "$COMPOSE_SERVICE_DOCKER_IMAGE_NAME" "$sha_tag"
   plugin_prompt_and_must_run docker push "$tag"
+  plugin_prompt_and_must_run docker push "$sha_tag"
   plugin_prompt_and_must_run docker rmi "$tag"
+  plugin_prompt_and_must_run docker rmi "$sha_tag"
 
   plugin_prompt_and_must_run buildkite-agent meta-data set "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" "$tag"
 }
