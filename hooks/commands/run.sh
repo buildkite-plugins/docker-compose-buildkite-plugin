@@ -1,8 +1,6 @@
 #!/bin/bash
 
 COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
-COMPOSE_SERVICE_DOCKER_IMAGE_NAME="$(docker_compose_container_name "$COMPOSE_SERVICE_NAME")"
-DOCKER_IMAGE_REPOSITORY="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:-}"
 
 check_required_args() {
   if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
@@ -73,9 +71,3 @@ echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_N
 # does not work whereas the follow down:
 #   docker-compose run "app" go test
 run_docker_compose run "$COMPOSE_SERVICE_NAME" $BUILDKITE_COMMAND
-
-if [[ ! -z "$DOCKER_IMAGE_REPOSITORY" ]]; then
-  echo "~~~ :docker: Pushing image $COMPOSE_SERVICE_DOCKER_IMAGE_NAME to $DOCKER_IMAGE_REPOSITORY"
-
-  push_image_to_docker_repository
-fi
