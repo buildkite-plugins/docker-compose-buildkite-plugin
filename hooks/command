@@ -34,11 +34,6 @@ function plugin_prompt_and_must_run {
   plugin_prompt_and_run "$@" || exit $?
 }
 
-# Returns the configured docker compose config file name
-function docker_compose_config_file() {
-  echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
-}
-
 # Returns the name of the docker compose project for this build
 function docker_compose_project_name() {
   # No dashes or underscores because docker-compose will remove them anyways
@@ -68,7 +63,7 @@ function run_docker_compose() {
     # Plugin config may be colon-separated files
     declare file
     declare -a files
-    IFS=":" read -ra files <<< "$(docker_compose_config_file)"
+    IFS=":" read -ra files <<< "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG"
     for file in "${files[@]}"; do
       command+=(-f "$file")
     done
