@@ -19,11 +19,11 @@ push_image_to_docker_repository() {
   declare -a tags
   if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_0:-}" ]]; then
     local i=0
-    local name="BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_${i}"
-    while [[ -n "${!name:-}" ]]; do
-      tags+=("${!name}")
+    local parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_${i}"
+    while [[ -n "${!parameter:-}" ]]; do
+      tags+=("${!parameter}")
       i=$[$i+1]
-      name="BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_${i}"
+      parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_${i}"
     done
   else
     tags+=("$(image_file_name)")
