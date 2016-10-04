@@ -55,12 +55,27 @@ function run_docker_compose() {
   local command=(docker-compose)
 
   # Append potentially multiple docker compose file
-  declare file
-  declare -a files
-  IFS=":" read -ra files <<< "$(docker_compose_config_file)"
-  for file in "${files[@]}"; do
-    command+=(-f "$file")
-  done
+  if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0:-}" ]]; then
+    # Plugin config specified an array of config files
+    local i=0
+    local parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_${i}"
+    while [[ -n "${!parameter:-}" ]]; do
+      command+=(-f "${!parameter}")
+      i=$[$i+1]
+      parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_${i}"
+    done
+  elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-}" ]]; then
+    # Plugin config may be colon-separated files
+    declare file
+    declare -a files
+    IFS=":" read -ra files <<< "$(docker_compose_config_file)"
+    for file in "${files[@]}"; do
+      command+=(-f "$file")
+    done
+  else
+    # Use default docker compose location
+    command+=(-f "docker-compose.yml")
+  fi
 
   # Append project name
   command+=(-p "$(docker_compose_project_name)")
