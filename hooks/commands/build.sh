@@ -17,7 +17,7 @@ image_file_name() {
 push_image_to_docker_repository() {
   # XXX: Consuming array configuration is pretty gnarly
   declare -a tags
-  if [[ -n "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_0" ]]; then
+  if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_0:-}" ]]; then
     local i=0
     local name="BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_${i}"
     while [[ -n "${!name:-}" ]]; do
