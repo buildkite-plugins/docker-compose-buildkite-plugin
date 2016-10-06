@@ -45,6 +45,17 @@ function docker_compose_container_name() {
   echo "$(docker_compose_project_name)_$1"
 }
 
+# Returns the first docker compose config file name
+function docker_compose_config_file() {
+  if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-}" ]]; then
+    echo "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG"
+  elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0:-}" ]]; then
+    echo "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0"
+  else
+    echo "docker-compose.yml"
+  fi
+}
+
 # Runs the docker-compose command, scoped to the project, with the given arguments
 function run_docker_compose() {
   local command=(docker-compose)
