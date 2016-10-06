@@ -34,11 +34,6 @@ function plugin_prompt_and_must_run {
   plugin_prompt_and_run "$@" || exit $?
 }
 
-# Returns the configured docker compose config file name
-function docker_compose_config_file() {
-  echo "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-docker-compose.yml}"
-}
-
 # Returns the name of the docker compose project for this build
 function docker_compose_project_name() {
   # No dashes or underscores because docker-compose will remove them anyways
@@ -54,8 +49,28 @@ function docker_compose_container_name() {
 function run_docker_compose() {
   local command=(docker-compose)
 
-  # Append docker compose file
-  command+=(-f "$(docker_compose_config_file)")
+  # Append potentially multiple docker compose file
+  if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0:-}" ]]; then
+    # Plugin config specified an array of config files
+    local i=0
+    local parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_${i}"
+    while [[ -n "${!parameter:-}" ]]; do
+      command+=(-f "${!parameter}")
+      i=$[$i+1]
+      parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_${i}"
+    done
+  elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-}" ]]; then
+    # Plugin config may be colon-separated files
+    declare file
+    declare -a files
+    IFS=":" read -ra files <<< "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG"
+    for file in "${files[@]}"; do
+      command+=(-f "$file")
+    done
+  else
+    # Use default docker compose location
+    command+=(-f "docker-compose.yml")
+  fi
 
   # Append project name
   command+=(-p "$(docker_compose_project_name)")
