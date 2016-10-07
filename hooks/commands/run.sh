@@ -54,7 +54,6 @@ try_image_restore_from_docker_repository() {
     echo "~~~ :docker: Pulling docker image $tag"
 
     plugin_prompt_and_must_run docker pull "$tag"
-
     echo "~~~ :docker: Creating a modified Docker Compose config"
 
     # TODO: Fix this el-dodgo method

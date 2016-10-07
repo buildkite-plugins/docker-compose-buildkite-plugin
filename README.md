@@ -105,6 +105,15 @@ The file name of the Docker Compose configuration file to use. Can also be a lis
 
 Default: `docker-compose.yml`
 
+An extension to this is available as an environment variable: BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG. This allows an additional docker-compose file (e.g. docker-compose.production.yml) to be chained to the base. This is useful for defining test or production environments while minimising build operations. [Extending Docker Compose](https://docs.docker.com/compose/extends/)
+
+```yml
+env:
+  BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXCONFIG: "docker-compose.test.yml"
+...
+```
+
+
 ## `image-repository` (optional)
 
 The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"index.docker.io/org/repo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
@@ -114,6 +123,14 @@ The default is `""`  which only builds images on the local Docker host doing the
 Note: this option only needs to be specified on the build step, and will be automatically picked up by following steps.
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
+
+The environment variable BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_TAG is also available and can be specified inside pipeline.yml to override the default Buildkite image tag for images pushed to a docker image repository.
+
+```yml
+env:
+  BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_TAG: "latest"
+...
+```
 
 ## Roadmap
 
