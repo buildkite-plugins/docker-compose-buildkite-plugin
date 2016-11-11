@@ -113,6 +113,8 @@ The default is `""`  which only builds images on the local Docker host doing the
 
 Note: this option only needs to be specified on the build step, and will be automatically picked up by following steps.
 
+Only works with version '2' docker-compose.yml configuration files
+
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
 
 ## Roadmap
