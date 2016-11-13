@@ -37,7 +37,7 @@ cat $COMPOSE_SERVICE_OVERRIDE_FILE
 
 echo "+++ :docker: Building Docker Compose images for service $COMPOSE_SERVICE_NAME"
 
-run_docker_compose build -f "$COMPOSE_SERVICE_OVERRIDE_FILE" "$COMPOSE_SERVICE_NAME"
+run_docker_compose -f "$COMPOSE_SERVICE_OVERRIDE_FILE" build "$COMPOSE_SERVICE_NAME"
 
 if [[ ! -z "$DOCKER_IMAGE_REPOSITORY" ]]; then
   echo "~~~ :docker: Pushing image $COMPOSE_SERVICE_DOCKER_IMAGE_NAME to $DOCKER_IMAGE_REPOSITORY"
