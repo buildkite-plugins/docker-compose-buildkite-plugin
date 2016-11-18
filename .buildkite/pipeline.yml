@@ -1,0 +1,12 @@
+steps:
+  - command: /hello
+    plugins:
+      docker-compose:
+        build: helloworld
+        config: .buildkite/docker-compose.yml
+  - wait
+  - command: /hello
+    plugins:
+      docker-compose:
+        run: helloworld
+        config: .buildkite/docker-compose.yml
