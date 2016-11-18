@@ -1,6 +1,7 @@
 #!/bin/bash
 
 COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
+COMPOSE_SERVICE_OVERRIDE_FILE="docker-compose.buildkite-$COMPOSE_SERVICE_NAME-override.yml"
 
 check_required_args() {
   if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
@@ -57,9 +58,14 @@ try_image_restore_from_docker_repository() {
 
     echo "~~~ :docker: Creating a modified Docker Compose config"
 
-    # TODO: Fix this el-dodgo method
-    local escaped_tag_for_sed=$(echo "$tag" | sed -e 's/[\/&]/\\&/g')
-    plugin_prompt_and_must_run sed -i.orig "s/build: \./image: $escaped_tag_for_sed/" "$(docker_compose_config_file)"
+    # Override the config so that the service uses the restored image instead of building
+    cat > $COMPOSE_SERVICE_OVERRIDE_FILE <<EOF
+version: '2'
+services:
+  $COMPOSE_SERVICE_NAME:
+    image: $tag
+EOF
+    cat $COMPOSE_SERVICE_OVERRIDE_FILE
   fi
 }
 
@@ -71,4 +77,4 @@ echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_N
 #   docker-compose run "app" "go test"
 # does not work whereas the follow down:
 #   docker-compose run "app" go test
-run_docker_compose run "$COMPOSE_SERVICE_NAME" $BUILDKITE_COMMAND
+run_docker_compose -f "$COMPOSE_SERVICE_OVERRIDE_FILE" run "$COMPOSE_SERVICE_NAME" $BUILDKITE_COMMAND
