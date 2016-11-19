@@ -1,4 +1,12 @@
 steps:
+  # Test a straight-up run
+  - command: /hello
+    plugins:
+      docker-compose:
+        run: helloworld
+        config: .buildkite/docker-compose.yml
+  - wait
+  # Test a build + run
   - command: /hello
     plugins:
       docker-compose:
