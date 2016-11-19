@@ -1,20 +1,30 @@
+#!/bin/bash
+
+set -eu
+
+# pipeline.yml $ interpolation doesn't work in YAML keys, only values
+PLUGIN="${BUILDKITE_BUILD_CHECKOUT_PATH}#${BUILDKITE_COMMIT}"
+
+cat <<YAML
 steps:
-  # Test a straight-up run
   - command: /hello
+    label: run
     plugins:
-      docker-compose:
+      "$PLUGIN":
         run: helloworld
         config: .buildkite/docker-compose.yml
   - wait
-  # Test a build + run
   - command: /hello
+    label: build
     plugins:
-      docker-compose:
+      "$PLUGIN":
         build: helloworld
         config: .buildkite/docker-compose.yml
   - wait
   - command: /hello
+    label: run after build
     plugins:
-      docker-compose:
+      "$PLUGIN":
         run: helloworld
         config: .buildkite/docker-compose.yml
+YAML
