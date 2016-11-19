@@ -1,12 +1,12 @@
 steps:
   - command: /hello
     plugins:
-      docker-compose:
+      ${BUILDKITE_BUILD_CHECKOUT_PATH}#${BUILDKITE_COMMIT}:
         build: helloworld
         config: .buildkite/docker-compose.yml
   - wait
   - command: /hello
     plugins:
-      docker-compose:
+      ${BUILDKITE_BUILD_CHECKOUT_PATH}#${BUILDKITE_COMMIT}:
         run: helloworld
         config: .buildkite/docker-compose.yml
