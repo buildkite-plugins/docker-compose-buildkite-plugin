@@ -2,3 +2,7 @@ version: '2'
 services:
   helloworld:
     build: .
+
+  helloworldimage:
+    image: myhelloworld
+    build: .
