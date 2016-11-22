@@ -15,11 +15,26 @@ image_file_name() {
 }
 
 push_image_to_docker_repository() {
-  local tag="$DOCKER_IMAGE_REPOSITORY:$(image_file_name)"
+  # XXX: Consuming array configuration is pretty gnarly
+  declare -a tags
+  if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_0:-}" ]]; then
+    local i=0
+    local parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_${i}"
+    while [[ -n "${!parameter:-}" ]]; do
+      tags+=("${!parameter}")
+      i=$[$i+1]
+      parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_TAGS_${i}"
+    done
+  else
+    tags+=("$(image_file_name)")
+  fi
 
-  plugin_prompt_and_must_run docker tag "$COMPOSE_SERVICE_DOCKER_IMAGE_NAME" "$tag"
-  plugin_prompt_and_must_run docker push "$tag"
-  plugin_prompt_and_must_run docker rmi "$tag"
+  local tag
+  for tag in "${tags[@]}"; do
+    plugin_prompt_and_must_run docker tag "$COMPOSE_SERVICE_DOCKER_IMAGE_NAME" "$DOCKER_IMAGE_REPOSITORY:$tag"
+    plugin_prompt_and_must_run docker push "$DOCKER_IMAGE_REPOSITORY:$tag"
+    plugin_prompt_and_must_run docker rmi "$DOCKER_IMAGE_REPOSITORY:$tag"
+  done
 
   plugin_prompt_and_must_run buildkite-agent meta-data set "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" "$tag"
 }

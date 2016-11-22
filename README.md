@@ -75,7 +75,7 @@ steps:
     plugins:
       docker-compose:
         build: app
-        image-repository: index.docker.io/org/repo
+        image-repository: org/repo
     
   - wait
 
@@ -107,7 +107,7 @@ Default: `docker-compose.yml`
 
 ## `image-repository` (optional)
 
-The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"index.docker.io/org/repo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
+The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"org/repo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
 
 The default is `""`  which only builds images on the local Docker host doing the build.
 
@@ -116,6 +116,26 @@ Note: this option only needs to be specified on the build step, and will be auto
 Only works with version '2' docker-compose.yml configuration files
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
+
+## `tags` (optional)
+
+By default we'll push the image to your `image-repository` tagged with the automatically generated docker compose container name. You can specify your own tags instead:
+
+```
+steps:
+  - name: ":docker:"
+    plugins:
+      docker-compose:
+        build: app
+        image-repository: org/repo
+        tags:
+          - latest
+          - ${BUILDKITE_COMMIT:0:7}
+          - $BUILDKITE_BRANCH
+          - $BUILDKITE_JOB_ID
+```
+
+Note: if you are running multiple agents on a single machine sharing a Docker daemon then it is possible that multiple jobs with the same tags might collide. Docker can't tag and push images as an atomic operation.
 
 ## Roadmap
 
