@@ -33,6 +33,7 @@ steps:
       docker-compose#${BUILDKITE_COMMIT}:
         build: helloworldimage
         config: test/docker-compose.yml
+  - wait
   - command: /hello
     label: run after build with image name
     plugins:
