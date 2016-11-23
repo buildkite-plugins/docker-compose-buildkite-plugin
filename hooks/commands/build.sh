@@ -24,9 +24,8 @@ push_image_to_docker_repository() {
   plugin_prompt_and_must_run buildkite-agent meta-data set "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" "$tag"
 }
 
-# Either use the build tag as an image name or a tag
-if [[ -z "$COMPOSE_SERVICE_DOCKER_IMAGE_NAME" ]] ; then
-  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$(image_file_name)"
+if [[ -z "$DOCKER_IMAGE_REPOSITORY" ]] ; then
+  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$COMPOSE_SERVICE_NAME:$(image_file_name)"
 else
   BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$COMPOSE_SERVICE_DOCKER_IMAGE_NAME:$(image_file_name)"
 fi
