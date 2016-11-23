@@ -27,7 +27,7 @@ push_image_to_docker_repository() {
 if [[ -z "$DOCKER_IMAGE_REPOSITORY" ]] ; then
   BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$COMPOSE_SERVICE_NAME:$(image_file_name)"
 else
-  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$COMPOSE_SERVICE_DOCKER_IMAGE_NAME:$(image_file_name)"
+  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$DOCKER_IMAGE_REPOSITORY:$(image_file_name)"
 fi
 
 echo "~~~ :docker: Creating a modified Docker Compose config"
