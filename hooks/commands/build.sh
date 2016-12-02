@@ -19,8 +19,6 @@ push_image_to_docker_repository() {
   local tag="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG"
 
   plugin_prompt_and_must_run docker push "$tag"
-  plugin_prompt_and_must_run docker rmi "$tag"
-
   plugin_prompt_and_must_run buildkite-agent meta-data set "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" "$tag"
 }
 
