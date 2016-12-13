@@ -22,7 +22,7 @@ compose_force_cleanup() {
 
   if [[ "$docker_compose_version" == *1.4* || "$docker_compose_version" == *1.5* || "$docker_compose_version" == *1.6* ]]; then
     # There's no --all flag to remove adhoc containers
-    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "true" ]]; then
+    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
       run_docker_compose rm --force -v || true
     else
       run_docker_compose rm --force || true
@@ -34,14 +34,18 @@ compose_force_cleanup() {
     plugin_prompt_and_run docker rm -f "$remove_volume_flag" "$(docker_compose_container_name "$adhoc_run_container_name")" || true
   else
     # `compose down` doesn't support force removing images, so we use `rm --force`
-    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "true" ]]; then
-      run_docker_compose rm --force --all -v || true
+    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
+      run_docker_compose rm --force -v || true
     else
-      run_docker_compose rm --force --all || true
+      run_docker_compose rm --force || true
     fi
 
     # Stop and remove all the linked services and network
-    run_docker_compose down || true
+    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
+      run_docker_compose down --volumes || true
+    else
+      run_docker_compose down || true
+    fi
   fi
 }
 
