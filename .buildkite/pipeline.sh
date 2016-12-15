@@ -43,9 +43,10 @@ steps:
         config: test/docker-compose.yml
   - command: /hello
     label: run after build with image name and logs
+    artifact_paths: 'docker-compose-logs/**'
     plugins:
       docker-compose#${BUILDKITE_COMMIT}:
         run: helloworldimage
         config: test/docker-compose.yml
-        logs: true
+        logs: always
 YAML
