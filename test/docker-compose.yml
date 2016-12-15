@@ -15,4 +15,4 @@ services:
 
   demo:
     image: alpine:3.3
-    command: echo failing alpine link && exit 24
+    command: sh -c "echo failing alpine link; exit 1"
