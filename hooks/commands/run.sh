@@ -77,6 +77,7 @@ exitcode=$?
 
 echo "+++ :docker: Container logs"
 run_docker_compose logs
+docker ps -a
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "Failed, got $exitcode"

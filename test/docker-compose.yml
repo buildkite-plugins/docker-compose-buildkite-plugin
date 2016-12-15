@@ -6,3 +6,12 @@ services:
   helloworldimage:
     image: myhelloworld
     build: .
+
+  alpinewithlink:
+    image: alpine:3.3
+    command: echo hello from alpine
+    links:
+      - demo
+
+  demo:
+    image: alpine:3.3
