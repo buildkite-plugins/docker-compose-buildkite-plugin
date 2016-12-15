@@ -74,9 +74,11 @@ else
 fi
 
 exitcode=$?
-if [[ $exitcode -ne 0 ]] ; then
-  echo "Failed: $LOGS_SETTING"
-fi
 
-run_docker_compose ps
-exit $exitcode
+echo "+++ :docker: Container logs"
+run_docker_compose logs
+
+if [[ $exitcode -ne 0 ]] ; then
+  echo "Failed, got $exitcode"
+  exit $exitcode
+fi
