@@ -2,6 +2,7 @@
 
 COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
 COMPOSE_SERVICE_OVERRIDE_FILE="docker-compose.buildkite-$COMPOSE_SERVICE_NAME-override.yml"
+LOGS_SETTING="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_LOGS"
 
 check_required_args() {
   if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
@@ -71,3 +72,11 @@ if [[ -f "$COMPOSE_SERVICE_OVERRIDE_FILE" ]]; then
 else
   run_docker_compose run "$COMPOSE_SERVICE_NAME" $BUILDKITE_COMMAND
 fi
+
+exitcode=$?
+if [[ $exitcode -ne 0 ]] ; then
+  echo "Failed: $LOGS_SETTING"
+  docker-compose ps
+fi
+
+exit $exitcode
