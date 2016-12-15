@@ -7,7 +7,7 @@ set -eu
 
 cat <<YAML
 steps:
-  - command: echo "hello world"
+  - command: echo hello world
     label: run container with links that fail
     artifact_paths: 'docker-compose-logs/**'
     plugins:
@@ -15,6 +15,7 @@ steps:
         run: alpinewithlink
         config: test/docker-compose.yml
         logs: always
+  - wait
   - command: /hello
     label: run
     plugins:
