@@ -41,4 +41,11 @@ steps:
       docker-compose#${BUILDKITE_COMMIT}:
         run: helloworldimage
         config: test/docker-compose.yml
+  - command: /hello
+    label: run after build with image name and logs
+    plugins:
+      docker-compose#${BUILDKITE_COMMIT}:
+        run: helloworldimage
+        config: test/docker-compose.yml
+        logs: true
 YAML
