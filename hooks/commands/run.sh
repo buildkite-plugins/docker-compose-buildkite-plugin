@@ -78,5 +78,5 @@ if [[ $exitcode -ne 0 ]] ; then
   echo "Failed: $LOGS_SETTING"
 fi
 
-docker-compose ps
+run_docker_compose ps
 exit $exitcode
