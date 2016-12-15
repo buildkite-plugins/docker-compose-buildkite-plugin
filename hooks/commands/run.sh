@@ -76,7 +76,7 @@ fi
 exitcode=$?
 if [[ $exitcode -ne 0 ]] ; then
   echo "Failed: $LOGS_SETTING"
-  docker-compose ps
 fi
 
+docker-compose ps
 exit $exitcode
