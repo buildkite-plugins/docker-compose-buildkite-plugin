@@ -81,8 +81,12 @@ run_docker_compose logs
 echo "+++ :docker: Process List"
 run_docker_compose ps
 
-echo "+++ :docker: Container id's"
-run_docker_compose ps -q
+
+for container_id in $(run_docker_compose ps -q); do
+  echo "+++ :docker: Output of $container_id"
+  docker log $container_id
+done
+
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "Failed, got $exitcode"
