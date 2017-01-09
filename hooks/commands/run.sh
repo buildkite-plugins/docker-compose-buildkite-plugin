@@ -95,10 +95,6 @@ if [[ $exitcode -ne 0 ]] ; then
   echo "+++ :warning: Failed to run command, exited with $exitcode"
 fi
 
-echo "~~~ :docker: Saving container logs as artifacts"
-save_container_logs "docker-compose-logs"
-buildkite-agent artifact upload "docker-compose-logs/*.log"
-
 tail_failed_containers() {
   for container_name in $(list_containers); do
     container_exit_code=$(docker inspect --format='{{.State.ExitCode}}' "$container_name")
@@ -112,4 +108,9 @@ tail_failed_containers() {
 }
 
 tail_failed_containers
+
+echo "~~~ :docker: Saving container logs as artifacts"
+save_container_logs "docker-compose-logs"
+buildkite-agent artifact upload "docker-compose-logs/*.log"
+
 exit $exitcode
