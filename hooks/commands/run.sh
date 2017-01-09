@@ -75,18 +75,26 @@ fi
 
 exitcode=$?
 
-echo "+++ :docker: Container logs"
-run_docker_compose logs
-
-echo "+++ :docker: Process List"
-run_docker_compose ps
-run_docker_compose ps -q
+if [[ $exitcode -ne 0 ]] ; then
+  echo "^^^ +++"
+  echo "Failed, got $exitcode"
+fi
 
 for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
-  echo "+++ :docker: Output of ${container_id}"
-  # docker log $container_id
+  container_name=$(docker inspect --format='{{.Name}}' ${container_id})
+  log_file="docker-compose-logs/${container_name}.log"
+
+  echo "--- :docker: Inspection of ${container_name}"
+  docker inspect "$container_id"
+
+  echo "+++ :docker: Output of ${container_name}"
+  mkdir -p "$(dirname "$log_file")"
+  docker log "$container_id" > "docker-compose-logs/${container_name}.log"
+  head -n 500 "docker-compose-logs/${container_name}.log"
 done
 
+echo "--- :buildkite: Uploading logs as artifacts"
+buildkite-agent artifact upload "docker-compose-logs/*.log"
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "Failed, got $exitcode"
