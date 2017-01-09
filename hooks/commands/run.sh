@@ -88,6 +88,8 @@ list_linked_containers() {
 
 check_linked_containers() {
   local logdir="$1"
+  local cmdexit="$2"
+
   mkdir -p "$logdir"
 
   for container_name in $(list_linked_containers); do
@@ -95,14 +97,17 @@ check_linked_containers() {
 
     if [[ $container_exit_code -ne 0 ]] ; then
       echo "+++ :warning: Linked container $container_name exited with $container_exit_code"
-      plugin_prompt_and_run docker inspect "$container_name"
+    fi
+
+    # Capture logs if the linked container failed OR if the main command failed
+    if [[ $container_exit_code -ne 0 ]] || [[ $cmdexit -ne 0 ]] ; then
       plugin_prompt_and_run docker logs --timestamps --tail 500 "$container_name"
       docker logs -t "$container_name" > "${logdir}/${container_name}.log"
     fi
   done
 }
 
-check_linked_containers "docker-compose-logs"
+check_linked_containers "docker-compose-logs" "$exitcode"
 
 echo "~~~ Uploading container logs as artifacts"
 buildkite-agent artifact upload "docker-compose-logs/*.log"
