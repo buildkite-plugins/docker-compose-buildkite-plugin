@@ -86,7 +86,11 @@ function run_docker_compose() {
   # Append project name
   command+=(-p "$(docker_compose_project_name)")
 
-  plugin_prompt_and_run "${command[@]}" "$@"
+  if [[ -n "$HIDE_PROMPT" ]] ; then
+    plugin_prompt_and_run "${command[@]}" "$@"
+  else
+    "${command[@]}" "$@"
+  fi
 }
 
 function build_meta_data_image_tag_key() {
