@@ -2,7 +2,8 @@
 
 set -eu
 
-# pipeline.yml $ interpolation doesn't work in YAML keys, only values
+# We have to use cat because pipeline.yml $ interpolation doesn't work in YAML
+# keys, only values
 
 cat <<YAML
 steps:
