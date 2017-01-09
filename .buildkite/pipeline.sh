@@ -9,10 +9,9 @@ cat <<YAML
 steps:
   - command: echo hello world
     label: run container with links that fail
-    artifact_paths: 'docker-compose-logs/**'
     plugins:
       docker-compose#${BUILDKITE_COMMIT}:
-        run: alpinewithlink
+        run: alpinewithfailinglink
         config: test/docker-compose.yml
         logs: always
   - wait
