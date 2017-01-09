@@ -18,34 +18,18 @@ compose_force_cleanup() {
   # Send them a friendly kill
   run_docker_compose kill || true
 
-  local docker_compose_version=$(run_docker_compose --version)
-
-  if [[ "$docker_compose_version" == *1.4* || "$docker_compose_version" == *1.5* || "$docker_compose_version" == *1.6* ]]; then
-    # There's no --all flag to remove adhoc containers
-    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
-      run_docker_compose rm --force -v || true
-    else
-      run_docker_compose rm --force || true
-    fi
-
-    # So now we remove the adhoc container
-    # This isn't cleaned up by compose, so we have to do it ourselves
-    local adhoc_run_container_name="${COMPOSE_SERVICE_NAME}_run_1"
-    plugin_prompt_and_run docker rm -f "$remove_volume_flag" "$(docker_compose_container_name "$adhoc_run_container_name")" || true
+  # `compose down` doesn't support force removing images, so we use `rm --force`
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
+    run_docker_compose rm --force -v || true
   else
-    # `compose down` doesn't support force removing images, so we use `rm --force`
-    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
-      run_docker_compose rm --force -v || true
-    else
-      run_docker_compose rm --force || true
-    fi
+    run_docker_compose rm --force || true
+  fi
 
-    # Stop and remove all the linked services and network
-    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
-      run_docker_compose down --volumes || true
-    else
-      run_docker_compose down || true
-    fi
+  # Stop and remove all the linked services and network
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
+    run_docker_compose down --volumes || true
+  else
+    run_docker_compose down || true
   fi
 }
 
@@ -79,7 +63,7 @@ echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_N
 
 # $BUILDKITE_COMMAND needs to be unquoted because:
 #   docker-compose run "app" "go test"
-# does not work whereas the follow down:
+# does not work whereas the follow does:
 #   docker-compose run "app" go test
 
 if [[ -f "$COMPOSE_SERVICE_OVERRIDE_FILE" ]]; then
