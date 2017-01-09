@@ -7,12 +7,12 @@ services:
     image: myhelloworld
     build: .
 
-  alpinewithlink:
+  alpinewithfailinglink:
     image: alpine:3.3
     command: echo hello from alpine
     links:
-      - demo
+      - fail
 
-  demo:
+  fail:
     image: alpine:3.3
-    command: sh -c "echo failing alpine link; exit 1"
+    command: sh -c "echo failing on purpose, expect exit 1; exit 1"

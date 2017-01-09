@@ -75,23 +75,46 @@ fi
 
 exitcode=$?
 
-echo "^^^ +++"
-echo "+++ :warning: Failed to run command, got $exitcode"
+list_containers() {
+  for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
+    docker inspect --format='{{.Name}}' "$container_id"
+  done
+}
 
-for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
-  container_name=$(docker inspect --format='{{.Name}}' ${container_id})
-  log_file="docker-compose-logs/${container_name}.log"
+save_container_logs() {
+  local logdir="$1"
+  mkdir -p "$logdir"
 
-  echo "--- :docker: Inspection of ${container_name}"
-  docker inspect "$container_id"
+  for container_name in $(list_containers); do
+    docker logs -t "$container_name" > "${logdir}/${container_name}.log"
+  done
+}
 
-  echo "--- :docker: Output of ${container_name}"
-  mkdir -p "$(dirname "$log_file")"
-  docker logs -t "$container_id" > "docker-compose-logs/${container_name}.log"
-  head -n 500 "docker-compose-logs/${container_name}.log"
-done
+tail_failed_container_logs() {
+  local logdir="$1"
+  mkdir -p "$logdir"
 
-echo "--- :buildkite: Uploading logs as artifacts"
+  for container_name in $(list_containers); do
+    container_exit_code=$(docker inspect --format='{{.State.ExitCode}}' "$container_name")
+
+    if [[ $container_exit_code -ne 0 ]] ; then
+      echo "+++ :warning: Container $container_name failed, exited with $exitcode"
+      tail -n 500 "${logdir}/${container_name}.log"
+    fi
+  done
+}
+
+if [[ $exitcode -ne 0 ]] ; then
+  echo "^^^ +++"
+  echo "+++ :warning: Failed to run command, exited with $exitcode"
+fi
+
+echo "--- :docker: Process list"
+run_docker_compose ps
+
+echo "--- :docker: Saving container logs as artifacts"
+save_container_logs "docker-compose-logs"
 buildkite-agent artifact upload "docker-compose-logs/*.log"
 
+tail_failed_container_logs "docker-compose-logs"
 exit $exitcode
