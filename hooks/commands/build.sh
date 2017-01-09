@@ -1,22 +1,26 @@
 #!/bin/bash
 
-COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD"
-DOCKER_IMAGE_REPOSITORY="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:-}"
-COMPOSE_SERVICE_OVERRIDE_FILE="docker-compose.buildkite-$COMPOSE_SERVICE_NAME-override.yml"
-IMAGE_NAME="${BUILDKITE_PROJECT_SLUG}-${COMPOSE_SERVICE_NAME}-build-${BUILDKITE_BUILD_NUMBER}"
+# Config options
+
+BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:-}"
+
+# Local vars
+
+COMPOSE_SERVICE_OVERRIDE_FILE="docker-compose.buildkite-$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD-override.yml"
+IMAGE_NAME="${BUILDKITE_PROJECT_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}-build-${BUILDKITE_BUILD_NUMBER}}"
+
+if [[ -z "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY" ]] ; then
+  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:$IMAGE_NAME"
+else
+  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:$IMAGE_NAME"
+fi
 
 push_image_to_docker_repository() {
   local tag="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG"
 
   plugin_prompt_and_must_run docker push "$tag"
-  plugin_prompt_and_must_run buildkite-agent meta-data set "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" "$tag"
+  plugin_prompt_and_must_run buildkite-agent meta-data set "$(build_meta_data_image_tag_key "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD")" "$tag"
 }
-
-if [[ -z "$DOCKER_IMAGE_REPOSITORY" ]] ; then
-  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$COMPOSE_SERVICE_NAME:$IMAGE_NAME"
-else
-  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$DOCKER_IMAGE_REPOSITORY:$IMAGE_NAME"
-fi
 
 echo "~~~ :docker: Creating a modified Docker Compose config"
 
@@ -24,17 +28,17 @@ echo "~~~ :docker: Creating a modified Docker Compose config"
 cat > $COMPOSE_SERVICE_OVERRIDE_FILE <<EOF
 version: '2'
 services:
-  $COMPOSE_SERVICE_NAME:
+  $BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:
     image: $BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG
 EOF
 cat $COMPOSE_SERVICE_OVERRIDE_FILE
 
-echo "+++ :docker: Building Docker Compose images for service $COMPOSE_SERVICE_NAME"
+echo "+++ :docker: Building Docker Compose images for service $BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD"
 
-run_docker_compose -f "$COMPOSE_SERVICE_OVERRIDE_FILE" build "$COMPOSE_SERVICE_NAME"
+run_docker_compose -f "$COMPOSE_SERVICE_OVERRIDE_FILE" build "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD"
 
-if [[ ! -z "$DOCKER_IMAGE_REPOSITORY" ]]; then
-  echo "~~~ :docker: Pushing image to $DOCKER_IMAGE_REPOSITORY"
+if [[ ! -z "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY" ]]; then
+  echo "~~~ :docker: Pushing image to $BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY"
 
   push_image_to_docker_repository
 fi
