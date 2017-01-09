@@ -99,19 +99,17 @@ echo "~~~ :docker: Saving container logs as artifacts"
 save_container_logs "docker-compose-logs"
 buildkite-agent artifact upload "docker-compose-logs/*.log"
 
-tail_failed_container_logs() {
-  local logdir="$1"
-  mkdir -p "$logdir"
-
+tail_failed_containers() {
   for container_name in $(list_containers); do
     container_exit_code=$(docker inspect --format='{{.State.ExitCode}}' "$container_name")
 
     if [[ $container_exit_code -ne 0 ]] ; then
       echo "+++ :warning: Container $container_name failed, exited with $container_exit_code"
-      tail -n 500 "${logdir}/${container_name}.log"
+      plugin_prompt_and_run docker inspect "$container_name"
+      plugin_prompt_and_run docker logs --timestamps --tail 500 "$container_name"
     fi
   done
 }
 
-tail_failed_container_logs "docker-compose-logs"
+tail_failed_containers
 exit $exitcode
