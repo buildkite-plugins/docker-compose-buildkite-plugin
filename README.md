@@ -76,7 +76,7 @@ steps:
       docker-compose:
         build: app
         image-repository: index.docker.io/org/repo
-    
+
   - wait
 
   - name: ":docker: Test %n"
@@ -116,6 +116,18 @@ Note: this option only needs to be specified on the build step, and will be auto
 Only works with version '2' docker-compose.yml configuration files
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
+
+## `image-tag` (optional)
+
+If you want to use a custom tag, please set this option.
+
+The default is `"$project_name-$COMPOSE_SERVICE_NAME-build-$BUILDKITE_BUILD_NUMBER"`.
+
+Note: this option only needs to be specified on the build step, and will be automatically picked up by following steps.
+
+Only works with version '2' docker-compose.yml configuration files
+
+This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_TAG`.
 
 ## Roadmap
 
