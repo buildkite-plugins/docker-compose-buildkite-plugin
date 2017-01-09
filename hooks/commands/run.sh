@@ -77,7 +77,7 @@ exitcode=$?
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
-  echo "Failed, got $exitcode"
+  echo "+++ :warning: Failed to run command, got $exitcode"
 fi
 
 for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
@@ -87,16 +87,13 @@ for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
   echo "--- :docker: Inspection of ${container_name}"
   docker inspect "$container_id"
 
-  echo "+++ :docker: Output of ${container_name}"
+  echo "--- :docker: Output of ${container_name}"
   mkdir -p "$(dirname "$log_file")"
-  docker log "$container_id" > "docker-compose-logs/${container_name}.log"
+  docker logs -t "$container_id" > "docker-compose-logs/${container_name}.log"
   head -n 500 "docker-compose-logs/${container_name}.log"
 done
 
 echo "--- :buildkite: Uploading logs as artifacts"
 buildkite-agent artifact upload "docker-compose-logs/*.log"
 
-if [[ $exitcode -ne 0 ]] ; then
-  echo "Failed, got $exitcode"
-  exit $exitcode
-fi
+exit $exitcode
