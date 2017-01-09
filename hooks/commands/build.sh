@@ -4,16 +4,7 @@ COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD"
 COMPOSE_SERVICE_DOCKER_IMAGE_NAME="$(docker_compose_container_name "$COMPOSE_SERVICE_NAME")"
 DOCKER_IMAGE_REPOSITORY="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY:-}"
 COMPOSE_SERVICE_OVERRIDE_FILE="docker-compose.buildkite-$COMPOSE_SERVICE_NAME-override.yml"
-
-# Returns a friendly image file name like "myproject-app-build-49" than can be
-# used as the docker image tag or tar.gz filename
-image_file_name() {
-  # The project slug env variable includes the org (e.g. "org/project"), so we
-  # have to strip the org from the front (e.g. "project")
-  local project_name=$(echo "$BUILDKITE_PROJECT_SLUG" | sed 's/^\([^\/]*\/\)//g')
-
-  echo "$project_name-$COMPOSE_SERVICE_NAME-build-$BUILDKITE_BUILD_NUMBER"
-}
+IMAGE_NAME="${BUILDKITE_PROJECT_SLUG}-${COMPOSE_SERVICE_NAME}-build-${BUILDKITE_BUILD_NUMBER}"
 
 push_image_to_docker_repository() {
   local tag="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG"
@@ -23,9 +14,9 @@ push_image_to_docker_repository() {
 }
 
 if [[ -z "$DOCKER_IMAGE_REPOSITORY" ]] ; then
-  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$COMPOSE_SERVICE_NAME:$(image_file_name)"
+  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$COMPOSE_SERVICE_NAME:$IMAGE_NAME"
 else
-  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$DOCKER_IMAGE_REPOSITORY:$(image_file_name)"
+  BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_TAG="$DOCKER_IMAGE_REPOSITORY:$IMAGE_NAME"
 fi
 
 echo "~~~ :docker: Creating a modified Docker Compose config"
