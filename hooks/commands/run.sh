@@ -75,10 +75,8 @@ fi
 
 exitcode=$?
 
-if [[ $exitcode -ne 0 ]] ; then
-  echo "^^^ +++"
-  echo "+++ :warning: Failed to run command, got $exitcode"
-fi
+echo "^^^ +++"
+echo "+++ :warning: Failed to run command, got $exitcode"
 
 for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
   container_name=$(docker inspect --format='{{.Name}}' ${container_id})
