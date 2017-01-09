@@ -107,6 +107,7 @@ check_linked_containers() {
   done
 }
 
+echo "~~~ Checking linked containers"
 check_linked_containers "docker-compose-logs" "$exitcode"
 
 echo "~~~ Uploading container logs as artifacts"
