@@ -86,7 +86,7 @@ function run_docker_compose() {
   # Append project name
   command+=(-p "$(docker_compose_project_name)")
 
-  if [[ -n "$HIDE_PROMPT" ]] ; then
+  if [[ -z "${HIDE_PROMPT:-}" ]] ; then
     plugin_prompt_and_run "${command[@]}" "$@"
   else
     "${command[@]}" "$@"
