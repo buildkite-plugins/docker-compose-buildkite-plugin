@@ -103,6 +103,8 @@ check_linked_containers() {
 }
 
 check_linked_containers "docker-compose-logs"
+
+echo "~~~ Uploading container logs as artifacts"
 buildkite-agent artifact upload "docker-compose-logs/*.log"
 
 exit $exitcode
