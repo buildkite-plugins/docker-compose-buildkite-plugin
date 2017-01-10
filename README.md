@@ -76,7 +76,7 @@ steps:
       docker-compose:
         build: app
         image-repository: index.docker.io/org/repo
-    
+
   - wait
 
   - name: ":docker: Test %n"
@@ -119,7 +119,7 @@ This option can also be configured on the agent machine using the environment va
 
 The name to use when tagging pre-built images.
 
-The default is `${BUILDKITE_PROJECT_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}-build-${BUILDKITE_BUILD_NUMBER}`, for example `my-project-web-build-42`.
+The default is `${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}-build-${BUILDKITE_BUILD_NUMBER}`, for example `my-project-web-build-42`.
 
 Note: this option can only be specified on a `build` step.
 
