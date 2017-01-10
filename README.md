@@ -113,9 +113,15 @@ The default is `""`  which only builds images on the local Docker host doing the
 
 Note: this option only needs to be specified on the build step, and will be automatically picked up by following steps.
 
-Only works with version '2' docker-compose.yml configuration files
-
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
+
+## `image-name` (optional)
+
+The name to use when tagging pre-built images.
+
+The default is `${BUILDKITE_PROJECT_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}-build-${BUILDKITE_BUILD_NUMBER}`, for example `my-project-web-build-42`.
+
+Note: this option can only be specified on a `build` step.
 
 ## Roadmap
 
