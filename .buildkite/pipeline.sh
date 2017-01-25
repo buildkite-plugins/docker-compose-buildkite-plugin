@@ -7,6 +7,13 @@ set -eu
 
 cat <<YAML
 steps:
+  - command: echo hello world
+    label: run container with links that fail
+    plugins:
+      docker-compose#${BUILDKITE_COMMIT}:
+        run: alpinewithfailinglink
+        config: test/docker-compose.yml
+  - wait
   - command: /hello
     label: run
     plugins:
@@ -41,4 +48,11 @@ steps:
       docker-compose#${BUILDKITE_COMMIT}:
         run: helloworldimage
         config: test/docker-compose.yml
+  - command: /hello
+    label: run after build with image name and logs
+    plugins:
+      docker-compose#${BUILDKITE_COMMIT}:
+        run: helloworldimage
+        config: test/docker-compose.yml
+
 YAML
