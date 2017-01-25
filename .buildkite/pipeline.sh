@@ -13,7 +13,6 @@ steps:
       docker-compose#${BUILDKITE_COMMIT}:
         run: alpinewithfailinglink
         config: test/docker-compose.yml
-        logs: always
   - wait
   - command: /hello
     label: run
@@ -55,6 +54,5 @@ steps:
       docker-compose#${BUILDKITE_COMMIT}:
         run: helloworldimage
         config: test/docker-compose.yml
-        logs: always
 
 YAML
