@@ -2,7 +2,7 @@
 
 __This is designed to run with the upcoming version of 3.0 of Buildkite Agent (currently in beta). Plugins are not yet supported in version 2.1. See the [Containerized Builds with Docker](https://buildkite.com/docs/guides/docker-containerized-builds) guide for running builds in Docker with the current stable version of the Buildkite Agent.__
 
-A Buildkite plugin allowing you to create a build system capable of running any project or tool with a [Docker Compose](https://docs.docker.com/compose/) config file in its repository.
+A [Buildkite](https://buildkite.com/) plugin allowing you to create a build system capable of running any project or tool with a [Docker Compose](https://docs.docker.com/compose/) config file in its repository.
 
 * Containers are built, run and linked on demand using Docker Compose
 * Containers are namespaced to each build job, and cleaned up after use
