@@ -44,6 +44,28 @@ steps:
           - docker-compose.test.yml
 ```
 
+# Artifacts
+
+If you’re generating artifacts in the build step, you’ll need to ensure your Docker Compose configuration volume mounts the host machine directory into the container where those artifacts are created.
+
+For example, if you had the following step:
+
+```yml
+steps:
+  - command: generate-dist.sh
+    artifact_paths: "dist/*"
+    plugins:
+      docker-compose#v1.0:
+        run: app
+```
+
+Assuming your application’s directory inside the container was `/app`, you would need to ensure your `app` service in your Docker Compose config has the following host volume mount:
+
+```yml
+volumes:
+  - "./dist:/app/dist"
+```
+
 # Pre-building the image
 
 To speed up run parallel steps you can add a pre-building step to your pipeline, allowing all the `run` steps to skip image building:
