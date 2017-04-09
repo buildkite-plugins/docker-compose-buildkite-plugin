@@ -10,10 +10,6 @@ else
   commit="${BUILDKITE_COMMIT}"
 fi
 
-# We use the pipeline checkout dir as the plugin itself, so we just get one
-# checkout for everything and it works with localhost too.
-plugin="$(pwd)"
-
 # We have to use cat because pipeline.yml $ interpolation doesn't work in YAML
 # keys, only values
 
@@ -22,48 +18,48 @@ steps:
   - command: echo hello world
     label: run container with links that fail
     plugins:
-      ${plugin}#${commit}:
+      ${BUILDKITE_REPO}#${commit}:
         run: alpinewithfailinglink
         config: test/docker-compose.yml
   - wait
   - command: /hello
     label: run
     plugins:
-      ${plugin}#${commit}:
+      ${BUILDKITE_REPO}#${commit}:
         run: helloworld
         config: test/docker-compose.yml
   - wait
   - command: /hello
     label: build
     plugins:
-      ${plugin}#${commit}:
+      ${BUILDKITE_REPO}#${commit}:
         build: helloworld
         config: test/docker-compose.yml
   - wait
   - command: /hello
     label: run after build
     plugins:
-      ${plugin}#${commit}:
+      ${BUILDKITE_REPO}#${commit}:
         run: helloworld
         config: test/docker-compose.yml
   - wait
   - command: /hello
     label: build with image name
     plugins:
-      ${plugin}#${commit}:
+      ${BUILDKITE_REPO}#${commit}:
         build: helloworldimage
         config: test/docker-compose.yml
   - wait
   - command: /hello
     label: run after build with image name
     plugins:
-      ${plugin}#${commit}:
+      ${BUILDKITE_REPO}#${commit}:
         run: helloworldimage
         config: test/docker-compose.yml
   - command: /hello
     label: run after build with image name and logs
     plugins:
-      ${plugin}#${commit}:
+      ${BUILDKITE_REPO}#${commit}:
         run: helloworldimage
         config: test/docker-compose.yml
 YAML
