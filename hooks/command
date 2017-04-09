@@ -2,13 +2,6 @@
 
 set -ueo pipefail
 
-# Turn the old school BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_GIT_
-# environment variables into the desired BUILDKITE_PLUGIN_DOCKER_COMPOSE_
-# variables. This can be removed once we update the bootstrap for this new
-# plugin naming convention.
-export $(env | grep "_BUILDKITE_PLUGIN_GIT_" | sed "s/_BUILDKITE_PLUGIN_GIT_/_/")
-export $(env | grep "BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_" | sed "s/BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKITE_PLUGIN_/BUILDKITE_PLUGIN_DOCKER_COMPOSE_/g")
-
 ## SET UP SHARED FUNCTIONS
 
 # Show a prompt for a command
