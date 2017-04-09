@@ -148,7 +148,6 @@ Note: this option can only be specified on a `build` step.
 ## Roadmap
 
 * Support pre-building of multiple Docker Compose services
-* Support specifying multiple docker-compose config files
 
 ## License
 
