@@ -15,12 +15,14 @@ else
   TAG="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_NAME"
 fi
 
+COMPOSE_VERSION=$(grep -Po "version(.+)" docker-compose.yml | grep -Po "\d\.\d")
+
 echo "~~~ :docker: Creating a modified Docker Compose config"
 
 # Override the config so that docker-compose automatically tags the image when built
 
 cat > $COMPOSE_SERVICE_OVERRIDE_FILE <<EOF
-version: '2'
+version: '$COMPOSE_VERSION'
 services:
   $BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:
     image: $TAG
