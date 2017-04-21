@@ -18,7 +18,7 @@ fi
 echo "~~~ :docker: Creating a modified Docker Compose config"
 
 build_image_override_file "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD" "$TAG" \
-  tee "$COMPOSE_SERVICE_OVERRIDE_FILE"
+  | tee "$COMPOSE_SERVICE_OVERRIDE_FILE"
 
 echo "+++ :docker: Building Docker Compose images for service $BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD"
 

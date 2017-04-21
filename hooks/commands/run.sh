@@ -47,7 +47,7 @@ try_image_restore_from_docker_repository() {
     echo "~~~ :docker: Creating a modified Docker Compose config"
 
     build_image_override_file "$COMPOSE_SERVICE_NAME" "$tag" \
-      tee "$COMPOSE_SERVICE_OVERRIDE_FILE"
+      | tee "$COMPOSE_SERVICE_OVERRIDE_FILE"
   fi
 }
 
