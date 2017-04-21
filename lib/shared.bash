@@ -63,6 +63,17 @@ function docker_compose_config_file() {
   docker_compose_config_files | head -n1
 }
 
+# Build an docker-compose file that overrides the image for a given service
+function build_image_override_file() {
+  local service="$1"
+  local image="$2"
+
+  printf "version: '2'\n"
+  printf "services:\n"
+  printf "  %s:\n" "$service"
+  printf "    image: %s\n" "$image"
+}
+
 # Runs the docker-compose command, scoped to the project, with the given arguments
 function run_docker_compose() {
   local command=(docker-compose)
