@@ -16,38 +16,22 @@ fi
 cat <<YAML
 steps:
   - label: run bats tests
-    command:
+    command: bats test
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: bats
         config: test/docker-compose.bats.yml
 
   - wait
-  - label: run, with links that fail, should still pass
+  - label: run, with links that fail
     command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: alpinewithfailinglink
         config: test/docker-compose.yml
 
-  - label: run, with multiple config files as an array
-    command: /hello
-    plugins:
-      ${BUILDKITE_REPO}#${commit}:
-        run: helloworld
-        config:
-          - test/docker-compose.yml
-          - test/docker-compose.add-env.yml
-
-  - label: run, with multiple config files comma delimited
-    command: /hello
-    plugins:
-      ${BUILDKITE_REPO}#${commit}:
-        run: helloworld
-        config: test/docker-compose.yml:test/docker-compose.add-env.yml
-
   - wait
-  - label: build, with a single config
+  - label: build
     command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
