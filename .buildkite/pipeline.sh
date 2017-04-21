@@ -24,7 +24,7 @@ steps:
 
   - wait
   - label: run, with links that fail
-    command: /hello
+    command: echo hello from alpine
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: alpinewithfailinglink
