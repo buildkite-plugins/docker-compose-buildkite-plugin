@@ -15,51 +15,67 @@ fi
 
 cat <<YAML
 steps:
-  - command: echo hello world
-    label: run container with links that fail
+  - label: run bats tests
+    command:
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        run: bats
+        config: test/docker-compose.bats.yml
+
+  - wait
+  - label: run, with links that fail, should still pass
+    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: alpinewithfailinglink
         config: test/docker-compose.yml
-  - wait
-  - command: /hello
-    label: run
+
+  - label: run, with multiple config files as an array
+    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: helloworld
-        config: test/docker-compose.yml
+        config:
+          - test/docker-compose.yml
+          - test/docker-compose.add-env.yml
+
+  - label: run, with multiple config files comma delimited
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        run: helloworld
+        config: test/docker-compose.yml:test/docker-compose.add-env.yml
+
   - wait
-  - command: /hello
-    label: build
+  - label: build, with a single config
+    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         build: helloworld
         config: test/docker-compose.yml
+
   - wait
-  - command: /hello
-    label: run after build
+  - label: run after build
+    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: helloworld
         config: test/docker-compose.yml
+
   - wait
-  - command: /hello
-    label: build with image name
+  - label: build, where an image name is specified
+    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         build: helloworldimage
         config: test/docker-compose.yml
+
   - wait
-  - command: /hello
-    label: run after build with image name
+  - label: run after build with image name specified
+    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: helloworldimage
         config: test/docker-compose.yml
-  - command: /hello
-    label: run after build with image name and logs
-    plugins:
-      ${BUILDKITE_REPO}#${commit}:
-        run: helloworldimage
-        config: test/docker-compose.yml
+
 YAML
