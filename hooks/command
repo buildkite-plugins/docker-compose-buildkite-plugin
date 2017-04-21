@@ -3,7 +3,7 @@ set -ueo pipefail
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
-. "$DIR/../lin/shared.bash"
+. "$DIR/../lib/shared.bash"
 
 if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:-}" ]]; then
   . "$DIR/commands/build.sh"
