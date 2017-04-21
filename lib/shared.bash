@@ -1,6 +1,6 @@
 
 # Show a prompt for a command
-function plugin_prompt {
+function plugin_prompt() {
   # Output "$" prefix in a pleasant grey...
   echo -ne "\033[90m$\033[0m"
 
@@ -12,14 +12,21 @@ function plugin_prompt {
 }
 
 # Shows the command being run, and runs it
-function plugin_prompt_and_run {
+function plugin_prompt_and_run() {
   plugin_prompt "$@"
   "$@"
 }
 
 # Shows the command about to be run, and exits if it fails
-function plugin_prompt_and_must_run {
+function plugin_prompt_and_must_run() {
   plugin_prompt_and_run "$@" || exit $?
+}
+
+# Shorthand for reading env config
+function plugin_read_config() {
+  local var="BUILDKITE_PLUGIN_DOCKER_COMPOSE_${1}"
+  local default="${2:-}"
+  echo "${!var:-$default}"
 }
 
 # Returns the name of the docker compose project for this build

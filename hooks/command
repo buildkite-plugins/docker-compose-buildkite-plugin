@@ -5,9 +5,9 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 . "$DIR/../lib/shared.bash"
 
-if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD:-}" ]]; then
+if [[ ! -z "$(plugin_read_config BUILD)" ]]; then
   . "$DIR/commands/build.sh"
-elif [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN:-}" ]]; then
+elif [[ ! -z "$(plugin_read_config RUN)" ]]; then
   . "$DIR/commands/run.sh"
 else
   echo "+++ Docker Compose plugin error"

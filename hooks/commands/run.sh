@@ -1,7 +1,7 @@
 #!/bin/bash
 
-COMPOSE_SERVICE_NAME="$BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN"
-COMPOSE_SERVICE_OVERRIDE_FILE="docker-compose.buildkite-$COMPOSE_SERVICE_NAME-override.yml"
+run_service_name="$(plugin_read_config RUN)"
+override_file="docker-compose.buildkite-${run_service_name}-override.yml"
 
 check_required_args() {
   if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
@@ -18,15 +18,15 @@ compose_force_cleanup() {
   # Send them a friendly kill
   run_docker_compose kill || true
 
-  # `compose down` doesn't support force removing images, so we use `rm --force`
-  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
+  # `compose down` doesn't support force removing images
+  if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
     run_docker_compose rm --force -v || true
   else
     run_docker_compose rm --force || true
   fi
 
   # Stop and remove all the linked services and network
-  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES:-false}" == "false" ]]; then
+  if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
     run_docker_compose down --volumes || true
   else
     run_docker_compose down || true
@@ -36,34 +36,32 @@ compose_force_cleanup() {
 trap compose_force_cleanup EXIT
 
 try_image_restore_from_docker_repository() {
-  plugin_prompt buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")"
-  local tag="$(buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$COMPOSE_SERVICE_NAME")" 2>/dev/null)"
+  plugin_prompt buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$run_service_name")"
+  local image="$(buildkite-agent meta-data get "$(build_meta_data_image_tag_key "$run_service_name")" 2>/dev/null)"
 
-  if [[ ! -z "$tag" ]]; then
-    echo "~~~ :docker: Pulling docker image $tag"
-
-    plugin_prompt_and_must_run docker pull "$tag"
+  if [[ ! -z "$image" ]]; then
+    echo "~~~ :docker: Pulling docker image $image"
+    plugin_prompt_and_must_run docker pull "$image"
 
     echo "~~~ :docker: Creating a modified Docker Compose config"
-
-    build_image_override_file "$COMPOSE_SERVICE_NAME" "$tag" \
-      | tee "$COMPOSE_SERVICE_OVERRIDE_FILE"
+    build_image_override_file "$run_service_name" "$image" \
+      | tee "$override_file"
   fi
 }
 
 try_image_restore_from_docker_repository
 
-echo "+++ :docker: Running command in Docker Compose service: $COMPOSE_SERVICE_NAME"
+echo "+++ :docker: Running command in Docker Compose service: $run_service_name"
 
 # $BUILDKITE_COMMAND needs to be unquoted because:
 #   docker-compose run "app" "go test"
 # does not work whereas the follow does:
 #   docker-compose run "app" go test
 
-if [[ -f "$COMPOSE_SERVICE_OVERRIDE_FILE" ]]; then
-  run_docker_compose -f "$COMPOSE_SERVICE_OVERRIDE_FILE" run "$COMPOSE_SERVICE_NAME" $BUILDKITE_COMMAND
+if [[ -f "$override_file" ]]; then
+  run_docker_compose -f "$override_file" run "$run_service_name" $BUILDKITE_COMMAND
 else
-  run_docker_compose run "$COMPOSE_SERVICE_NAME" $BUILDKITE_COMMAND
+  run_docker_compose run "$run_service_name" $BUILDKITE_COMMAND
 fi
 
 exitcode=$?
