@@ -22,7 +22,7 @@ fi
 
 echo "~~~ :docker: Pulling down latest images"
 
-if [[ -n "$build_image" ]] ; then
+if [[ -f "$override_file" ]] ; then
   run_docker_compose -f "$override_file" pull "$service_name"
 fi
 
