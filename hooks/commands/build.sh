@@ -20,5 +20,5 @@ run_docker_compose -f "$override_file" build "$build_service_name"
 if [[ ! -z "$build_image_repository" ]]; then
   echo "~~~ :docker: Pushing image to $build_image_repository"
   plugin_prompt_and_must_run docker push "$build_image_name"
-  plugin_prompt_and_must_run buildkite-agent meta-data set "$(build_meta_data_image_tag_key "$build_service_name")" "$build_image_name"
+  plugin_set_build_image_metadata "$build_service_name" "$build_image_name"
 fi

@@ -26,6 +26,23 @@ function plugin_read_config() {
   echo "${!var:-$default}"
 }
 
+# Read agent metadata for pre-built images
+function plugin_get_build_image_metadata() {
+  local service="$1"
+  plugin_prompt_and_must_run \
+    buildkite-agent meta-data get \
+    "docker-compose-plugin-built-image-tag-${service}"
+}
+
+# Write agent metadata for pre-built images
+function plugin_set_build_image_metadata() {
+  local service="$1"
+  local value="$2"
+  plugin_prompt_and_must_run \
+    buildkite-agent meta-data set \
+    "docker-compose-plugin-built-image-tag-${service}" "$value"
+}
+
 # Returns the name of the docker compose project for this build
 function docker_compose_project_name() {
   # No dashes or underscores because docker-compose will remove them anyways
@@ -89,8 +106,4 @@ function run_docker_compose() {
   command+=(-p "$(docker_compose_project_name)")
 
   plugin_prompt_and_run "${command[@]}" "$@"
-}
-
-function build_meta_data_image_tag_key() {
-  echo "docker-compose-plugin-built-image-tag-$1"
 }
