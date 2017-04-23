@@ -1,7 +1,5 @@
 
-compose_force_cleanup() {
-  echo "~~~ :docker: Cleaning up Docker containers"
-
+compose_cleanup() {
   # Send them a friendly kill
   run_docker_compose kill || true
 
@@ -20,19 +18,9 @@ compose_force_cleanup() {
   fi
 }
 
-try_image_restore_from_docker_repository() {
-  local version
-
-  if image=$(plugin_get_build_image_metadata "$run_service_name") 2>/dev/null; then
-    echo "~~~ :docker: Pulling docker image $image"
-    plugin_prompt_and_must_run docker pull "$image"
-
-    version=$(docker_compose_config_version)
-
-    echo "~~~ :docker: Creating a modified Docker Compose config ($version)"
-    build_image_override_file "$version" "$run_service_name" "$image" \
-      | tee "$override_file"
-  fi
+get_prebuilt_image_from_metadata() {
+  local service_name="$1"
+  plugin_get_build_image_metadata "$service_name"
 }
 
 list_linked_containers() {
