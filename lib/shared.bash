@@ -49,7 +49,8 @@ function docker_compose_project_name() {
   echo "buildkite${BUILDKITE_JOB_ID//-}"
 }
 
-# Returns the name of the docker compose container that corresponds to the given service
+# Returns the name of the docker compose container that corresponds to the
+# given service
 function docker_compose_container_name() {
   echo "$(docker_compose_project_name)_$1"
 }
@@ -84,12 +85,18 @@ function docker_compose_config_file() {
   docker_compose_config_files | head -n1
 }
 
+# Returns the version of the first docker compose config file
+function docker_compose_config_version() {
+  sed -n "s/version: ['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
+}
+
 # Build an docker-compose file that overrides the image for a given service
 function build_image_override_file() {
-  local service="$1"
-  local image="$2"
+  local version="$1"
+  local service="$2"
+  local image="$3"
 
-  printf "version: '2'\n"
+  printf "version: '%s'\n" "$version"
   printf "services:\n"
   printf "  %s:\n" "$service"
   printf "    image: %s\n" "$image"

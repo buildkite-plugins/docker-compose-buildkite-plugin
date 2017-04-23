@@ -27,7 +27,7 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: alpinewithfailinglink
-        config: tests/composefiles/docker-compose.yml
+        config: tests/composefiles/docker-compose.2.1.yml
 
   - wait
   - label: build
@@ -35,15 +35,24 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         build: helloworld
-        config: tests/composefiles/docker-compose.yml
+        config: tests/composefiles/docker-compose.2.1.yml
 
   - wait
-  - label: run after build
+  - label: run after build with v2.0
     command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: helloworld
-        config: tests/composefiles/docker-compose.yml
+        config: tests/composefiles/docker-compose.2.0.yml
+
+  - wait
+  - label: run after build with v2.1
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        run: helloworld
+        config: tests/composefiles/docker-compose.2.1.yml
+
 
   - wait
   - label: build, where an image name is specified
@@ -51,7 +60,7 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         build: helloworldimage
-        config: tests/composefiles/docker-compose.yml
+        config: tests/composefiles/docker-compose.2.1.yml
 
   - wait
   - label: run after build with image name specified
@@ -59,6 +68,6 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: helloworldimage
-        config: tests/composefiles/docker-compose.yml
+        config: tests/composefiles/docker-compose.2.1.yml
 
 YAML
