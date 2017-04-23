@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+  helloworld:
+    build: .
+
+  helloworldimage:
+    image: myhelloworld
+    build: .
+
+  alpinewithfailinglink:
+    image: alpine:3.3
+    command: echo hello from alpine
+    links:
+      - fail
+
+  fail:
+    image: alpine:3.3
+    command: sh -c "echo failing on purpose, expect exit 1; exit 1"

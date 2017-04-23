@@ -36,14 +36,16 @@ compose_force_cleanup() {
 trap compose_force_cleanup EXIT
 
 try_image_restore_from_docker_repository() {
-  local image
+  local version
 
   if image=$(plugin_get_build_image_metadata "$run_service_name") 2>/dev/null; then
     echo "~~~ :docker: Pulling docker image $image"
     plugin_prompt_and_must_run docker pull "$image"
 
-    echo "~~~ :docker: Creating a modified Docker Compose config"
-    build_image_override_file "$run_service_name" "$image" \
+    version=$(docker_compose_config_version)
+
+    echo "~~~ :docker: Creating a modified Docker Compose config ($version)"
+    build_image_override_file "$version" "$run_service_name" "$image" \
       | tee "$override_file"
   fi
 }

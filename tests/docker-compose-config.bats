@@ -48,3 +48,19 @@ load '../lib/shared'
   [ "$status" -eq 0 ]
   [ "${lines[0]}" == "llamas1.yml" ]
 }
+
+@test "Read version from docker-compose v2 file" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v2.0.yml"
+  run docker_compose_config_version
+  echo $output
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" == "2" ]
+}
+
+@test "Read version from docker-compose v2.1 file" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v2.1.yml"
+  run docker_compose_config_version
+  echo $output
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" == "2.1" ]
+}

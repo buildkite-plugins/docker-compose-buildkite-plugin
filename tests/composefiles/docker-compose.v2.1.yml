@@ -1,6 +1,9 @@
-version: '2'
+version: "2.1"
+
 services:
   helloworld:
+    environment:
+      - BLAH=${VARIABLE:-default}
     build: .
 
   helloworldimage:
