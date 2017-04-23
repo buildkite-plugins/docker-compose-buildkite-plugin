@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '../../lib/shared'
+load '../lib/shared'
 
 @test "Read docker-compose config when none exists" {
   run docker_compose_config_files
