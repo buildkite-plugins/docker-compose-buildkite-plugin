@@ -16,10 +16,10 @@ fi
 cat <<YAML
 steps:
   - label: run bats tests
-    command: bats test
+    command: bats tests/lib tests/commands
     plugins:
       ${BUILDKITE_REPO}#${commit}:
-        run: bats
+        run: tests
 
   - wait
   - label: run, with links that fail
