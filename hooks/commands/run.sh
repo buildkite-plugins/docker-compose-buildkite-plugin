@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eu
 
 service_name="$(plugin_read_config RUN)"
 override_file="docker-compose.buildkite-${service_name}-override.yml"
@@ -19,7 +20,16 @@ if build_image=$(get_prebuilt_image_from_metadata "$service_name") ; then
     > "$override_file"
 fi
 
+echo "~~~ :docker: Pulling down latest images"
+
+if [[ -f "$override_file" ]]; then
+  run_docker_compose -f "$override_file" pull --ignore-pull-failures
+else
+  run_docker_compose pull --ignore-pull-failures
+fi
+
 echo "+++ :docker: Running command in Docker Compose service: $service_name"
+set +e
 
 # $BUILDKITE_COMMAND needs to be unquoted because:
 #   docker-compose run "app" "go test"
@@ -27,11 +37,9 @@ echo "+++ :docker: Running command in Docker Compose service: $service_name"
 #   docker-compose run "app" go test
 
 if [[ -f "$override_file" ]]; then
-  run_docker_compose -f "$override_file" pull && \
-    run_docker_compose -f "$override_file" run "$service_name" $BUILDKITE_COMMAND
+  run_docker_compose -f "$override_file" run "$service_name" $BUILDKITE_COMMAND
 else
-  run_docker_compose pull && \
-    run_docker_compose run "$service_name" $BUILDKITE_COMMAND
+  run_docker_compose run "$service_name" $BUILDKITE_COMMAND
 fi
 
 exitcode=$?
