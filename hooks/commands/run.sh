@@ -17,16 +17,11 @@ test -f "$override_file" && rm "$override_file"
 if build_image=$(get_prebuilt_image_from_metadata "$service_name") ; then
   echo "~~~ :docker: Creating a modified Docker Compose config"
   build_image_override_file "$service_name" "$build_image" \
-    > "$override_file"
-fi
+    | tee "$override_file"
 
-echo "~~~ :docker: Pulling down latest images"
-
-if [[ -f "$override_file" ]] ; then
+  echo "~~~ :docker: Pulling down latest images"
   run_docker_compose -f "$override_file" pull "$service_name"
 fi
-
-run_docker_compose pull --ignore-pull-failures
 
 echo "+++ :docker: Running command in Docker Compose service: $service_name"
 set +e

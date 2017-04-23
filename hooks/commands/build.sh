@@ -12,7 +12,7 @@ fi
 
 echo "~~~ :docker: Creating a modified Docker Compose config"
 build_image_override_file "$build_service_name" "$build_image_name" \
-  > "$override_file"
+  | tee "$override_file"
 
 echo "+++ :docker: Building Docker Compose images for service $build_service_name"
 run_docker_compose -f "$override_file" build "$build_service_name"
