@@ -27,10 +27,10 @@ echo "+++ :docker: Running command in Docker Compose service: $service_name"
 #   docker-compose run "app" go test
 
 if [[ -f "$override_file" ]]; then
-  run_docker_compose -f "$override_file" pull "$service_name" && \
+  run_docker_compose -f "$override_file" pull && \
     run_docker_compose -f "$override_file" run "$service_name" $BUILDKITE_COMMAND
 else
-  run_docker_compose pull "$service_name" && \
+  run_docker_compose pull && \
     run_docker_compose run "$service_name" $BUILDKITE_COMMAND
 fi
 
