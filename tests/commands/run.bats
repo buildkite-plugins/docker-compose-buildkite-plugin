@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '../lib/shared'
+load '../../lib/shared'
 
 docker-compose(){
   echo "docker-compose" "$@"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '../lib/shared'
+load '../../lib/shared'
 
 myservice_override_file=$(cat <<-EOF
 version: '2'

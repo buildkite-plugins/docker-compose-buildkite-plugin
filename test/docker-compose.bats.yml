@@ -1,7 +1,0 @@
-version: '2'
-services:
-  bats:
-    image: lucor/bats
-    volumes:
-      - ../:/tests
-    command: bats test/
