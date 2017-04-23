@@ -38,7 +38,7 @@ trap compose_force_cleanup EXIT
 try_image_restore_from_docker_repository() {
   local version
 
-  if image=$(plugin_get_build_image_metadata "$run_service_name") 2>/dev/null; then
+  if image=$(plugin_get_build_image_metadata "$run_service_name") ; then
     echo "~~~ :docker: Pulling docker image $image"
     plugin_prompt_and_must_run docker pull "$image"
 

@@ -2,9 +2,9 @@
 # Show a prompt for a command
 function plugin_prompt() {
   if [[ -z "${HIDE_PROMPT:-}" ]] ; then
-    echo -ne "\033[90m$\033[0m"
-    printf " %q" "$@"
-    echo
+    echo -ne "\033[90m$\033[0m" >&2
+    printf " %q" "$@" >&2
+    echo >&2
   fi
 }
 
@@ -29,8 +29,7 @@ function plugin_read_config() {
 # Read agent metadata for pre-built images
 function plugin_get_build_image_metadata() {
   local service="$1"
-  plugin_prompt_and_must_run \
-    buildkite-agent meta-data get \
+  buildkite-agent meta-data get \
     "docker-compose-plugin-built-image-tag-${service}"
 }
 
@@ -38,8 +37,7 @@ function plugin_get_build_image_metadata() {
 function plugin_set_build_image_metadata() {
   local service="$1"
   local value="$2"
-  plugin_prompt_and_must_run \
-    buildkite-agent meta-data set \
+  buildkite-agent meta-data set \
     "docker-compose-plugin-built-image-tag-${service}" "$value"
 }
 
