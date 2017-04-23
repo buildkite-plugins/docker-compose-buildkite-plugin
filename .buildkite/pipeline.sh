@@ -53,6 +53,12 @@ steps:
         run: helloworld
         config: tests/composefiles/docker-compose.v2.1.yml
 
+  - wait
+  - label: run with default command
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        run: helloworld
+        config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
   - label: build, where an image name is specified

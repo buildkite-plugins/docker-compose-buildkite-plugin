@@ -3,15 +3,6 @@
 run_service_name="$(plugin_read_config RUN)"
 override_file="docker-compose.buildkite-${run_service_name}-override.yml"
 
-check_required_args() {
-  if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
-    echo "No command to run. Did you provide a 'command' for this step?"
-    exit 1
-  fi
-}
-
-check_required_args
-
 compose_force_cleanup() {
   echo "~~~ :docker: Cleaning up Docker containers"
 
