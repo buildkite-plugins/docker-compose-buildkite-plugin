@@ -22,11 +22,11 @@ fi
 
 echo "~~~ :docker: Pulling down latest images"
 
-if [[ -f "$override_file" ]]; then
-  run_docker_compose -f "$override_file" pull --ignore-pull-failures
-else
-  run_docker_compose pull --ignore-pull-failures
+if [[ -n "$build_image" ]] ; then
+  run_docker_compose -f "$override_file" pull "$service_name"
 fi
+
+run_docker_compose pull --ignore-pull-failures
 
 echo "+++ :docker: Running command in Docker Compose service: $service_name"
 set +e
