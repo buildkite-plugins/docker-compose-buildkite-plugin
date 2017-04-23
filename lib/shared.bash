@@ -1,14 +1,11 @@
 
 # Show a prompt for a command
 function plugin_prompt() {
-  # Output "$" prefix in a pleasant grey...
-  echo -ne "\033[90m$\033[0m"
-
-  # ...each positional parameter with spaces and correct escaping for copy/pasting...
-  printf " %q" "$@"
-
-  # ...and a trailing newline.
-  echo
+  if [[ -z "${HIDE_PROMPT:-}" ]] ; then
+    echo -ne "\033[90m$\033[0m"
+    printf " %q" "$@"
+    echo
+  fi
 }
 
 # Shows the command being run, and runs it
@@ -27,6 +24,23 @@ function plugin_read_config() {
   local var="BUILDKITE_PLUGIN_DOCKER_COMPOSE_${1}"
   local default="${2:-}"
   echo "${!var:-$default}"
+}
+
+# Read agent metadata for pre-built images
+function plugin_get_build_image_metadata() {
+  local service="$1"
+  plugin_prompt_and_must_run \
+    buildkite-agent meta-data get \
+    "docker-compose-plugin-built-image-tag-${service}"
+}
+
+# Write agent metadata for pre-built images
+function plugin_set_build_image_metadata() {
+  local service="$1"
+  local value="$2"
+  plugin_prompt_and_must_run \
+    buildkite-agent meta-data set \
+    "docker-compose-plugin-built-image-tag-${service}" "$value"
 }
 
 # Returns the name of the docker compose project for this build
@@ -91,13 +105,5 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
-  if [[ -z "${HIDE_PROMPT:-}" ]] ; then
-    plugin_prompt_and_run "${command[@]}" "$@"
-  else
-    "${command[@]}" "$@"
-  fi
-}
-
-function build_meta_data_image_tag_key() {
-  echo "docker-compose-plugin-built-image-tag-$1"
+  plugin_prompt_and_run "${command[@]}" "$@"
 }
