@@ -14,6 +14,11 @@ trap cleanup EXIT
 
 test -f "$override_file" && rm "$override_file"
 
+pull_images=( $(plugin_read_list PULL) )
+
+echo "~~~ :docker: Pulling services ${pull_images[*]}"
+run_docker_compose pull "${pull_images[@]}"
+
 build_image=$(get_prebuilt_image_from_metadata "$service_name")
 
 if [[ -n "$build_image" ]] ; then
@@ -21,8 +26,8 @@ if [[ -n "$build_image" ]] ; then
   build_image_override_file "$service_name" "$build_image" \
     | tee "$override_file"
 
-  echo "~~~ :docker: Pulling down latest images"
-  run_docker_compose -f "$override_file" pull "$service_name"
+  echo "~~~ :docker: Pulling pre-built service $service_name"
+  run_docker_compose pull "$service_name"
 fi
 
 echo "+++ :docker: Running command in Docker Compose service: $service_name"

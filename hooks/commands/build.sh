@@ -1,5 +1,12 @@
 #!/bin/bash
 
+pull_images=( $(plugin_read_list PULL) )
+
+if [[ ${#pull_images[@]} -gt 0 ]] ; then
+  echo "~~~ :docker: Pulling services ${services[*]}"
+  run_docker_compose pull "${services[@]}"
+fi
+
 image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
