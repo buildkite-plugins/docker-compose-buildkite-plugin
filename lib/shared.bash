@@ -58,8 +58,6 @@ function plugin_read_list() {
     done
   elif [[ -n "${!prefix:-}" ]]; then
     echo "${!prefix}"
-  else
-    return 1
   fi
 }
 

@@ -4,13 +4,15 @@ load '/usr/local/lib/bats/load.bash'
 load '../lib/shared'
 load '../lib/run'
 
+# export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
+# export BUILDKITE_AGENT_STUB_DEBUG=/dev/stdout
+# export BATS_MOCK_TMPDIR=$PWD
+
 @test "Run a build without a repository" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
-
-  export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build myservice : echo built myservice"
@@ -44,4 +46,31 @@ load '../lib/run'
   assert_output --partial "built myservice"
   assert_output --partial "pushed myservice"
   assert_output --partial "set metadata"
+}
+
+@test "Run a build with a repository and multiple services" {
+  export BUILDKITE_JOB_ID=1112
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=myservice1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_1=myservice2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1112 -f docker-compose.buildkite-1-override.yml build myservice1 myservice2 : echo built all services" \
+    "-f docker-compose.yml -p buildkite1112 -f docker-compose.buildkite-1-override.yml push myservice1 myservice2 : echo pushed all services" \
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice1 my.repository/llamas:test-myservice1-build-1 : echo set metadata1" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice2 my.repository/llamas:test-myservice2-build-1 : echo set metadata2"
+
+  run $PWD/hooks/command
+
+  unstub docker-compose
+  unstub buildkite-agent
+  assert_success
+  assert_output --partial "built all services"
+  assert_output --partial "pushed all services"
+  assert_output --partial "set metadata1"
+  assert_output --partial "set metadata2"
 }
