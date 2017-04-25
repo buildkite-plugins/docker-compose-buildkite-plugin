@@ -14,7 +14,9 @@ trap cleanup EXIT
 
 test -f "$override_file" && rm "$override_file"
 
-if build_image=$(get_prebuilt_image_from_metadata "$service_name") ; then
+build_image=$(get_prebuilt_image_from_metadata "$service_name")
+
+if [[ -n "$build_image" ]] ; then
   echo "~~~ :docker: Creating a modified Docker Compose config"
   build_image_override_file "$service_name" "$build_image" \
     | tee "$override_file"
