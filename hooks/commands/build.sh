@@ -31,6 +31,7 @@ if [[ -n "$image_repository" ]]; then
 
   i=0
   while [[ ${#build_images[@]} -gt 0 ]] ; do
+    plugin_set_build_image_metadata "${build_images[@]:0:2}"
     plugin_set_build_image_metadata "$i" "${build_images[@]:1:2}"
     build_images=("${build_images[@]:2}")
     i=$((i+1))
