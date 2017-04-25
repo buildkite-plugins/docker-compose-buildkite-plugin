@@ -42,40 +42,57 @@ function plugin_set_build_image_metadata() {
     "docker-compose-plugin-built-image-tag-${service}" "$value"
 }
 
+# Reads either a value or a list from plugin config
+function plugin_read_list() {
+  local prefix="BUILDKITE_PLUGIN_DOCKER_COMPOSE_$1"
+  local parameter="${prefix}_0"
+
+  if [[ -n "${!parameter:-}" ]]; then
+    local i=0
+    local parameter="${prefix}_${i}"
+    while [[ -n "${!parameter:-}" ]]; do
+      echo "${!parameter}"
+      i=$((i+1))
+      parameter="${prefix}_${i}"
+    done
+  elif [[ -n "${!prefix:-}" ]]; then
+    echo "${!prefix}"
+  else
+    return 1
+  fi
+}
+
 # Returns the name of the docker compose project for this build
 function docker_compose_project_name() {
   # No dashes or underscores because docker-compose will remove them anyways
   echo "buildkite${BUILDKITE_JOB_ID//-}"
 }
 
-# Returns the first docker compose config file name
+# Returns the name of the docker compose container that corresponds to the
+# given service
+function docker_compose_container_name() {
+  echo "$(docker_compose_project_name)_$1"
+}
+
+# Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
-  if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0:-}" ]]; then
-    # Plugin config specified an array of config files
-    local i=0
-    local parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_${i}"
-    while [[ -n "${!parameter:-}" ]]; do
-      echo "${!parameter}"
-      i=$((i+1))
-      parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_${i}"
-    done
-  elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-}" ]]; then
-    # Plugin config may be colon-separated files
-    declare file
-    declare -a files
-    IFS=":" read -ra files <<< "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG"
-    for file in "${files[@]}"; do
-      echo "$file"
-    done
-  else
-    # Use default docker compose location
+  if ! config_files=( $( plugin_read_list CONFIG ) ) ; then
     echo "docker-compose.yml"
   fi
+
+  # Process any (deprecated) colon delimited config paths
+  for value in "${config_files[@]}" ; do
+    echo "$value" | tr ':' '\n'
+  done
 }
 
 # Returns the first docker compose config file name
 function docker_compose_config_file() {
-  docker_compose_config_files | head -n1
+  if ! config_files=( $(docker_compose_config_files) ) ; then
+    echo "docker-compose.yml"
+  fi
+
+  echo "${config_files[0]}"
 }
 
 # Returns the version of the first docker compose config file
