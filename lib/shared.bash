@@ -1,3 +1,4 @@
+#!/bin/bash
 
 # Show a prompt for a command
 function plugin_prompt() {
@@ -76,8 +77,11 @@ function docker_compose_container_name() {
 
 # Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
-  if ! config_files=( $( plugin_read_list CONFIG ) ) ; then
+  config_files=( $( plugin_read_list CONFIG ) )
+
+  if [[ ${#config_files[@]} -eq 0 ]]  ; then
     echo "docker-compose.yml"
+    return
   fi
 
   # Process any (deprecated) colon delimited config paths
