@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats-support/load.bash'
-load '/usr/local/lib/bats-assert/load.bash'
+load '/usr/local/lib/bats/load.bash'
 load '../lib/shared'
 
 @test "Read docker-compose config when none exists" {

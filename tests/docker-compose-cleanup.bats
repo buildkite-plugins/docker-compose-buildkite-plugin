@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 
+load '/usr/local/lib/bats/load.bash'
 load '../lib/shared'
 load '../lib/run'
 
@@ -8,10 +9,11 @@ load '../lib/run'
     echo "$@"
   }
   run compose_cleanup
-  [ "$status" -eq 0 ]
-  [ "${lines[0]}" = "kill" ]
-  [ "${lines[1]}" = "rm --force -v" ]
-  [ "${lines[2]}" = "down --volumes" ]
+
+  assert_success
+  assert_equal "${lines[0]}" "kill"
+  assert_equal "${lines[1]}" "rm --force -v"
+  assert_equal "${lines[2]}" "down --volumes"
 }
 
 @test "Possible to skip volume destruction in docker-compose cleanup" {
@@ -20,8 +22,9 @@ load '../lib/run'
     echo "$@"
   }
   run compose_cleanup
-  [ "$status" -eq 0 ]
-  [ "${lines[0]}" = "kill" ]
-  [ "${lines[1]}" = "rm --force" ]
-  [ "${lines[2]}" = "down" ]
+
+  assert_success
+  assert_equal "${lines[0]}" "kill"
+  assert_equal "${lines[1]}" "rm --force"
+  assert_equal "${lines[2]}" "down"
 }
