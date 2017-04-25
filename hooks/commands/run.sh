@@ -1,61 +1,32 @@
 #!/bin/bash
+set -eu
 
-run_service_name="$(plugin_read_config RUN)"
-override_file="docker-compose.buildkite-${run_service_name}-override.yml"
+service_name="$(plugin_read_config RUN)"
+override_file="docker-compose.buildkite-${service_name}-override.yml"
 
-check_required_args() {
-  if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
-    echo "No command to run. Did you provide a 'command' for this step?"
-    exit 1
-  fi
+cleanup() {
+  echo "~~~ :docker: Cleaning up after docker-compose"
+  compose_cleanup
 }
 
-check_required_args
+# clean up docker containers on EXIT
+trap cleanup EXIT
 
-compose_force_cleanup() {
-  echo "~~~ :docker: Cleaning up Docker containers"
+test -f "$override_file" && rm "$override_file"
 
-  # Send them a friendly kill
-  run_docker_compose kill || true
+build_image=$(get_prebuilt_image_from_metadata "$service_name")
 
-  # `compose down` doesn't support force removing images
-  if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
-    run_docker_compose rm --force -v || true
-  else
-    run_docker_compose rm --force || true
-  fi
+if [[ -n "$build_image" ]] ; then
+  echo "~~~ :docker: Creating a modified Docker Compose config"
+  build_image_override_file "$service_name" "$build_image" \
+    | tee "$override_file"
 
-  # Stop and remove all the linked services and network
-  if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
-    run_docker_compose down --volumes || true
-  else
-    run_docker_compose down || true
-  fi
-}
+  echo "~~~ :docker: Pulling down latest images"
+  run_docker_compose -f "$override_file" pull "$service_name"
+fi
 
-trap compose_force_cleanup EXIT
-
-try_image_restore_from_docker_repository() {
-  local version
-  local image
-
-  image=$(plugin_get_build_image_metadata "$run_service_name")
-
-  if [[ -n "$image" ]] ; then
-    echo "~~~ :docker: Pulling docker image $image"
-    plugin_prompt_and_must_run docker pull "$image"
-
-    version=$(docker_compose_config_version)
-
-    echo "~~~ :docker: Creating a modified Docker Compose config ($version)"
-    build_image_override_file "$version" "$run_service_name" "$image" \
-      | tee "$override_file"
-  fi
-}
-
-try_image_restore_from_docker_repository
-
-echo "+++ :docker: Running command in Docker Compose service: $run_service_name"
+echo "+++ :docker: Running command in Docker Compose service: $service_name"
+set +e
 
 # $BUILDKITE_COMMAND needs to be unquoted because:
 #   docker-compose run "app" "go test"
@@ -63,9 +34,9 @@ echo "+++ :docker: Running command in Docker Compose service: $run_service_name"
 #   docker-compose run "app" go test
 
 if [[ -f "$override_file" ]]; then
-  run_docker_compose -f "$override_file" run "$run_service_name" $BUILDKITE_COMMAND
+  run_docker_compose -f "$override_file" run "$service_name" $BUILDKITE_COMMAND
 else
-  run_docker_compose run "$run_service_name" $BUILDKITE_COMMAND
+  run_docker_compose run "$service_name" $BUILDKITE_COMMAND
 fi
 
 exitcode=$?
@@ -74,33 +45,6 @@ if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode"
 fi
-
-list_linked_containers() {
-  for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
-    docker inspect --format='{{.Name}}' "$container_id"
-  done
-}
-
-check_linked_containers() {
-  local logdir="$1"
-  local cmdexit="$2"
-
-  mkdir -p "$logdir"
-
-  for container_name in $(list_linked_containers); do
-    container_exit_code=$(docker inspect --format='{{.State.ExitCode}}' "$container_name")
-
-    if [[ $container_exit_code -ne 0 ]] ; then
-      echo "+++ :warning: Linked container $container_name exited with $container_exit_code"
-    fi
-
-    # Capture logs if the linked container failed OR if the main command failed
-    if [[ $container_exit_code -ne 0 ]] || [[ $cmdexit -ne 0 ]] ; then
-      plugin_prompt_and_run docker logs --timestamps --tail 500 "$container_name"
-      docker logs -t "$container_name" > "${logdir}/${container_name}.log"
-    fi
-  done
-}
 
 echo "~~~ Checking linked containers"
 check_linked_containers "docker-compose-logs" "$exitcode"
