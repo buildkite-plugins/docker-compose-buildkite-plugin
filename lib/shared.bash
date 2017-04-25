@@ -100,26 +100,27 @@ function docker_compose_config_version() {
   sed -n "s/version: ['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
 }
 
-# Build an docker-compose file that overrides the image for a given service
+# Build an docker-compose file that overrides the image for a set of
+# service and image pairs
 function build_image_override_file() {
-  local service="$1"
-  local image="$2"
-  local version
-
-  version="$(docker_compose_config_version)"
-  build_image_override_file_with_version "$version" "$service" "$image"
+  build_image_override_file_with_version \
+    "$(docker_compose_config_version)" "$@"
 }
 
-# Build an docker-compose file that overrides the image for a given service and version
+# Build an docker-compose file that overrides the image for a specific
+# docker-compose version and set of service and image pairs
 function build_image_override_file_with_version() {
   local version="$1"
-  local service="$2"
-  local image="$3"
 
   printf "version: '%s'\n" "$version"
   printf "services:\n"
-  printf "  %s:\n" "$service"
-  printf "    image: %s\n" "$image"
+
+  shift
+  while test ${#} -gt 0 ; do
+    printf "  %s:\n" "$1"
+    printf "    image: %s\n" "$2"
+    shift 2
+  done
 }
 
 # Runs the docker-compose command, scoped to the project, with the given arguments

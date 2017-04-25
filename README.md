@@ -111,6 +111,35 @@ steps:
         run: app
 ```
 
+# Building multiple images
+
+Sometimes you need to build multiple images:
+
+```yml
+steps:
+  - name: ":docker: Build"
+    agents:
+      queue: docker-builder
+    plugins:
+      docker-compose#v1.1:
+        build: 
+          - app
+          - tests
+        image-repository: index.docker.io/org/repo
+
+  - wait
+
+  - name: ":docker: Test %n"
+    command: test.sh
+    parallelism: 25
+    plugins:
+      docker-compose#v1.1:
+        pull: 
+          - app
+          - tests
+        run: tests
+```
+
 ## Options
 
 ### `build`
