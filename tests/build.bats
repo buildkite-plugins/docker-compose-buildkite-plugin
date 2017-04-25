@@ -2,13 +2,12 @@
 
 load '/usr/local/lib/bats/load.bash'
 load '../lib/shared'
-load '../lib/run'
 
 # export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/stdout
 # export BATS_MOCK_TMPDIR=$PWD
 
-@test "Run a build without a repository" {
+@test "Build without a repository" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PIPELINE_SLUG=test
@@ -24,7 +23,7 @@ load '../lib/run'
   assert_output --partial "built myservice"
 }
 
-@test "Run a build with a repository" {
+@test "Build with a repository" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
@@ -36,19 +35,19 @@ load '../lib/run'
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml push myservice : echo pushed myservice" \
 
   stub buildkite-agent \
-    "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/llamas:test-myservice-build-1 : echo set metadata"
+    "meta-data set docker-compose-plugin-built-image-tag-0 my.repository/llamas:test-myservice-build-1 : echo set metadata 0"
 
   run $PWD/hooks/command
 
-  unstub docker-compose
-  unstub buildkite-agent
   assert_success
   assert_output --partial "built myservice"
   assert_output --partial "pushed myservice"
-  assert_output --partial "set metadata"
+  assert_output --partial "set metadata 0"
+  unstub docker-compose
+  unstub buildkite-agent
 }
 
-@test "Run a build with a repository and multiple services" {
+@test "Build with a repository and multiple services" {
   export BUILDKITE_JOB_ID=1112
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=myservice1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_1=myservice2
@@ -61,16 +60,16 @@ load '../lib/run'
     "-f docker-compose.yml -p buildkite1112 -f docker-compose.buildkite-1-override.yml push myservice1 myservice2 : echo pushed all services" \
 
   stub buildkite-agent \
-    "meta-data set docker-compose-plugin-built-image-tag-myservice1 my.repository/llamas:test-myservice1-build-1 : echo set metadata1" \
-    "meta-data set docker-compose-plugin-built-image-tag-myservice2 my.repository/llamas:test-myservice2-build-1 : echo set metadata2"
+    "meta-data set docker-compose-plugin-built-image-tag-0 my.repository/llamas:test-myservice1-build-1 : echo set metadata 0" \
+    "meta-data set docker-compose-plugin-built-image-tag-1 my.repository/llamas:test-myservice2-build-1 : echo set metadata 1"
 
   run $PWD/hooks/command
 
-  unstub docker-compose
-  unstub buildkite-agent
   assert_success
   assert_output --partial "built all services"
   assert_output --partial "pushed all services"
-  assert_output --partial "set metadata1"
-  assert_output --partial "set metadata2"
+  assert_output --partial "set metadata 0"
+  assert_output --partial "set metadata 1"
+  unstub docker-compose
+  unstub buildkite-agent
 }

@@ -27,15 +27,15 @@ function plugin_read_config() {
   echo "${!var:-$default}"
 }
 
-# Read agent metadata for pre-built images, returns empty string on error
+# Read agent metadata for pre-built images
 function plugin_get_build_image_metadata() {
   local service="$1"
   local key="docker-compose-plugin-built-image-tag-${service}"
   plugin_prompt buildkite-agent meta-data get "$key"
-  buildkite-agent meta-data get "$key" 2>/dev/null || true
+  buildkite-agent meta-data get "$key"
 }
 
-# Write agent metadata for pre-built images, exits on error
+# Write agent metadata for pre-built images
 function plugin_set_build_image_metadata() {
   local service="$1"
   local value="$2"

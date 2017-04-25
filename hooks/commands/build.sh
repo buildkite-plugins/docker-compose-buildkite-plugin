@@ -1,12 +1,5 @@
 #!/bin/bash
 
-pull_images=( $(plugin_read_list PULL) )
-
-if [[ ${#pull_images[@]} -gt 0 ]] ; then
-  echo "~~~ :docker: Pulling services ${services[*]}"
-  run_docker_compose pull "${services[@]}"
-fi
-
 image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
@@ -23,7 +16,7 @@ for service_name in $(plugin_read_list BUILD) ; do
 done
 
 if [[ ${#build_images[@]} -gt 0 ]] ; then
-  echo "~~~ :docker: Creating a modified Docker Compose config"
+  echo "~~~ :docker: Creating a modified docker-compose config"
   build_image_override_file "${build_images[@]}" | tee "$override_file"
 fi
 
@@ -36,8 +29,10 @@ if [[ -n "$image_repository" ]]; then
   echo "~~~ :docker: Pushing built images to $image_repository"
   run_docker_compose -f "$override_file" push "${services[@]}"
 
+  i=0
   while [[ ${#build_images[@]} -gt 0 ]] ; do
-    plugin_set_build_image_metadata "${build_images[@]:0:2}"
+    plugin_set_build_image_metadata "$i" "${build_images[@]:1:2}"
     build_images=("${build_images[@]:2}")
+    i=$((i+1))
   done
 fi

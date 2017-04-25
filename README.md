@@ -113,7 +113,7 @@ steps:
 
 # Building multiple images
 
-Sometimes you need to build multiple images:
+Sometimes your compose file has multiple services that need building. The example below will build images for the `app` and `tests` service and then the run step will pull them down and use them for the run as needed.
 
 ```yml
 steps:
@@ -134,9 +134,6 @@ steps:
     parallelism: 25
     plugins:
       docker-compose#v1.1:
-        pull: 
-          - app
-          - tests
         run: tests
 ```
 
@@ -145,6 +142,8 @@ steps:
 ### `build`
 
 The name of a service to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step’s `command` will be ignored and does not need to be specified.
+
+Either a single service or multiple services can be provided as an array.
 
 ### `run`
 
@@ -173,10 +172,6 @@ The name to use when tagging pre-built images.
 The default is `${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}-build-${BUILDKITE_BUILD_NUMBER}`, for example `my-project-web-build-42`.
 
 Note: this option can only be specified on a `build` step.
-
-## Roadmap
-
-* Support pre-building of multiple Docker Compose services
 
 ## License
 
