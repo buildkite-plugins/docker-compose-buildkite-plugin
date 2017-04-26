@@ -1,3 +1,4 @@
+#!/bin/bash
 
 # Show a prompt for a command
 function plugin_prompt() {
@@ -26,20 +27,38 @@ function plugin_read_config() {
   echo "${!var:-$default}"
 }
 
-# Read agent metadata for pre-built images, returns empty string on error
+# Read agent metadata for pre-built images
 function plugin_get_build_image_metadata() {
   local service="$1"
   local key="docker-compose-plugin-built-image-tag-${service}"
   plugin_prompt buildkite-agent meta-data get "$key"
-  buildkite-agent meta-data get "$key" 2>/dev/null || true
+  buildkite-agent meta-data get "$key"
 }
 
-# Write agent metadata for pre-built images, exits on error
+# Write agent metadata for pre-built images
 function plugin_set_build_image_metadata() {
   local service="$1"
   local value="$2"
   plugin_prompt_and_must_run buildkite-agent meta-data set \
     "docker-compose-plugin-built-image-tag-${service}" "$value"
+}
+
+# Reads either a value or a list from plugin config
+function plugin_read_list() {
+  local prefix="BUILDKITE_PLUGIN_DOCKER_COMPOSE_$1"
+  local parameter="${prefix}_0"
+
+  if [[ -n "${!parameter:-}" ]]; then
+    local i=0
+    local parameter="${prefix}_${i}"
+    while [[ -n "${!parameter:-}" ]]; do
+      echo "${!parameter}"
+      i=$((i+1))
+      parameter="${prefix}_${i}"
+    done
+  elif [[ -n "${!prefix:-}" ]]; then
+    echo "${!prefix}"
+  fi
 }
 
 # Returns the name of the docker compose project for this build
@@ -48,34 +67,34 @@ function docker_compose_project_name() {
   echo "buildkite${BUILDKITE_JOB_ID//-}"
 }
 
-# Returns the first docker compose config file name
+# Returns the name of the docker compose container that corresponds to the
+# given service
+function docker_compose_container_name() {
+  echo "$(docker_compose_project_name)_$1"
+}
+
+# Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
-  if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0:-}" ]]; then
-    # Plugin config specified an array of config files
-    local i=0
-    local parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_${i}"
-    while [[ -n "${!parameter:-}" ]]; do
-      echo "${!parameter}"
-      i=$((i+1))
-      parameter="BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_${i}"
-    done
-  elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG:-}" ]]; then
-    # Plugin config may be colon-separated files
-    declare file
-    declare -a files
-    IFS=":" read -ra files <<< "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG"
-    for file in "${files[@]}"; do
-      echo "$file"
-    done
-  else
-    # Use default docker compose location
+  config_files=( $( plugin_read_list CONFIG ) )
+
+  if [[ ${#config_files[@]} -eq 0 ]]  ; then
     echo "docker-compose.yml"
+    return
   fi
+
+  # Process any (deprecated) colon delimited config paths
+  for value in "${config_files[@]}" ; do
+    echo "$value" | tr ':' '\n'
+  done
 }
 
 # Returns the first docker compose config file name
 function docker_compose_config_file() {
-  docker_compose_config_files | head -n1
+  if ! config_files=( $(docker_compose_config_files) ) ; then
+    echo "docker-compose.yml"
+  fi
+
+  echo "${config_files[0]}"
 }
 
 # Returns the version of the first docker compose config file
@@ -83,26 +102,27 @@ function docker_compose_config_version() {
   sed -n "s/version: ['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
 }
 
-# Build an docker-compose file that overrides the image for a given service
+# Build an docker-compose file that overrides the image for a set of
+# service and image pairs
 function build_image_override_file() {
-  local service="$1"
-  local image="$2"
-  local version
-
-  version="$(docker_compose_config_version)"
-  build_image_override_file_with_version "$version" "$service" "$image"
+  build_image_override_file_with_version \
+    "$(docker_compose_config_version)" "$@"
 }
 
-# Build an docker-compose file that overrides the image for a given service and version
+# Build an docker-compose file that overrides the image for a specific
+# docker-compose version and set of service and image pairs
 function build_image_override_file_with_version() {
   local version="$1"
-  local service="$2"
-  local image="$3"
 
   printf "version: '%s'\n" "$version"
   printf "services:\n"
-  printf "  %s:\n" "$service"
-  printf "    image: %s\n" "$image"
+
+  shift
+  while test ${#} -gt 0 ; do
+    printf "  %s:\n" "$1"
+    printf "    image: %s\n" "$2"
+    shift 2
+  done
 }
 
 # Runs the docker-compose command, scoped to the project, with the given arguments

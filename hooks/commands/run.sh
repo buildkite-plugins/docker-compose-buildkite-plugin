@@ -2,7 +2,7 @@
 set -eu
 
 service_name="$(plugin_read_config RUN)"
-override_file="docker-compose.buildkite-${service_name}-override.yml"
+override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 
 cleanup() {
   echo "~~~ :docker: Cleaning up after docker-compose"
@@ -10,19 +10,21 @@ cleanup() {
 }
 
 # clean up docker containers on EXIT
-trap cleanup EXIT
+if [[ "$(plugin_read_config CLEANUP "true")" == "true" ]] ; then
+  trap cleanup EXIT
+fi
 
 test -f "$override_file" && rm "$override_file"
 
-build_image=$(get_prebuilt_image_from_metadata "$service_name")
+built_images=( $(get_prebuilt_images_from_metadata) )
 
-if [[ -n "$build_image" ]] ; then
-  echo "~~~ :docker: Creating a modified Docker Compose config"
-  build_image_override_file "$service_name" "$build_image" \
-    | tee "$override_file"
+if [[ ${#built_images[@]} -gt 0 ]] ; then
+  echo "~~~ :docker: Creating a modified docker-compose config for pre-built images"
+  build_image_override_file "${built_images[@]}" | tee "$override_file"
+  built_services=( $(get_services_from_map "${built_images[@]}") )
 
-  echo "~~~ :docker: Pulling down latest images"
-  run_docker_compose -f "$override_file" pull "$service_name"
+  echo "~~~ :docker: Pulling pre-built services ${built_services[*]}"
+  run_docker_compose -f "$override_file" pull "${built_services[@]}"
 fi
 
 echo "+++ :docker: Running command in Docker Compose service: $service_name"
@@ -44,12 +46,16 @@ exitcode=$?
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode"
+else
+  echo "~~~ :docker: Container exited normally"
 fi
 
-echo "~~~ Checking linked containers"
-check_linked_containers "docker-compose-logs" "$exitcode"
+if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]] ; then
+  echo "~~~ Checking linked containers"
+  check_linked_containers "docker-compose-logs" "$exitcode"
 
-echo "~~~ Uploading container logs as artifacts"
-buildkite-agent artifact upload "docker-compose-logs/*.log"
+  echo "~~~ Uploading container logs as artifacts"
+  buildkite-agent artifact upload "docker-compose-logs/*.log"
+fi
 
 exit $exitcode

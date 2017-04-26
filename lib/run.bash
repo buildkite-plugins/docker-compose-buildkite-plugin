@@ -1,3 +1,4 @@
+#!/bin/bash
 
 compose_cleanup() {
   # Send them a friendly kill
@@ -18,9 +19,26 @@ compose_cleanup() {
   fi
 }
 
-get_prebuilt_image_from_metadata() {
-  local service_name="$1"
-  plugin_get_build_image_metadata "$service_name"
+get_prebuilt_images_from_metadata() {
+  local value
+  for i in {0..10} ; do
+    if ! value="$(plugin_get_build_image_metadata "$i")" ; then
+      return $?
+    fi
+    if [[ -z "$value" ]] ; then
+      break
+    fi
+    echo "$value"
+    i=$((i+1))
+  done
+}
+
+get_services_from_map() {
+  for ((n=1;n<$#;n++)) ; do
+    if (( $((n % 2)) == 1 )) ; then
+      echo ${!n}
+    fi
+  done
 }
 
 list_linked_containers() {
