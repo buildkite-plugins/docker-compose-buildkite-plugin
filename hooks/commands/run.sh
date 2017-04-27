@@ -17,7 +17,8 @@ fi
 test -f "$override_file" && rm "$override_file"
 
 built_images=( $(get_prebuilt_images_from_metadata) )
-echo "~~~ :docker: Found ${#built_images[@]} pre-built services"
+
+echo "~~~ :docker: Found $((${#built_images[@]}/2)) pre-built services"
 
 if [[ ${#built_images[@]} -gt 0 ]] ; then
   echo "~~~ :docker: Creating a modified docker-compose config for pre-built images" >&2;
