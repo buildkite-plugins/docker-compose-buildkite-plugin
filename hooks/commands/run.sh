@@ -17,9 +17,10 @@ fi
 test -f "$override_file" && rm "$override_file"
 
 built_images=( $(get_prebuilt_images_from_metadata) )
+echo "~~~ :docker: Found ${#built_images[@]} pre-built services"
 
 if [[ ${#built_images[@]} -gt 0 ]] ; then
-  echo "~~~ :docker: Creating a modified docker-compose config for pre-built images"
+  echo "~~~ :docker: Creating a modified docker-compose config for pre-built images" >&2;
   build_image_override_file "${built_images[@]}" | tee "$override_file"
   built_services=( $(get_services_from_map "${built_images[@]}") )
 
@@ -27,7 +28,7 @@ if [[ ${#built_images[@]} -gt 0 ]] ; then
   run_docker_compose -f "$override_file" pull "${built_services[@]}"
 fi
 
-echo "+++ :docker: Running command in Docker Compose service: $service_name"
+echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2;
 set +e
 
 # $BUILDKITE_COMMAND needs to be unquoted because:
