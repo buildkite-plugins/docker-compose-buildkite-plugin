@@ -19,28 +19,6 @@ compose_cleanup() {
   fi
 }
 
-get_prebuilt_images_from_metadata() {
-  local value
-  for i in {0..10} ; do
-    if ! value="$(plugin_get_build_image_metadata "$i")" ; then
-      return $?
-    fi
-    if [[ -z "$value" ]] ; then
-      break
-    fi
-    echo "$value"
-    i=$((i+1))
-  done
-}
-
-get_services_from_map() {
-  for ((n=1;n<$#;n++)) ; do
-    if (( $((n % 2)) == 1 )) ; then
-      echo ${!n}
-    fi
-  done
-}
-
 list_linked_containers() {
   for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
     docker inspect --format='{{.Name}}' "$container_id"

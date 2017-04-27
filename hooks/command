@@ -4,6 +4,7 @@ set -ueo pipefail
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 . "$DIR/../lib/shared.bash"
+. "$DIR/../lib/metadata.bash"
 
 if [[ -n "$(plugin_read_list BUILD)" ]]; then
   . "$DIR/commands/build.sh"
