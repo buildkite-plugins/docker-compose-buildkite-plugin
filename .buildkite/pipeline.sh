@@ -76,4 +76,21 @@ steps:
         run: helloworldimage
         config: tests/composefiles/docker-compose.v2.1.yml
 
+  - wait
+  - label: build with image-repository
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        build: helloworld
+        image-repository: buildkiteci/docker-compose-buildkite-plugin
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: run after build with pre-built image
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        run: helloworld
+        config: tests/composefiles/docker-compose.v2.1.yml
+
 YAML
