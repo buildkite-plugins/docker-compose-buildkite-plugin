@@ -35,6 +35,7 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         build: helloworld
+        image-repository: buildkiteci/docker-compose-buildkite-plugin
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
@@ -61,7 +62,7 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
-  - label: build, where an image name is specified
+  - label: build, where serice has build and image-name
     command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
@@ -69,7 +70,7 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
-  - label: run after build with image name specified
+  - label: run after build
     command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
@@ -77,16 +78,17 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
-  - label: build with image-repository
+  - label: build with custom image-name
     command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         build: helloworld
         image-repository: buildkiteci/docker-compose-buildkite-plugin
+        image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
-  - label: run after build with pre-built image
+  - label: run after build with custom image-name
     command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
