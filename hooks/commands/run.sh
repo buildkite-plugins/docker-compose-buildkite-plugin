@@ -21,6 +21,8 @@ built_images=( $(get_prebuilt_images_from_metadata) )
 echo "~~~ :docker: Found $((${#built_images[@]}/2)) pre-built services"
 
 if [[ ${#built_images[@]} -gt 0 ]] ; then
+  printf "%s => %s\n" "${built_images[@]}"
+
   echo "~~~ :docker: Creating a modified docker-compose config for pre-built images" >&2;
   build_image_override_file "${built_images[@]}" | tee "$override_file"
   built_services=( $(get_services_from_map "${built_images[@]}") )
