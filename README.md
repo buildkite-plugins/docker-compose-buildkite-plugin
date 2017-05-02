@@ -7,7 +7,7 @@ A [Buildkite](https://buildkite.com/) plugin allowing you to create a build syst
 * Containers are built, run and linked on demand using Docker Compose
 * Containers are namespaced to each build job, and cleaned up after use
 * Supports pre-building of images, allowing for fast parallel builds across distributed agents
-* Supports pushing images to a repository
+* Supports pushing tagged images to a repository
 
 ## Example
 
@@ -138,7 +138,7 @@ steps:
         run: tests
 ```
 
-## Pushing Images
+## Pushing Tagged Images
 
 Prebuilt images are automatically pushed with a `build` step, but often you want to finally push your images, perhaps ready for deployment.
 
@@ -148,7 +148,7 @@ steps:
     plugins:
       docker-compose#v1.2.1:
         push: 
-        - app:index.docker.io/org/repo/myapp:
+        - app:index.docker.io/org/repo/myapp
         - app:index.docker.io/org/repo/myapp:latest
 ```
 
@@ -168,6 +168,8 @@ The name of the service the command should be run within. If the docker-compose 
 ### `push`
 
 A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built in push operation will be used. 
+
+Be aware that there is a race condition on tagging prebuilt images and pushing them if multiple push steps run in parallel. It's advisable to use a concurrency group in this situation.
 
 ### `config` (optional)
 
