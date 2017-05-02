@@ -7,6 +7,7 @@ A [Buildkite](https://buildkite.com/) plugin allowing you to create a build syst
 * Containers are built, run and linked on demand using Docker Compose
 * Containers are namespaced to each build job, and cleaned up after use
 * Supports pre-building of images, allowing for fast parallel builds across distributed agents
+* Supports pushing images to a repository
 
 ## Example
 
@@ -44,7 +45,7 @@ steps:
           - docker-compose.test.yml
 ```
 
-# Artifacts
+## Artifacts
 
 If you’re generating artifacts in the build step, you’ll need to ensure your Docker Compose configuration volume mounts the host machine directory into the container where those artifacts are created.
 
@@ -66,7 +67,7 @@ volumes:
   - "./dist:/app/dist"
 ```
 
-# Pre-building the image
+## Pre-building the image
 
 To speed up run parallel steps you can add a pre-building step to your pipeline, allowing all the `run` steps to skip image building:
 
@@ -111,7 +112,7 @@ steps:
         run: app
 ```
 
-# Building multiple images
+## Building multiple images
 
 Sometimes your compose file has multiple services that need building. The example below will build images for the `app` and `tests` service and then the run step will pull them down and use them for the run as needed.
 
@@ -137,7 +138,22 @@ steps:
         run: tests
 ```
 
-## Options
+## Pushing Images
+
+Prebuilt images are automatically pushed with a `build` step, but often you want to finally push your images, perhaps ready for deployment.
+
+```yml
+steps:
+  - name: ":docker: Push to final repository"
+    plugins:
+      docker-compose#v1.2.1:
+        push: 
+        - app:index.docker.io/org/repo/myapp:
+        - app:index.docker.io/org/repo/myapp:latest
+```
+
+
+## Configuration
 
 ### `build`
 
@@ -149,13 +165,17 @@ Either a single service or multiple services can be provided as an array.
 
 The name of the service the command should be run within. If the docker-compose command would usually be `docker-compose run app test.sh` then the value would be `app`.
 
+### `push`
+
+A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built in push operation will be used. 
+
 ### `config` (optional)
 
 The file name of the Docker Compose configuration file to use. Can also be a list of filenames.
 
 Default: `docker-compose.yml`
 
-## `image-repository` (optional)
+### `image-repository` (optional)
 
 The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"index.docker.io/org/repo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
 
@@ -165,7 +185,7 @@ Note: this option only needs to be specified on the build step, and will be auto
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
 
-## `image-name` (optional)
+### `image-name` (optional)
 
 The name to use when tagging pre-built images.
 

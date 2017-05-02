@@ -43,3 +43,18 @@ function get_services_from_map() {
     fi
   done
 }
+
+function get_prebuilt_image() {
+  local service="$1"
+  shift
+
+  for ((n=1;n<$#;n++)) ; do
+    if (( $((n % 2)) == 1 )) && [ "${!n}" == "$service" ]; then
+      imagevar=$((n+1))
+      echo ${!imagevar}
+      return 0
+    fi
+  done
+
+  return 1
+}

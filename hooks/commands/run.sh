@@ -1,11 +1,11 @@
 #!/bin/bash
-set -eu
+set -ueo pipefail
 
 service_name="$(plugin_read_config RUN)"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 
 cleanup() {
-  echo "~~~ :docker: Cleaning up after docker-compose"
+  echo "~~~ :docker: Cleaning up after docker-compose" >&2
   compose_cleanup
 }
 

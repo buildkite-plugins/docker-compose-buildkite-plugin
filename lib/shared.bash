@@ -51,12 +51,6 @@ function docker_compose_project_name() {
   echo "buildkite${BUILDKITE_JOB_ID//-}"
 }
 
-# Returns the name of the docker compose container that corresponds to the
-# given service
-function docker_compose_container_name() {
-  echo "$(docker_compose_project_name)_$1"
-}
-
 # Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
   config_files=( $( plugin_read_list CONFIG ) )
@@ -120,4 +114,10 @@ function run_docker_compose() {
   command+=(-p "$(docker_compose_project_name)")
 
   plugin_prompt_and_run "${command[@]}" "$@"
+}
+
+function build_image_name() {
+  local service_name="$1"
+  local default="${BUILDKITE_PIPELINE_SLUG}-${service_name}-build-${BUILDKITE_BUILD_NUMBER}"
+  plugin_read_config IMAGE_NAME "$default"
 }
