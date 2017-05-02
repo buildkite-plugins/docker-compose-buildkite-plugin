@@ -79,7 +79,6 @@ steps:
 
   - wait
   - label: build with custom image-name
-    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         build: helloworld
@@ -93,6 +92,13 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: helloworld
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: push after build with custom image-name
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        push: helloworld
         config: tests/composefiles/docker-compose.v2.1.yml
 
 YAML
