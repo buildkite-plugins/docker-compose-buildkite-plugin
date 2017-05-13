@@ -169,8 +169,6 @@ The name of the service the command should be run within. If the docker-compose 
 
 A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built in push operation will be used. 
 
-Be aware that there is a race condition on tagging prebuilt images and pushing them if multiple push steps run in parallel. It's advisable to use a concurrency group in this situation.
-
 ### `config` (optional)
 
 The file name of the Docker Compose configuration file to use. Can also be a list of filenames.
