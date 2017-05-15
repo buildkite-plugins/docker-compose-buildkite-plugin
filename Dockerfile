@@ -7,6 +7,8 @@ RUN mkdir -p /usr/local/lib/bats/bats-mock \
     && printf 'source "%s"\n' "/usr/local/lib/bats/bats-mock/stub.bash" >> /usr/local/lib/bats/load.bash \
     && rm -rf /tmp/bats-mock.tgz
 
+RUN apk --no-cache add ncurses
+
 WORKDIR /app
 ENTRYPOINT ["/usr/local/bin/bats"]
 CMD ["tests/"]

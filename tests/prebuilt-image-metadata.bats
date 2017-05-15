@@ -44,3 +44,16 @@ load '../lib/metadata'
   assert_equal "${lines[1]}" "myservice2"
 }
 
+
+@test "Get prebuilt image for service from an image map" {
+  image_map=(
+    "myservice1" "myimage1"
+    "myservice2" "myimage2"
+  )
+
+  run get_prebuilt_image "myservice1" "${image_map[@]}"
+  assert_success
+  assert_output "myimage1"
+
+  refute get_prebuilt_image "missingservice" "${image_map[@]}"
+}

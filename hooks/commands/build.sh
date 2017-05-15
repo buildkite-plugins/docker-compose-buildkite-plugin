@@ -1,12 +1,12 @@
 #!/bin/bash
+set -ueo pipefail
 
 image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 
 for service_name in $(plugin_read_list BUILD) ; do
-  image_name_default="${BUILDKITE_PIPELINE_SLUG}-${service_name}-build-${BUILDKITE_BUILD_NUMBER}"
-  image_name="$(plugin_read_config IMAGE_NAME "$image_name_default")"
+  image_name=$(build_image_name "${service_name}")
 
   if [[ -n "$image_repository" ]]; then
     image_name="${image_repository}:${image_name}"
