@@ -88,3 +88,36 @@ setup() {
   unstub docker
   unstub buildkite-agent
 }
+
+@test "Push a prebuilt image to multiple tags" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_0=myservice:my.repository/myservice:llamas
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice:my.repository/myservice:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_2=myservice:my.repository/myservice:alpacas
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker \
+    "tag myimage:blahblah my.repository/myservice:llamas : echo tagged image"
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled prebuilt image" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml push myservice : echo pushed myservice"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-count : echo 1" \
+    "meta-data get docker-compose-plugin-built-image-tag-0 : echo myservice" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage:blahblah"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled prebuilt image"
+  assert_output --partial "tagged image"
+  assert_output --partial "pushed myservice"
+  assert_file_exist "docker-compose.buildkite-1-override.yml"
+  assert grep -q "image: my.repository/myservice:llamas" docker-compose.buildkite-1-override.yml
+  unstub docker-compose
+  unstub docker
+  unstub buildkite-agent
+}
