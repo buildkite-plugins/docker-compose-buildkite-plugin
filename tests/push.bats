@@ -4,6 +4,7 @@ load '/usr/local/lib/bats/load.bash'
 load '../lib/shared'
 
 # export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
+# export DOCKER_STUB_DEBUG=/dev/tty
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 # export BATS_MOCK_TMPDIR=$PWD
 
@@ -74,7 +75,6 @@ load '../lib/shared'
     "push my.repository/myservice:llamas : echo pushed myservice"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah" \
     "-f docker-compose.yml -p buildkite1111 config : echo blah"
 
   stub buildkite-agent \
@@ -102,17 +102,18 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
-    "pull myimage:blahblah : echo pulled prebuilt image" \
-    "tag myimage:blahblah buildkite1111_myservice : echo " \
+    "pull prebuilt:blahblah : echo pulled prebuilt image" \
+    "tag prebuilt:blahblah buildkite1111_myservice : echo " \
     "tag buildkite1111_myservice my.repository/myservice:llamas : echo tagged image1" \
     "push my.repository/myservice:llamas : echo pushed myservice1" \
+    "tag prebuilt:blahblah buildkite1111_myservice : echo " \
     "tag buildkite1111_myservice my.repository/myservice:latest : echo tagged image2" \
     "push my.repository/myservice:latest : echo pushed myservice2" \
+    "tag prebuilt:blahblah buildkite1111_myservice : echo " \
     "tag buildkite1111_myservice my.repository/myservice:alpacas : echo tagged image3" \
     "push my.repository/myservice:alpacas : echo pushed myservice3"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah" \
     "-f docker-compose.yml -p buildkite1111 config : echo blah" \
     "-f docker-compose.yml -p buildkite1111 config : echo blah" \
     "-f docker-compose.yml -p buildkite1111 config : echo blah"
@@ -120,7 +121,7 @@ load '../lib/shared'
   stub buildkite-agent \
     "meta-data get docker-compose-plugin-built-image-count : echo 1" \
     "meta-data get docker-compose-plugin-built-image-tag-0 : echo myservice" \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage:blahblah"
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt:blahblah"
 
   run $PWD/hooks/command
 

@@ -9,10 +9,8 @@ if [[ ${#built_images[@]} -gt 0 ]] ; then
 
   echo "~~~ :docker: Pulling pre-built services ${built_services[*]}" >&2;
   for service in "${built_services[@]}" ; do
-    service_image=$(compose_image_for_service "$service")
     prebuilt_image=$(get_prebuilt_image "$service" "${built_images[@]}")
     plugin_prompt_and_run docker pull "$prebuilt_image"
-    plugin_prompt_and_run docker tag "$prebuilt_image" "$service_image"
   done
 fi
 
@@ -35,6 +33,9 @@ for line in $(plugin_read_list PUSH) ; do
 
   if [[ ${#built_images[@]} -gt 0 ]] ; then
     prebuilt_image=$(get_prebuilt_image "$service" "${built_images[@]}")
+
+    echo "~~~ :docker: Tagging prebuilt image ${prebuilt_image} as ${service_image}" >&2;
+    plugin_prompt_and_run docker tag "$prebuilt_image" "$service_image"
   fi
 
   if [[ ${#tokens[@]} -eq 1 ]] ; then
