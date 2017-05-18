@@ -23,23 +23,27 @@ fi
 # service:image:tag <- a service name and a specific image and tag to use
 
 # A push figures out the source image from either:
-# 1. A prebuilt image for that service
-# 2. An image declaration in the docker-compose config for that service
-# 3. The default projectname_service image format that docker-compose uses
+# 1. An image declaration in the docker-compose config for that service
+# 2. The default projectname_service image format that docker-compose uses
 
 # Then we figure out what to push, and where
 for line in $(plugin_read_list PUSH) ; do
   IFS=':' read -a tokens <<< "$line"
-
   service=${tokens[0]}
-  echo "~~~ :docker: Pushing images for $service" >&2;
 
   if [[ ${#tokens[@]} -eq 1 ]] ; then
+    echo "~~~ :docker: Pushing images for $service" >&2;
     run_docker_compose push "$service"
   else
     service_image=$(compose_image_for_service "$service")
     target_image="$(IFS=:; echo "${tokens[*]:1}")"
-    plugin_prompt_and_run docker tag "$service_image" "$target_image"
-    plugin_prompt_and_run docker push "$target_image"
+
+    if [[ "$service_image" != "$(default_compose_image_for_service "$service")" ]] ; then
+      echo "~~~ :docker: Pushing image $target_image" >&2;
+      plugin_prompt_and_run docker tag "$service_image" "$target_image"
+      plugin_prompt_and_run docker push "$target_image"
+    else
+      echo "~~~ :docker: Skipping pushing default image $service_image" >&2;
+    fi
   fi
 done
