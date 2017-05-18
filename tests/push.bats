@@ -7,9 +7,9 @@ load '../lib/shared'
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 # export BATS_MOCK_TMPDIR=$PWD
 
-@test "Push a single image" {
+@test "Push a single service with an image in it's config" {
   export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -17,17 +17,18 @@ load '../lib/shared'
     "meta-data get docker-compose-plugin-built-image-count : echo 0"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 push myservice : echo pushed myservice"
+    "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "-f docker-compose.yml -p buildkite1111 push app : echo pushed app"
 
   run $PWD/hooks/command
 
   assert_success
-  assert_output --partial "pushed myservice"
+  assert_output --partial "pushed app"
   unstub docker-compose
   unstub buildkite-agent
 }
 
-@test "Push two images with a repository and a tag" {
+@test "Push two services with target repositories and tags" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_0=myservice1:my.repository/myservice1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice2:my.repository/myservice2:llamas

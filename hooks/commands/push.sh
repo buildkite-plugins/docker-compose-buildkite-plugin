@@ -30,20 +30,24 @@ fi
 for line in $(plugin_read_list PUSH) ; do
   IFS=':' read -a tokens <<< "$line"
   service=${tokens[0]}
+  service_image=$(compose_image_for_service "$service")
+  prebuilt_image=
+
+  if [[ ${#built_images[@]} -gt 0 ]] ; then
+    prebuilt_image=$(get_prebuilt_image "$service" "${built_images[@]}")
+  fi
 
   if [[ ${#tokens[@]} -eq 1 ]] ; then
+    if [[ "$service_image" == "$(default_compose_image_for_service "$service")" && -z "$prebuilt_image" ]] ; then
+      echo "~~~ :docker: Skipping pushing default image $service_image" >&2;
+      continue
+    fi
     echo "~~~ :docker: Pushing images for $service" >&2;
     run_docker_compose push "$service"
   else
-    service_image=$(compose_image_for_service "$service")
     target_image="$(IFS=:; echo "${tokens[*]:1}")"
-
-    if [[ "$service_image" != "$(default_compose_image_for_service "$service")" ]] ; then
-      echo "~~~ :docker: Pushing image $target_image" >&2;
-      plugin_prompt_and_run docker tag "$service_image" "$target_image"
-      plugin_prompt_and_run docker push "$target_image"
-    else
-      echo "~~~ :docker: Skipping pushing default image $service_image" >&2;
-    fi
+    echo "~~~ :docker: Pushing image $target_image" >&2;
+    plugin_prompt_and_run docker tag "$service_image" "$target_image"
+    plugin_prompt_and_run docker push "$target_image"
   fi
 done
