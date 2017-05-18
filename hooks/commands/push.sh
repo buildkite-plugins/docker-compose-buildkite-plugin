@@ -1,5 +1,5 @@
 #!/bin/bash
-set -uxeo pipefail
+set -ueo pipefail
 
 built_images=( $(get_prebuilt_images_from_metadata) )
 
