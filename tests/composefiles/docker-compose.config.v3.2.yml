@@ -1,0 +1,54 @@
+networks: {}
+secrets: {}
+services:
+  app:
+    build:
+      context: /home/blah/blah
+      dockerfile: ops/docker/app/Dockerfile
+    depends_on:
+    - cache
+    - db
+    environment:
+      DB_CREATE: 1
+      KOHANA_ENV: development
+      LOAD_FIXTURE: staging
+      MYSQL_HOST: db
+      MYSQL_PWD: blah
+      MYSQL_USER: root
+    image: somewhere.dkr.ecr.some-region.amazonaws.com/blah
+    ports:
+    - target: '80'
+    - published: '8000'
+      target: '80'
+    volumes:
+    - /app/trunk/application/cache
+    - /app/trunk/application/logs
+    - /app/trunk/vendor
+    - /home/blah/blah:/app:ro,cached
+  helper:
+    build:
+      context: /home/blah/helper
+      dockerfile: ops/docker/helper/Dockerfile
+  cache:
+    environment:
+      MEMCACHED_MEMORY_LIMIT: '32'
+    image: memcached:1.4.35
+    ports:
+    - target: '11211'
+  db:
+    command: 'mysqld --sql_mode="NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"'
+    environment:
+      MYSQL_DATABASE: blah
+      MYSQL_PASSWORD: blah
+      MYSQL_ROOT_PASSWORD: blah
+      MYSQL_USER: blah
+    image: mysql:5.6
+    ports:
+    - target: '3306'
+    - published: '3306'
+      target: '3306'
+    volumes:
+    - /home/blah/blah/db/blah.sql:/docker-entrypoint-initdb.d/blah.sql:rw
+version: '3.2'
+volumes: {}
+

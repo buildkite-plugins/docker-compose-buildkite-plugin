@@ -12,6 +12,7 @@ elif [[ -n "$(plugin_read_config RUN)" ]]; then
   . "$DIR/../lib/run.bash"
   . "$DIR/commands/run.sh"
 elif [[ -n "$(plugin_read_list PUSH)" ]]; then
+  . "$DIR/../lib/push.bash"
   . "$DIR/commands/push.sh"
 else
   echo "+++ Docker Compose plugin error"
