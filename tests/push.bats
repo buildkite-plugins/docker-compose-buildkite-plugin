@@ -21,12 +21,16 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
     "-f docker-compose.yml -p buildkite1111 push app : echo pushed app"
 
+  stub docker \
+    "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0"
+
   run $PWD/hooks/command
 
   assert_success
   assert_output --partial "pushed app"
   unstub docker-compose
   unstub buildkite-agent
+  unstub docker
 }
 
 @test "Push two services with target repositories and tags" {
@@ -38,14 +42,17 @@ load '../lib/shared'
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : echo blah " \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah "
+    "-f docker-compose.yml -p buildkite1111 build myservice1 : echo blah " \
+    "-f docker-compose.yml -p buildkite1111 config : echo blah " \
+    "-f docker-compose.yml -p buildkite1111 build myservice2 : echo blah "
 
   stub docker \
+    "image inspect buildkite1111_myservice1 : exit 1" \
     "tag buildkite1111_myservice1 my.repository/myservice1 : echo tagging image1" \
     "push my.repository/myservice1 : echo pushing myservice1 image" \
+    "image inspect buildkite1111_myservice2 : exit 1" \
     "tag buildkite1111_myservice2 my.repository/myservice2:llamas : echo tagging image2" \
     "push my.repository/myservice2:llamas : echo pushing myservice2 image"
-
 
   stub buildkite-agent \
     "meta-data get docker-compose-plugin-built-image-count : echo 0"
@@ -133,6 +140,35 @@ load '../lib/shared'
   assert_output --partial "pushed myservice2"
   assert_output --partial "tagged image3"
   assert_output --partial "pushed myservice3"
+  unstub docker-compose
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Push a single service that needs to be built" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=helper:my.repository/helper:llamas
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-count : echo 0"
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "-f docker-compose.yml -p buildkite1111 build helper : echo built helper"
+
+  stub docker \
+    "image inspect buildkite1111_helper : exit 1" \
+    "tag buildkite1111_helper my.repository/helper:llamas : echo tagged helper" \
+    "push my.repository/helper:llamas : echo pushed helper"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "built helper"
+  assert_output --partial "tagged helper"
+  assert_output --partial "pushed helper"
   unstub docker-compose
   unstub docker
   unstub buildkite-agent

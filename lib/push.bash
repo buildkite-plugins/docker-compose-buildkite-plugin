@@ -23,3 +23,8 @@ default_compose_image_for_service() {
 
   printf "%s_%s\n" "$(docker_compose_project_name)" "$service"
 }
+
+docker_image_exists() {
+  local image="$1"
+  plugin_prompt_and_run docker image inspect "${image}" &> /dev/null
+}

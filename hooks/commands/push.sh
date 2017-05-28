@@ -1,15 +1,15 @@
 #!/bin/bash
 set -ueo pipefail
 
-built_images=( $(get_prebuilt_images_from_metadata) )
+prebuilt_images=( $(get_prebuilt_images_from_metadata) )
 
-# First, find any prebuilt images, pull them down and tag them
-if [[ ${#built_images[@]} -gt 0 ]] ; then
-  built_services=( $(get_services_from_map "${built_images[@]}") )
+# Find any prebuilt images and pull them down
+if [[ ${#prebuilt_images[@]} -gt 0 ]] ; then
+  prebuilt_services=( $(get_services_from_map "${prebuilt_images[@]}") )
 
-  echo "~~~ :docker: Pulling pre-built services ${built_services[*]}" >&2;
-  for service in "${built_services[@]}" ; do
-    if prebuilt_image=$(get_prebuilt_image "$service" "${built_images[@]}") ; then
+  echo "~~~ :docker: Pulling pre-built services ${prebuilt_services[*]}" >&2;
+  for service in "${prebuilt_services[@]}" ; do
+    if prebuilt_image=$(get_prebuilt_image "$service" "${prebuilt_images[@]}") ; then
       plugin_prompt_and_run docker pull "$prebuilt_image"
     fi
   done
@@ -32,16 +32,15 @@ for line in $(plugin_read_list PUSH) ; do
   service_image=$(compose_image_for_service "$service")
   prebuilt_image=
 
-  if [[ ${#built_images[@]} -gt 0 ]] && prebuilt_image=$(get_prebuilt_image "$service" "${built_images[@]}") ; then
+  if [[ ${#prebuilt_images[@]} -gt 0 ]] && prebuilt_image=$(get_prebuilt_image "$service" "${prebuilt_images[@]}") ; then
     echo "~~~ :docker: Tagging prebuilt image ${prebuilt_image} as ${service_image}" >&2;
     plugin_prompt_and_run docker tag "$prebuilt_image" "$service_image"
+  elif ! docker_image_exists "${service_image}" ; then
+    echo "~~~ :docker: Building ${service}" >&2;
+    run_docker_compose build "$service"
   fi
 
   if [[ ${#tokens[@]} -eq 1 ]] ; then
-    if [[ "$service_image" == "$(default_compose_image_for_service "$service")" && -z "$prebuilt_image" ]] ; then
-      echo "~~~ :docker: Skipping pushing default image $service_image" >&2;
-      continue
-    fi
     echo "~~~ :docker: Pushing images for $service" >&2;
     run_docker_compose push "$service"
   else
