@@ -1,4 +1,4 @@
-# Docker Compose Buildkite Plugin
+# Docker Compose Buildkite Plugin ![Build status](https://badge.buildkite.com/d8fd3a4fef8419a6a3ebea79739a09ebc91106538193f99fce.svg)
 
 __This is designed to run with the upcoming version of 3.0 of Buildkite Agent (currently in beta). Plugins are not yet supported in version 2.1. See the [Containerized Builds with Docker](https://buildkite.com/docs/guides/docker-containerized-builds) guide for running builds in Docker with the current stable version of the Buildkite Agent.__
 
