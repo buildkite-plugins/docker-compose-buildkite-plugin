@@ -193,6 +193,12 @@ The default is `${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUI
 
 Note: this option can only be specified on a `build` step.
 
+### `verbose` (optional)
+
+Sets `docker-compose` to run with `--verbose`
+
+The default is `false`.
+
 ## License
 
 MIT (see [LICENSE](LICENSE))
