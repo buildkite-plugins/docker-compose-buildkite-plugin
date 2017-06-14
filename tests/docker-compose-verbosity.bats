@@ -8,9 +8,9 @@ export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
 
 @test "docker-compose verbosity config unset" {
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite : echo ran without verbose flag"
+    "-f docker-compose.yml -p buildkite run tests : echo ran without verbose flag"
 
-  run run_docker_compose
+  run run_docker_compose run tests
 
   assert_success
   assert_output --partial "ran without verbose flag"
@@ -21,9 +21,9 @@ export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VERBOSE="true"
 
   stub docker-compose \
-    "--verbose -f docker-compose.yml -p buildkite : echo ran with verbose flag"
+    "--verbose -f docker-compose.yml -p buildkite run tests : echo ran with verbose flag"
 
-  run run_docker_compose
+  run run_docker_compose run tests
 
   assert_success
   assert_output --partial "ran with verbose flag"
@@ -34,9 +34,9 @@ export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VERBOSE="false"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite : echo ran without verbose flag"
+    "-f docker-compose.yml -p buildkite run tests : echo ran without verbose flag"
 
-  run run_docker_compose
+  run run_docker_compose run tests
 
   assert_success
   assert_output --partial "ran without verbose flag"
