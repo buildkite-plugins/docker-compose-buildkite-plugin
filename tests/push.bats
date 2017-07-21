@@ -15,7 +15,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-count : echo 0"
+    "meta-data get docker-compose-plugin-built-image-tag-app : exit 1"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
@@ -55,7 +55,8 @@ load '../lib/shared'
     "push my.repository/myservice2:llamas : echo pushing myservice2 image"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-count : echo 0"
+    "meta-data get docker-compose-plugin-built-image-tag-myservice1 : exit 1" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice2 : exit 1"
 
   run $PWD/hooks/command
 
@@ -76,8 +77,8 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
-    "pull myimage:blahblah : echo pulled prebuilt image" \
-    "tag myimage:blahblah buildkite1111_myservice : echo " \
+    "pull myimage : echo pulled prebuilt image" \
+    "tag myimage buildkite1111_myservice : echo " \
     "tag buildkite1111_myservice my.repository/myservice:llamas : echo tagged image" \
     "push my.repository/myservice:llamas : echo pushed myservice"
 
@@ -85,9 +86,7 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 config : echo blah"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-count : echo 1" \
-    "meta-data get docker-compose-plugin-built-image-tag-0 : echo myservice" \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage:blahblah"
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
 
@@ -109,14 +108,14 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
-    "pull prebuilt:blahblah : echo pulled prebuilt image" \
-    "tag prebuilt:blahblah buildkite1111_myservice : echo " \
+    "pull prebuilt : echo pulled prebuilt image" \
+    "tag prebuilt buildkite1111_myservice : echo " \
     "tag buildkite1111_myservice my.repository/myservice:llamas : echo tagged image1" \
     "push my.repository/myservice:llamas : echo pushed myservice1" \
-    "tag prebuilt:blahblah buildkite1111_myservice : echo " \
+    "tag prebuilt buildkite1111_myservice : echo " \
     "tag buildkite1111_myservice my.repository/myservice:latest : echo tagged image2" \
     "push my.repository/myservice:latest : echo pushed myservice2" \
-    "tag prebuilt:blahblah buildkite1111_myservice : echo " \
+    "tag prebuilt buildkite1111_myservice : echo " \
     "tag buildkite1111_myservice my.repository/myservice:alpacas : echo tagged image3" \
     "push my.repository/myservice:alpacas : echo pushed myservice3"
 
@@ -126,9 +125,9 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 config : echo blah"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-count : echo 1" \
-    "meta-data get docker-compose-plugin-built-image-tag-0 : echo myservice" \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt:blahblah"
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt"
 
   run $PWD/hooks/command
 
@@ -152,7 +151,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-count : echo 0"
+    "meta-data get docker-compose-plugin-built-image-tag-helper : exit 1"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \

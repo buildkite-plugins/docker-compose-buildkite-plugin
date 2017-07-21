@@ -4,7 +4,7 @@ load '/usr/local/lib/bats/load.bash'
 load '../lib/shared'
 load '../lib/run'
 
-export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
+# export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
 
 @test "docker-compose verbosity config unset" {
   stub docker-compose \

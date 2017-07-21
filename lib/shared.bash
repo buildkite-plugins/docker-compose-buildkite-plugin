@@ -125,3 +125,9 @@ function build_image_name() {
   local default="${BUILDKITE_PIPELINE_SLUG}-${service_name}-build-${BUILDKITE_BUILD_NUMBER}"
   plugin_read_config IMAGE_NAME "$default"
 }
+
+function in_array() {
+  local e
+  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+  return 1
+}
