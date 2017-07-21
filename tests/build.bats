@@ -35,18 +35,14 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml push myservice : echo pushed myservice" \
 
   stub buildkite-agent \
-    "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/llamas:test-myservice-build-1 : echo set image metadata 0" \
-    "meta-data set docker-compose-plugin-built-image-tag-0 myservice : echo set key metadata 0 " \
-    "meta-data set docker-compose-plugin-built-image-count 1 : echo set image count"
+    "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice"
 
   run $PWD/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
   assert_output --partial "pushed myservice"
-  assert_output --partial "set image metadata 0"
-  assert_output --partial "set key metadata 0"
-  assert_output --partial "set image count"
+  assert_output --partial "set image metadata for myservice"
   unstub docker-compose
   unstub buildkite-agent
 }
@@ -64,22 +60,16 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1112 -f docker-compose.buildkite-1-override.yml push myservice1 myservice2 : echo pushed all services" \
 
   stub buildkite-agent \
-    "meta-data set docker-compose-plugin-built-image-tag-myservice1 my.repository/llamas:test-myservice1-build-1 : echo set image metadata 0" \
-    "meta-data set docker-compose-plugin-built-image-tag-0 myservice1 : echo set key metadata 0" \
-    "meta-data set docker-compose-plugin-built-image-tag-myservice2 my.repository/llamas:test-myservice2-build-1 : echo set image metadata 1" \
-    "meta-data set docker-compose-plugin-built-image-tag-1 myservice2 : echo set key metadata 1" \
-    "meta-data set docker-compose-plugin-built-image-count 2 : echo set image count"
+    "meta-data set docker-compose-plugin-built-image-tag-myservice1 my.repository/llamas:test-myservice1-build-1 : echo set image metadata for myservice1" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice2 my.repository/llamas:test-myservice2-build-1 : echo set image metadata for myservice2"
 
   run $PWD/hooks/command
 
   assert_success
   assert_output --partial "built all services"
   assert_output --partial "pushed all services"
-  assert_output --partial "set image metadata 0"
-  assert_output --partial "set key metadata 0"
-  assert_output --partial "set image metadata 1"
-  assert_output --partial "set key metadata 1"
-  assert_output --partial "set image count"
+  assert_output --partial "set image metadata for myservice1"
+  assert_output --partial "set image metadata for myservice2"
   unstub docker-compose
   unstub buildkite-agent
 }

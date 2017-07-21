@@ -29,13 +29,8 @@ if [[ -n "$image_repository" ]]; then
   echo "~~~ :docker: Pushing built images to $image_repository"
   run_docker_compose -f "$override_file" push "${services[@]}"
 
-  i=0
   while [[ ${#build_images[@]} -gt 0 ]] ; do
     plugin_set_metadata "built-image-tag-${build_images[0]}" "${build_images[1]}"
-    plugin_set_metadata "built-image-tag-${i}" "${build_images[0]}"
     build_images=("${build_images[@]:2}")
-    i=$((i+1))
   done
-
-  plugin_set_metadata "built-image-count" "$i"
 fi

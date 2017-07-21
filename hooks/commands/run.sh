@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ueo pipefail
 
+# Run takes a service name, pulls down any pre-built image for that name
+# and then runs docker-compose run a generated project name
+
 service_name="$(plugin_read_config RUN)"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 
@@ -16,19 +19,16 @@ fi
 
 test -f "$override_file" && rm "$override_file"
 
-built_images=( $(get_prebuilt_images_from_metadata) )
+# We only look for a prebuilt image for the serice being run. This means that
+# any other services that are dependencies that need to be built will be built
+# on-demand in this step, even if they were prebuilt in an earlier step.
 
-echo "~~~ :docker: Found $((${#built_images[@]}/2)) pre-built services"
+if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
+  echo "~~~ :docker: Found a pre-built image for $service_name"
+  build_image_override_file "${service_name}" "${prebuilt_image}" | tee "$override_file"
 
-if [[ ${#built_images[@]} -gt 0 ]] ; then
-  printf "%s => %s\n" "${built_images[@]}"
-
-  echo "~~~ :docker: Creating a modified docker-compose config for pre-built images" >&2;
-  build_image_override_file "${built_images[@]}" | tee "$override_file"
-  built_services=( $(get_services_from_map "${built_images[@]}") )
-
-  echo "~~~ :docker: Pulling pre-built services ${built_services[*]}"
-  run_docker_compose -f "$override_file" pull "${built_services[@]}"
+  echo "~~~ :docker: Pulling pre-built services $service_name"
+  run_docker_compose -f "$override_file" pull "$service_name"
 fi
 
 echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2;
