@@ -6,6 +6,7 @@ set -ueo pipefail
 
 service_name="$(plugin_read_config RUN)"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
+pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 
 cleanup() {
   echo "~~~ :docker: Cleaning up after docker-compose" >&2
@@ -28,7 +29,7 @@ if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
   build_image_override_file "${service_name}" "${prebuilt_image}" | tee "$override_file"
 
   echo "~~~ :docker: Pulling pre-built services $service_name"
-  run_docker_compose -f "$override_file" pull "$service_name"
+  retry "$pull_retries" run_docker_compose -f "$override_file" pull "$service_name"
 fi
 
 echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2;
