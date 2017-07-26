@@ -71,8 +71,6 @@ load '../lib/run'
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run myservice pwd : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-count : echo 1" \
-    "meta-data get docker-compose-plugin-built-image-tag-0 : echo myservice" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command

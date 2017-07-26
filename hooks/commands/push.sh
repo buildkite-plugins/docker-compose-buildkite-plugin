@@ -27,7 +27,7 @@ for line in $(plugin_read_list PUSH) ; do
     # Only pull it down once
     if ! in_array "${service_name}" "${pulled_services[@]}" ; then
       echo "~~~ :docker: Pulling pre-built service ${service_name}" >&2;
-      retry "$retry_count" plugin_prompt_and_run docker pull "$prebuilt_image"
+      retry "$push_retries" plugin_prompt_and_run docker pull "$prebuilt_image"
       pulled_services+=("${service_name}")
     fi
 
