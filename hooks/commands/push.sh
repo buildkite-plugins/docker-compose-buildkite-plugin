@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ueo pipefail
 
-retry_count="$(plugin_read_config RETRY "0")"
+push_retries="$(plugin_read_config PUSH_RETRIES "0")"
 
 # Targets for pushing come in a variety of forms:
 
@@ -42,17 +42,12 @@ for line in $(plugin_read_list PUSH) ; do
   fi
 
   if [[ ${#tokens[@]} -eq 1 ]] ; then
-<<<<<<< HEAD
     echo "~~~ :docker: Pushing images for ${service_name}" >&2;
-    run_docker_compose push "${service_name}"
-=======
-    echo "~~~ :docker: Pushing images for $service" >&2;
-    retry "$retry_count" run_docker_compose push "$service"
->>>>>>> Add retry support to pull and push
+    retry "$push_retries" run_docker_compose push "${service_name}"
   else
     target_image="$(IFS=:; echo "${tokens[*]:1}")"
     echo "~~~ :docker: Pushing image $target_image" >&2;
     plugin_prompt_and_run docker tag "$service_image" "$target_image"
-    retry "$retry_count" plugin_prompt_and_run docker push "$target_image"
+    retry "$push_retries" plugin_prompt_and_run docker push "$target_image"
   fi
 done

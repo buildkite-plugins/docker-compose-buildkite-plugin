@@ -199,6 +199,14 @@ Sets `docker-compose` to run with `--verbose`
 
 The default is `false`.
 
+### `pull-retries` (optional)
+
+A number of times to retry failed docker pull. Defaults to 0.
+
+### `push-retries` (optional)
+
+A number of times to retry failed docker push. Defaults to 0.
+
 ## License
 
 MIT (see [LICENSE](LICENSE))

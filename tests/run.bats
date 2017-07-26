@@ -63,7 +63,7 @@ load '../lib/run'
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RETRY=3
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_RETRIES=3
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : exit 2" \
