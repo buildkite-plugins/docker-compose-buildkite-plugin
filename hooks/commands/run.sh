@@ -43,6 +43,7 @@ set +e
 if [[ -f "$override_file" ]]; then
   run_docker_compose -f "$override_file" run "$service_name" $BUILDKITE_COMMAND
 else
+  run_docker_compose build "$service_name"
   run_docker_compose run "$service_name" $BUILDKITE_COMMAND
 fi
 
