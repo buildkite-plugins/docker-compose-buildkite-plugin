@@ -203,9 +203,13 @@ The default is `false`.
 
 A number of times to retry failed docker pull. Defaults to 0.
 
+This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_RETRIES`.
+
 ### `push-retries` (optional)
 
 A number of times to retry failed docker push. Defaults to 0.
+
+This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES`.
 
 ## Developing
 
