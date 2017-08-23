@@ -77,7 +77,7 @@ function docker_compose_config_file() {
 
 # Returns the version of the first docker compose config file
 function docker_compose_config_version() {
-  sed -n "s/version: ['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
+  sed -n "s/\\s*version:\\s*['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
 }
 
 # Build an docker-compose file that overrides the image for a set of

@@ -56,6 +56,13 @@ load '../lib/shared'
   assert_output "llamas1.yml"
 }
 
+@test "Read version from docker-compose file with whitespace around the version" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v2.0.with-version-whitespace.yml"
+  run docker_compose_config_version
+  assert_success
+  assert_output "2"
+}
+
 @test "Read version from docker-compose v2 file" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v2.0.yml"
   run docker_compose_config_version
