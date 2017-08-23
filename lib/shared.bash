@@ -92,6 +92,13 @@ function build_image_override_file() {
 function build_image_override_file_with_version() {
   local version="$1"
 
+  if [[ -z "$version" ]]; then
+    echo "The 'build' option can only be used with Compose file versions 2.0 and above."
+    echo "For more information on Docker Compose configuration file versions, see:"
+    echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
+    exit 1
+  fi
+
   printf "version: '%s'\n" "$version"
   printf "services:\n"
 
