@@ -37,7 +37,7 @@ set +e
 
 # $BUILDKITE_COMMAND needs to be unquoted because:
 #   docker-compose run "app" "go test"
-# does not work whereas the follow does:
+# does not work whereas the following does:
 #   docker-compose run "app" go test
 
 if [[ -f "$override_file" ]]; then
