@@ -207,6 +207,14 @@ A number of times to retry failed docker pull. Defaults to 0.
 
 A number of times to retry failed docker push. Defaults to 0.
 
+## Developing
+
+To run the tests:
+
+```bash
+docker-compose run tests
+```
+
 ## License
 
 MIT (see [LICENSE](LICENSE))
