@@ -73,3 +73,16 @@ load '../lib/shared'
   unstub docker-compose
   unstub buildkite-agent
 }
+
+@test "Build with a docker-compose v1.0 configuration file" {
+  export BUILDKITE_JOB_ID=1112
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v1.0.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  run $PWD/hooks/command
+
+  assert_failure
+  assert_output --partial "Compose file versions 2.0 and above"
+}

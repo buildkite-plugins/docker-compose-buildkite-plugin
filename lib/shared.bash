@@ -77,7 +77,7 @@ function docker_compose_config_file() {
 
 # Returns the version of the first docker compose config file
 function docker_compose_config_version() {
-  sed -n "s/version: ['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
+  sed -n "s/\\s*version:\\s*['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
 }
 
 # Build an docker-compose file that overrides the image for a set of
@@ -91,6 +91,13 @@ function build_image_override_file() {
 # docker-compose version and set of service and image pairs
 function build_image_override_file_with_version() {
   local version="$1"
+
+  if [[ -z "$version" ]]; then
+    echo "The 'build' option can only be used with Compose file versions 2.0 and above."
+    echo "For more information on Docker Compose configuration file versions, see:"
+    echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
+    exit 1
+  fi
 
   printf "version: '%s'\n" "$version"
   printf "services:\n"
