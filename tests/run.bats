@@ -55,6 +55,30 @@ load '../lib/run'
   unstub buildkite-agent
 }
 
+@test "Run with a single prebuilt image, no retry on failed pull" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : exit 2"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run $PWD/hooks/command
+
+  assert_failure
+  assert_output --partial "Exited with 2"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+
 @test "Run with a single prebuilt image, retry on failed pull" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
