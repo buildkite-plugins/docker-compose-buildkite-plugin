@@ -17,7 +17,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         run: app
 ```
 
@@ -27,7 +27,7 @@ You can also specify a custom Docker Compose config file if you need:
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         run: app
         config: docker-compose.tests.yml
 ```
@@ -38,7 +38,7 @@ or multiple config files:
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         run: app
         config:
           - docker-compose.yml
@@ -56,7 +56,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         run: app
 ```
 
@@ -75,7 +75,7 @@ To speed up run parallel steps you can add a pre-building step to your pipeline,
 steps:
   - name: ":docker: Build"
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         build: app
 
   - wait
@@ -84,7 +84,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         run: app
 ```
 
@@ -96,7 +96,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         build: app
         image-repository: index.docker.io/org/repo
 
@@ -108,7 +108,7 @@ steps:
     agents:
       queue: docker-runner
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         run: app
 ```
 
@@ -122,7 +122,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         build:
           - app
           - tests
@@ -134,7 +134,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         run: tests
 ```
 
@@ -146,7 +146,7 @@ Prebuilt images are automatically pushed with a `build` step, but often you want
 steps:
   - name: ":docker: Push to final repository"
     plugins:
-      docker-compose#v1.5.1:
+      docker-compose#v1.5.2:
         push:
         - app:index.docker.io/org/repo/myapp
         - app:index.docker.io/org/repo/myapp:latest
