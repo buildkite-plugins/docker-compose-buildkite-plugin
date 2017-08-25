@@ -148,7 +148,9 @@ function retry {
   until "$@"; do
     status=$?
     echo "Exited with $status"
-    if (( attempts == retries )); then
+    if (( retries == "0" )); then
+      return $status
+    elif (( attempts == retries )); then
       echo "Failed $attempts retries"
       return $status
     else
