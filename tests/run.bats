@@ -33,6 +33,31 @@ load '../lib/run'
   unstub buildkite-agent
 }
 
+@test "Run without a prebuilt image with custom env" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_0=MYENV=0
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_1=MYENV=1
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 run -e MYENV=0 -e MYENV=1 myservice pwd : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
 @test "Run with a prebuilt image" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
