@@ -13,8 +13,8 @@ services:
   alpinewithenv:
     image: alpine:3.3
     environment:
-      - BLAH=${VARIABLE:-default}
-    command: "sh -c 'echo BLAH=$$BLAH'"
+      - LLAMAS=${VARIABLE:-always}
+    command: "sh -c \"[ $$LLAMAS = always ]\""
 
   alpinewithfailinglink:
     image: alpine:3.3
