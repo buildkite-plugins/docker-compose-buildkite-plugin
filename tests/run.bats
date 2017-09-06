@@ -18,7 +18,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run myservice pwd : echo ran myservice"
 
   stub buildkite-agent \
