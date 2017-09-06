@@ -15,7 +15,7 @@ services:
     environment:
       - LLAMAS=${MISSING_VARIABLE:-always}
     volumes:
-      - tests/scripts/test_env.sh:/bin/test_env.sh
+      - ./tests/scripts/test_env.sh:/bin/test_env.sh
     command: /bin/test_env.sh
 
   alpinewithfailinglink:
