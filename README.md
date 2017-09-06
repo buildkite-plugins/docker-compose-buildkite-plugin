@@ -21,7 +21,8 @@ steps:
         run: app
 ```
 
-You can also specify a custom Docker Compose config file if you need:
+You can also specify a custom Docker Compose config file and what environment to pass
+through if you need:
 
 ```yml
 steps:
@@ -30,6 +31,8 @@ steps:
       docker-compose#v1.5.2:
         run: app
         config: docker-compose.tests.yml
+        env:
+          - BUILDKITE_BUILD_NUMBER
 ```
 
 or multiple config files:
@@ -66,6 +69,31 @@ Assuming your application’s directory inside the container was `/app`, you wou
 volumes:
   - "./dist:/app/dist"
 ```
+
+## Environment
+
+By default, docker-compose makes whatever environment variables it gets available for 
+interpolation of docker-compose.yml, but it doesn't pass them in to your containers. 
+
+You can use the [environent key in docker-compose.yml](https://docs.docker.com/compose/environment-variables/) to either set specific environment vars or "pass through" environment
+variables from outside docker-compose.
+
+If you want to add extra environment above what is declared in your `docker-compose.yml`, 
+this plugin offers a `environment` block of it's own:
+
+```yml
+steps:
+  - command: generate-dist.sh
+    plugins:
+      docker-compose#v1.4.0:
+        run: app
+        env:
+          - BUILDKITE_BUILD_NUMBER
+          - BUILDKITE_PULL_REQUEST
+          - MY_CUSTOM_ENV=llamas
+```
+
+Note how the values in the list can either be just a key (so the value is sourced from the environment) or a KEY=VALUE pair.
 
 ## Pre-building the image
 
@@ -193,6 +221,11 @@ The default is `${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUI
 
 Note: this option can only be specified on a `build` step.
 
+### `env` or `environment` (optional)
+
+A list of either KEY or KEY=VALUE that are passed through
+as environment variables to the container.
+
 ### `verbose` (optional)
 
 Sets `docker-compose` to run with `--verbose`
@@ -210,11 +243,6 @@ This option can also be configured on the agent machine using the environment va
 A number of times to retry failed docker push. Defaults to 0.
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES`.
-
-
-### `environment` (optional)
-
-Extra environment variables to pass to docker-compose, in an array of KEY=VALUE params.
 
 ## Developing
 
