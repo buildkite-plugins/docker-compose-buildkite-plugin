@@ -10,6 +10,12 @@ services:
     image: myhelloworld
     build: .
 
+  alpinewithenv:
+    image: alpine:3.3
+    environment:
+      - BLAH=${VARIABLE:-default}
+    command: "sh -c 'echo BLAH=\$BLAH'"
+
   alpinewithfailinglink:
     image: alpine:3.3
     command: echo hello from alpine
