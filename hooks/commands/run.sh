@@ -40,11 +40,13 @@ set +e
 # does not work whereas the following does:
 #   docker-compose run "app" go test
 
+run_params="$(docker_compose_env_params)"
+
 if [[ -f "$override_file" ]]; then
-  run_docker_compose -f "$override_file" run "$service_name" $BUILDKITE_COMMAND
+  run_docker_compose -f "$override_file" run $run_params "$service_name" $BUILDKITE_COMMAND
 else
   run_docker_compose build --pull "$service_name"
-  run_docker_compose run "$service_name" $BUILDKITE_COMMAND
+  run_docker_compose run $run_params "$service_name" $BUILDKITE_COMMAND
 fi
 
 exitcode=$?

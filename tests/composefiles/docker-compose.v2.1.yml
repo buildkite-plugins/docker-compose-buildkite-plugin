@@ -10,6 +10,14 @@ services:
     image: myhelloworld
     build: .
 
+  alpinewithenv:
+    image: alpine:3.3
+    environment:
+      - LLAMAS=${MISSING_VARIABLE:-always}
+    volumes:
+      - ../../tests/scripts:/scripts:ro
+    command: /scripts/test_env.sh
+
   alpinewithfailinglink:
     image: alpine:3.3
     command: echo hello from alpine

@@ -30,6 +30,16 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
+  - label: run, with environment
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        run: alpinewithenv
+        config: tests/composefiles/docker-compose.v2.1.yml
+        environment:
+          - ALPACAS=sometimes
+
+
+  - wait
   - label: build
     command: /hello
     plugins:

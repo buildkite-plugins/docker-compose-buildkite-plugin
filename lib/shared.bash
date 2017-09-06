@@ -75,6 +75,17 @@ function docker_compose_config_file() {
   echo "${config_files[0]}"
 }
 
+# Returns all docker compose custom environment in the form -e "ENV=VAR"
+function docker_compose_env_params() {
+  env_vars=( $( plugin_read_list ENV ) $( plugin_read_list ENVIRONMENT ) )
+
+  [[ -z "${env_vars[*]:-}" ]] && return 
+
+  for value in "${env_vars[@]}" ; do
+    echo -n "-e $value "
+  done
+}
+
 # Returns the version of the first docker compose config file
 function docker_compose_config_version() {
   sed -n "s/\\s*version:\\s*['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
