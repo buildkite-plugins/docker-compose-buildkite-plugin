@@ -43,9 +43,11 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_0=MYENV=0
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_1=MYENV=1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_0=MYENV=2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_1=MYENV=3
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 run -e MYENV=0 -e MYENV=1 myservice pwd : echo ran myservice"
+    "-f docker-compose.yml -p buildkite1111 run -e MYENV=0 -e MYENV=1 -e MYENV=2 -e MYENV=3 myservice pwd : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"

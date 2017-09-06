@@ -77,7 +77,7 @@ function docker_compose_config_file() {
 
 # Returns all docker compose custom environment in the form -e "ENV=VAR"
 function docker_compose_env_params() {
-  env_vars=( $( plugin_read_list ENV ) )
+  env_vars=( $( plugin_read_list ENV ) $( plugin_read_list ENVIRONMENT ) )
 
   [[ -z "${env_vars[*]:-}" ]] && return 
 
