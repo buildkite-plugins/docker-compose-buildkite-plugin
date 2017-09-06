@@ -42,12 +42,13 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_0=MYENV=0
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_1=MYENV=1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_1=MYENV
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_0=MYENV=2
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_1=MYENV=3
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_1=MYENV
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 run -e MYENV=0 -e MYENV=1 -e MYENV=2 -e MYENV=3 myservice pwd : echo ran myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 run -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV myservice pwd : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
