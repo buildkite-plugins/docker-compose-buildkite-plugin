@@ -31,10 +31,14 @@ steps:
 
   - wait
   - label: run, with environment
+    command: "sh -c \"[ $$LLAMAS = always ] && [ $$TESTING = alpacas ]\""
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: alpinewithenv
         config: tests/composefiles/docker-compose.v2.1.yml
+        environment:
+          - TESTING=alpacas
+
 
   - wait
   - label: build
