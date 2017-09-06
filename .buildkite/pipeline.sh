@@ -31,8 +31,7 @@ steps:
 
   - wait
   - label: run, with environment
-    command:|
-      sh -c '[ $$LLAMAS = always ] && [ $$TESTING = alpacas ]'
+    command: "[ $$LLAMAS = always ] && [ $$TESTING = alpacas ]"
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: alpinewithenv
