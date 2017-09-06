@@ -13,8 +13,10 @@ services:
   alpinewithenv:
     image: alpine:3.3
     environment:
-      - LLAMAS=${VARIABLE:-always}
-    command: "sh -c \"[ $$LLAMAS = always ]\""
+      - LLAMAS=${MISSING_VARIABLE:-always}
+    volumes:
+      - tests/scripts/test_env.sh:/bin/test_env.sh
+    command: /bin/test_env.sh
 
   alpinewithfailinglink:
     image: alpine:3.3
