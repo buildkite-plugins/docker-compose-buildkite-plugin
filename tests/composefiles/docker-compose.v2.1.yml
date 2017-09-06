@@ -14,7 +14,7 @@ services:
     image: alpine:3.3
     environment:
       - BLAH=${VARIABLE:-default}
-    command: "sh -c 'echo BLAH=\$BLAH'"
+    command: "sh -c 'echo BLAH=$$BLAH'"
 
   alpinewithfailinglink:
     image: alpine:3.3
