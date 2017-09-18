@@ -32,9 +32,6 @@ if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
   retry "$pull_retries" run_docker_compose -f "$override_file" pull "$service_name"
 fi
 
-echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2;
-set +e
-
 # $BUILDKITE_COMMAND needs to be unquoted because:
 #   docker-compose run "app" "go test"
 # does not work whereas the following does:
@@ -43,9 +40,15 @@ set +e
 run_params="$(docker_compose_env_params)"
 
 if [[ -f "$override_file" ]]; then
+  echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2;
+  set +e
   run_docker_compose -f "$override_file" run $run_params "$service_name" $BUILDKITE_COMMAND
 else
+  echo "~~~ :docker: Building Docker Compose Service: $service_name" >&2;
   run_docker_compose build --pull "$service_name"
+
+  echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2;
+  set +e
   run_docker_compose run $run_params "$service_name" $BUILDKITE_COMMAND
 fi
 
