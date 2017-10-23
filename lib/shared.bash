@@ -66,29 +66,21 @@ function docker_compose_config_files() {
   done
 }
 
-# Returns the first docker compose config file name
-function docker_compose_config_file() {
-  if ! config_files=( $(docker_compose_config_files) ) ; then
-    echo "docker-compose.yml"
-  fi
-
-  echo "${config_files[0]}"
-}
-
 # Returns all docker compose custom environment in the form -e "ENV=VAR"
 function docker_compose_env_params() {
   env_vars=( $( plugin_read_list ENV ) $( plugin_read_list ENVIRONMENT ) )
 
-  [[ -z "${env_vars[*]:-}" ]] && return 
+  [[ -z "${env_vars[*]:-}" ]] && return
 
   for value in "${env_vars[@]}" ; do
     echo -n "-e $value "
   done
 }
 
-# Returns the version of the first docker compose config file
+# Returns the version from the output of docker_compose_config
 function docker_compose_config_version() {
-  sed -n "s/\\s*version:\\s*['\"]\(.*\)['\"]/\1/p" < "$(docker_compose_config_file)"
+  local config=($(docker_compose_config_files))
+  awk '/\s*version:/ { print $2; }' < "${config[0]}" | sed "s/[\"']//g"
 }
 
 # Build an docker-compose file that overrides the image for a set of
