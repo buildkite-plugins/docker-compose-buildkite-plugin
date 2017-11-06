@@ -23,7 +23,7 @@ fi
 services=( $(plugin_read_list BUILD) )
 
 echo "+++ :docker: Building services ${services[*]}"
-run_docker_compose -f "$override_file" build "${services[@]}"
+run_docker_compose -f "$override_file" build --pull "${services[@]}"
 
 if [[ -n "$image_repository" ]]; then
   echo "~~~ :docker: Pushing built images to $image_repository"
