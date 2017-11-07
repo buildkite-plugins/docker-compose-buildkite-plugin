@@ -14,7 +14,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
 
   run $PWD/hooks/command
 
@@ -31,7 +31,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml push myservice : echo pushed myservice" \
 
   stub buildkite-agent \
@@ -56,7 +56,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1112 -f docker-compose.buildkite-1-override.yml build myservice1 myservice2 : echo built all services" \
+    "-f docker-compose.yml -p buildkite1112 -f docker-compose.buildkite-1-override.yml build --pull myservice1 myservice2 : echo built all services" \
     "-f docker-compose.yml -p buildkite1112 -f docker-compose.buildkite-1-override.yml push myservice1 myservice2 : echo pushed all services" \
 
   stub buildkite-agent \
