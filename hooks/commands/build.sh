@@ -22,6 +22,16 @@ fi
 
 services=( $(plugin_read_list BUILD) )
 
+
+for line in $(plugin_read_list CACHE_FROM) ; do
+  IFS=':' read -a tokens <<< "$line"
+  service_name=${tokens[0]}
+  service_image=$(IFS=':'; echo "${tokens[*]:1}")
+
+  echo "+++ :docker: Pulling cache image for $service_name"
+  plugin_prompt_and_run docker pull "$service_image"
+done
+
 echo "+++ :docker: Building services ${services[*]}"
 run_docker_compose -f "$override_file" build --pull "${services[@]}"
 

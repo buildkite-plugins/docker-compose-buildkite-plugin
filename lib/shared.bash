@@ -94,6 +94,12 @@ function build_image_override_file() {
 # docker-compose version and set of service and image pairs
 function build_image_override_file_with_version() {
   local version="$1"
+  declare -A cache_from
+
+  for line in $(plugin_read_list CACHE_FROM) ; do
+    IFS=':' read -a tokens <<< "$line"
+    cache_from[${tokens[0]}]=$(IFS=':'; echo "${tokens[*]:1}")
+  done
 
   if [[ -z "$version" ]]; then
     echo "The 'build' option can only be used with Compose file versions 2.0 and above."
@@ -102,6 +108,8 @@ function build_image_override_file_with_version() {
     exit 1
   fi
 
+  # TODO: cache_from requires version: 3.2
+
   printf "version: '%s'\n" "$version"
   printf "services:\n"
 
@@ -109,6 +117,11 @@ function build_image_override_file_with_version() {
   while test ${#} -gt 0 ; do
     printf "  %s:\n" "$1"
     printf "    image: %s\n" "$2"
+    if in_array $1 ${!cache_from[@]} ; then
+      printf "    build:\n"
+      printf "      cache_from:\n"
+      printf "        - %s\n" ${cache_from[$1]}
+    fi
     shift 2
   done
 }

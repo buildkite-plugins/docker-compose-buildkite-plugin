@@ -86,3 +86,25 @@ load '../lib/shared'
   assert_failure
   assert_output --partial "Compose file versions 2.0 and above"
 }
+
+@test "Build with a cache-from image" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=myservice:my.repository/myservice:latest
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker \
+    "pull my.repository/myservice:latest : echo pulled cache image"
+
+  stub docker-compose \
+      "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled cache image"
+  assert_output --partial "built myservice"
+  unstub docker
+  unstub docker-compose
+}
