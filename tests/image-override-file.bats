@@ -56,3 +56,11 @@ EOF
   assert_success
   assert_output "$myservice_override_file3"
 }
+
+@test "Build a docker-compose file with cache-from and compose-file version < 3.2" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=myservice:my.repository/myservice:latest
+
+  run build_image_override_file_with_version "3" "myservice" "newimage:1.0.0"
+
+  assert_failure
+}

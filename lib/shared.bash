@@ -100,9 +100,17 @@ function build_image_override_file_with_version() {
     IFS=':' read -a tokens <<< "$line"
     cache_from[${tokens[0]}]=$(IFS=':'; echo "${tokens[*]:1}")
   done
+  local using_cache_from=${cache_from[@]+"${#cache_from[@]}"}
 
   if [[ -z "$version" ]]; then
     echo "The 'build' option can only be used with Compose file versions 2.0 and above."
+    echo "For more information on Docker Compose configuration file versions, see:"
+    echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
+    exit 1
+  fi
+
+  if [[ -n "$using_cache_from" && $(bc <<< "$version < 3.2") -gt 0 ]] ; then
+    echo "The 'cache_from' option can only be used with Compose file versions 3.2 and above."
     echo "For more information on Docker Compose configuration file versions, see:"
     echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
     exit 1
