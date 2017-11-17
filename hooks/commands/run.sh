@@ -26,7 +26,7 @@ test -f "$override_file" && rm "$override_file"
 
 if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
   echo "~~~ :docker: Found a pre-built image for $service_name"
-  build_image_override_file "${service_name}" "${prebuilt_image}" | tee "$override_file"
+  build_image_override_file "${service_name}" "${prebuilt_image}" "" | tee "$override_file"
 
   echo "~~~ :docker: Pulling pre-built services $service_name"
   retry "$pull_retries" run_docker_compose -f "$override_file" pull "$service_name"

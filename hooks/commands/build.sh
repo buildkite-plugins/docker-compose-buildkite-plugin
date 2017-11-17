@@ -4,6 +4,18 @@ set -ueo pipefail
 image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
+declare -A cache_from
+
+for line in $(plugin_read_list CACHE_FROM) ; do
+  IFS=':' read -a tokens <<< "$line"
+  service_name=${tokens[0]}
+  service_image=$(IFS=':'; echo "${tokens[*]:1}")
+  cache_from[$service_name]=$(IFS=':'; echo "$service_image")
+
+  echo "+++ :docker: Pulling cache image for $service_name"
+  plugin_prompt_and_run docker pull "$service_image"
+done
+# using_cache_from=${cache_from[@]+"${#cache_from[@]}"}
 
 for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}")
@@ -13,6 +25,12 @@ for service_name in $(plugin_read_list BUILD) ; do
   fi
 
   build_images+=("$service_name" "$image_name")
+
+  if in_array $service_name ${!cache_from[@]} ; then
+    build_images+=("${cache_from[$1]}")
+  else
+    build_images+=("")
+  fi
 done
 
 if [[ ${#build_images[@]} -gt 0 ]] ; then
@@ -21,16 +39,6 @@ if [[ ${#build_images[@]} -gt 0 ]] ; then
 fi
 
 services=( $(plugin_read_list BUILD) )
-
-
-for line in $(plugin_read_list CACHE_FROM) ; do
-  IFS=':' read -a tokens <<< "$line"
-  service_name=${tokens[0]}
-  service_image=$(IFS=':'; echo "${tokens[*]:1}")
-
-  echo "+++ :docker: Pulling cache image for $service_name"
-  plugin_prompt_and_run docker pull "$service_image"
-done
 
 echo "+++ :docker: Building services ${services[*]}"
 run_docker_compose -f "$override_file" build --pull "${services[@]}"
@@ -41,6 +49,6 @@ if [[ -n "$image_repository" ]]; then
 
   while [[ ${#build_images[@]} -gt 0 ]] ; do
     plugin_set_metadata "built-image-tag-${build_images[0]}" "${build_images[1]}"
-    build_images=("${build_images[@]:2}")
+    build_images=("${build_images[@]:3}")
   done
 fi
