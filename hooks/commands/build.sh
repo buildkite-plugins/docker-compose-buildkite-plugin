@@ -2,6 +2,7 @@
 set -ueo pipefail
 
 image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
+pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 declare -A cache_from
@@ -10,12 +11,14 @@ for line in $(plugin_read_list CACHE_FROM) ; do
   IFS=':' read -a tokens <<< "$line"
   service_name=${tokens[0]}
   service_image=$(IFS=':'; echo "${tokens[*]:1}")
-  cache_from[$service_name]=$(IFS=':'; echo "$service_image")
 
-  echo "+++ :docker: Pulling cache image for $service_name"
-  plugin_prompt_and_run docker pull "$service_image"
+  echo "~~~ :docker: Pulling cache image for $service_name"
+  if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
+    cache_from[$service_name]=$service_image
+  else
+    echo "!!! :docker: Pull failed. $service_image will not be used as a cache for $service_name"
+  fi
 done
-# using_cache_from=${cache_from[@]+"${#cache_from[@]}"}
 
 for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}")
@@ -27,7 +30,7 @@ for service_name in $(plugin_read_list BUILD) ; do
   build_images+=("$service_name" "$image_name")
 
   if in_array $service_name ${!cache_from[@]} ; then
-    build_images+=("${cache_from[$1]}")
+    build_images+=("${cache_from[$service_name]}")
   else
     build_images+=("")
   fi
