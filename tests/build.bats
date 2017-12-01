@@ -86,3 +86,78 @@ load '../lib/shared'
   assert_failure
   assert_output --partial "Compose file versions 2.0 and above"
 }
+
+@test "Build with a cache-from image" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker \
+    "pull my.repository/myservice_cache:latest : echo pulled cache image"
+
+  stub docker-compose \
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled cache image"
+  assert_output --partial "- my.repository/myservice_cache:latest"
+  assert_output --partial "built helloworld"
+  unstub docker
+  unstub docker-compose
+}
+
+@test "Build with a cache-from image when pulling of the cache-from image failed" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker \
+    "pull my.repository/myservice_cache:latest : exit 1"
+
+  stub docker-compose \
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "my.repository/myservice_cache:latest will not be used as a cache for helloworld"
+  refute_output --partial "- my.repository/myservice_cache:latest"
+  assert_output --partial "built helloworld"
+  unstub docker
+  unstub docker-compose
+}
+
+@test "Build with a cache-from image retry on failing pull" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_RETRIES=3
+
+  stub docker \
+    "pull my.repository/myservice_cache:latest : exit 1" \
+    "pull my.repository/myservice_cache:latest : exit 1" \
+    "pull my.repository/myservice_cache:latest : echo pulled cache image"
+
+  stub docker-compose \
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled cache image"
+  assert_output --partial "- my.repository/myservice_cache:latest"
+  assert_output --partial "built helloworld"
+  unstub docker
+  unstub docker-compose
+}

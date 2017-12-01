@@ -102,6 +102,8 @@ function build_image_override_file_with_version() {
     exit 1
   fi
 
+  cache_from_not_available=($(bc <<< "$version < 3.2"))
+
   printf "version: '%s'\n" "$version"
   printf "services:\n"
 
@@ -109,7 +111,21 @@ function build_image_override_file_with_version() {
   while test ${#} -gt 0 ; do
     printf "  %s:\n" "$1"
     printf "    image: %s\n" "$2"
-    shift 2
+
+    if [[ -n "$3" ]] ; then
+      if [[ $cache_from_not_available -gt 0 ]] ; then
+        echo "The 'cache_from' option can only be used with Compose file versions 3.2 and above."
+        echo "For more information on Docker Compose configuration file versions, see:"
+        echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
+        exit 1
+      fi
+
+      printf "    build:\n"
+      printf "      cache_from:\n"
+      printf "        - %s\n" "$3"
+    fi
+
+    shift 3
   done
 }
 
