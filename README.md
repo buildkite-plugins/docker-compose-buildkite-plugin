@@ -244,6 +244,10 @@ A number of times to retry failed docker push. Defaults to 0.
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES`.
 
+### `cache-from` (optional)
+
+A list of images to pull caches from in the format `service:index.docker.io/org/repo/image:tag`. Requires docker-compose file version `3.2+`. Currently only one image per service is supported. If there's no image present for a service local docker cache will be used.
+
 ## Developing
 
 To run the tests:
