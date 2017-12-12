@@ -179,7 +179,25 @@ steps:
         - app:index.docker.io/org/repo/myapp
         - app:index.docker.io/org/repo/myapp:latest
 ```
+## Reusing caches from images
 
+A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a previously built image if it was pushed to the repo on a past run
+
+```yaml
+steps:
+  - name: ":docker Build an image"
+    plugins:
+      docker-compose#v1.7.0:
+        build: app
+        image-repository: index.docker.io/org/repo
+        cache-from: app:index.docker.io/org/repo/myapp:latest
+  - name: ":docker: Push to final repository"
+    plugins:
+      docker-compose#v1.7.0:
+        push:
+        - app:index.docker.io/org/repo/myapp
+        - app:index.docker.io/org/repo/myapp:latest
+```
 
 ## Configuration
 
