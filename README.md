@@ -179,7 +179,25 @@ steps:
         - app:index.docker.io/org/repo/myapp
         - app:index.docker.io/org/repo/myapp:latest
 ```
+## Reusing caches from images
 
+A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a previously built image if it was pushed to the repo on a past run
+
+```yaml
+steps:
+  - name: ":docker Build an image"
+    plugins:
+      docker-compose#v1.7.0:
+        build: app
+        image-repository: index.docker.io/org/repo
+        cache-from: app:index.docker.io/org/repo/myapp:latest
+  - name: ":docker: Push to final repository"
+    plugins:
+      docker-compose#v1.7.0:
+        push:
+        - app:index.docker.io/org/repo/myapp
+        - app:index.docker.io/org/repo/myapp:latest
+```
 
 ## Configuration
 
@@ -243,6 +261,10 @@ This option can also be configured on the agent machine using the environment va
 A number of times to retry failed docker push. Defaults to 0.
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES`.
+
+### `cache-from` (optional)
+
+A list of images to pull caches from in the format `service:index.docker.io/org/repo/image:tag`. Requires docker-compose file version `3.2+`. Currently only one image per service is supported. If there's no image present for a service local docker cache will be used.
 
 ## Developing
 
