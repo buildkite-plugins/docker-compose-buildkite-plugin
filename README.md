@@ -290,7 +290,7 @@ The default is `false`.
 To run the tests:
 
 ```bash
-docker-compose run tests
+docker-compose run --rm tests
 ```
 
 ## License
