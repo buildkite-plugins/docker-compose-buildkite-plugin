@@ -15,6 +15,9 @@ fi
 
 cat <<YAML
 steps:
+  - label: shellcheck
+    command: .buildkite/steps/shellcheck
+
   - label: run bats tests
     command: tests/
     plugins:
