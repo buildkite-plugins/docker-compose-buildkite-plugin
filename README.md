@@ -263,6 +263,14 @@ A list of images to pull caches from in the format `service:index.docker.io/org/
 
 Note: this option can only be specified on a `build` step.
 
+### `leave-volumes` (optional)
+
+Prevent the removal of volumes after the command has been run.
+
+The default is `false`.
+
+Note: this option can only be specified on a `run` step.
+
 ### `no-cache` (optional)
 
 Sets the build step to run with `--no-cache`, causing Docker Compose to not use any caches when building the image.
