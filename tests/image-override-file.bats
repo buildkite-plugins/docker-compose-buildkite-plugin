@@ -55,8 +55,38 @@ EOF
   assert_output "$myservice_override_file3"
 }
 
-@test "Build a docker-compose file with cache-from and compose-file version < 3.2" {
+@test "Build a docker-compose file with cache-from and compose-file version 2" {
+  run build_image_override_file_with_version "2" "myservice" "newimage:1.0.0" "my.repository/myservice:latest"
+
+  assert_failure
+}
+
+@test "Build a docker-compose file with cache-from and compose-file version 2.0" {
+  run build_image_override_file_with_version "2.0" "myservice" "newimage:1.0.0" "my.repository/myservice:latest"
+
+  assert_failure
+}
+
+@test "Build a docker-compose file with cache-from and compose-file version 2.1" {
+  run build_image_override_file_with_version "2.1" "myservice" "newimage:1.0.0" "my.repository/myservice:latest"
+
+  assert_failure
+}
+
+@test "Build a docker-compose file with cache-from and compose-file version 3" {
   run build_image_override_file_with_version "3" "myservice" "newimage:1.0.0" "my.repository/myservice:latest"
+
+  assert_failure
+}
+
+@test "Build a docker-compose file with cache-from and compose-file version 3.0" {
+  run build_image_override_file_with_version "3.0" "myservice" "newimage:1.0.0" "my.repository/myservice:latest"
+
+  assert_failure
+}
+
+@test "Build a docker-compose file with cache-from and compose-file version 3.1" {
+  run build_image_override_file_with_version "3.1" "myservice" "newimage:1.0.0" "my.repository/myservice:latest"
 
   assert_failure
 }
