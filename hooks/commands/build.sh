@@ -43,8 +43,14 @@ fi
 
 services=( $(plugin_read_list BUILD) )
 
+build_args=(--pull)
+
+if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
+  build_args+=(--no-cache)
+fi
+
 echo "+++ :docker: Building services ${services[*]}"
-run_docker_compose -f "$override_file" build --pull "${services[@]}"
+run_docker_compose -f "$override_file" build "${build_args[@]}" "${services[@]}"
 
 if [[ -n "$image_repository" ]]; then
   echo "~~~ :docker: Pushing built images to $image_repository"

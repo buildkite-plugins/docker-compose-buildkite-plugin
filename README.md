@@ -227,9 +227,9 @@ The repository for pushing and pulling pre-built images, same as the repository 
 
 The default is `""`  which only builds images on the local Docker host doing the build.
 
-Note: this option only needs to be specified on the build step, and will be automatically picked up by following steps.
-
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
+
+Note: this option can only be specified on a `build` step.
 
 ### `image-name` (optional)
 
@@ -241,14 +241,9 @@ Note: this option can only be specified on a `build` step.
 
 ### `env` or `environment` (optional)
 
-A list of either KEY or KEY=VALUE that are passed through
-as environment variables to the container.
+A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
 
-### `verbose` (optional)
-
-Sets `docker-compose` to run with `--verbose`
-
-The default is `false`.
+Note: this option can only be specified on a `run` step.
 
 ### `pull-retries` (optional)
 
@@ -264,7 +259,23 @@ This option can also be configured on the agent machine using the environment va
 
 ### `cache-from` (optional)
 
-A list of images to pull caches from in the format `service:index.docker.io/org/repo/image:tag`. Requires docker-compose file version `3.2+`. Currently only one image per service is supported. If there's no image present for a service local docker cache will be used.
+A list of images to pull caches from in the format `service:index.docker.io/org/repo/image:tag` before building. Requires docker-compose file version `3.2+`. Currently only one image per service is supported. If there's no image present for a service local docker cache will be used.
+
+Note: this option can only be specified on a `build` step.
+
+### `no-cache` (optional)
+
+Sets the build step to run with `--no-cache`, causing Docker Compose to not use any caches when building the image.
+
+The default is `false`.
+
+Note: this option can only be specified on a `build` step.
+
+### `verbose` (optional)
+
+Sets `docker-compose` to run with `--verbose`
+
+The default is `false`.
 
 ## Developing
 
