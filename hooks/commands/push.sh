@@ -39,11 +39,17 @@ for line in $(plugin_read_list PUSH) ; do
   if [[ -z "$prebuilt_image" ]] && ! docker_image_exists "${service_image}" ; then
     echo "~~~ :docker: Building ${service_name}" >&2;
     run_docker_compose build "$service_name"
+  elif [[ -n "$prebuilt_image" ]]; then
+    echo "~~~ :docker: Using pre-built image ${prebuilt_image}"
+  else
+    echo "~~~ :warning: Skipping build. Using service image ${service_image} from Docker Compose config"
   fi
 
+  # push: "service-name"
   if [[ ${#tokens[@]} -eq 1 ]] ; then
     echo "~~~ :docker: Pushing images for ${service_name}" >&2;
     retry "$push_retries" run_docker_compose push "${service_name}"
+  # push: "service-name:repo:tag"
   else
     target_image="$(IFS=:; echo "${tokens[*]:1}")"
     echo "~~~ :docker: Pushing image $target_image" >&2;

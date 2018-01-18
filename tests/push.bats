@@ -27,6 +27,7 @@ load '../lib/shared'
   run $PWD/hooks/command
 
   assert_success
+  assert_output --partial ":warning: Skipping build"
   assert_output --partial "pushed app"
   unstub docker-compose
   unstub buildkite-agent
