@@ -32,25 +32,29 @@ if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
   retry "$pull_retries" run_docker_compose -f "$override_file" pull "$service_name"
 fi
 
-# $BUILDKITE_COMMAND needs to be unquoted because:
-#   docker-compose run "app" "go test"
-# does not work whereas the following does:
-#   docker-compose run "app" go test
+declare -a run_params cmd
 
-run_params="$(docker_compose_env_params)"
+# Split env params and command into arrays without expanding globs
+# See https://github.com/koalaman/shellcheck/wiki/SC2207 for context
+IFS=$' \t\n' GLOBIGNORE='*' command eval "run_params=(\$(docker_compose_env_params))"
+IFS=$' \t\n' GLOBIGNORE='*' command eval "cmd=(\$BUILDKITE_COMMAND)"
 
-if [[ -f "$override_file" ]]; then
-  echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2;
+run_params+=("$service_name")
+
+(
   set +e
-  run_docker_compose -f "$override_file" run $run_params "$service_name" $BUILDKITE_COMMAND
-else
-  echo "~~~ :docker: Building Docker Compose Service: $service_name" >&2;
-  run_docker_compose build --pull "$service_name"
 
-  echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2;
-  set +e
-  run_docker_compose run $run_params "$service_name" $BUILDKITE_COMMAND
-fi
+  if [[ -f "$override_file" ]]; then
+    echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2
+    run_docker_compose -f "$override_file" run "${run_params[@]}" "${cmd[@]}"
+  else
+    echo "~~~ :docker: Building Docker Compose Service: $service_name" >&2;
+    run_docker_compose build --pull "$service_name"
+
+    echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2
+    run_docker_compose run "${run_params[@]:-}" "${cmd[@]}"
+  fi
+)
 
 exitcode=$?
 

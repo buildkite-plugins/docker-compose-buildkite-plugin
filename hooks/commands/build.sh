@@ -41,7 +41,8 @@ if [[ ${#build_images[@]} -gt 0 ]] ; then
   build_image_override_file "${build_images[@]}" | tee "$override_file"
 fi
 
-services=( $(plugin_read_list BUILD) )
+declare -a services
+IFS=$'\n' GLOBIGNORE='*' command eval "services=(\$(plugin_read_list BUILD))"
 
 build_args=(--pull)
 

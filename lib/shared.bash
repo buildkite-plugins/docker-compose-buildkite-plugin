@@ -53,7 +53,8 @@ function docker_compose_project_name() {
 
 # Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
-  config_files=( $( plugin_read_list CONFIG ) )
+  local -a config_files
+  IFS=$'\n' GLOBIGNORE='*' command eval "config_files=(\$(plugin_read_list CONFIG))"
 
   if [[ ${#config_files[@]} -eq 0 ]]  ; then
     echo "docker-compose.yml"
@@ -68,7 +69,9 @@ function docker_compose_config_files() {
 
 # Returns all docker compose custom environment in the form -e "ENV=VAR"
 function docker_compose_env_params() {
-  env_vars=( $( plugin_read_list ENV ) $( plugin_read_list ENVIRONMENT ) )
+  local -a env_vars
+  IFS=$'\n' GLOBIGNORE='*' command eval \
+    "env_vars=(\$(plugin_read_list ENV) \$(plugin_read_list ENVIRONMENT))"
 
   [[ -z "${env_vars[*]:-}" ]] && return
 
@@ -79,7 +82,8 @@ function docker_compose_env_params() {
 
 # Returns the version from the output of docker_compose_config
 function docker_compose_config_version() {
-  local config=($(docker_compose_config_files))
+  local -a config
+  IFS=$'\n' GLOBIGNORE='*' command eval "config=(\$(docker_compose_config_files))"
   awk '/\s*version:/ { print $2; }' < "${config[0]}" | sed "s/[\"']//g"
 }
 
