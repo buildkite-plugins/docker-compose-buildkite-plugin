@@ -19,7 +19,6 @@ steps:
     command: .buildkite/steps/shellcheck
 
   - label: run bats tests
-    command: tests/
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: tests
