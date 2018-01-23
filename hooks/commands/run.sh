@@ -52,28 +52,26 @@ done <<< "$(printf '%s\n%s' \
 
 run_params+=("$service_name")
 
-# append command tokens if there are any. We do this to avoid word splitting
-# issues as discussed in https://github.com/koalaman/shellcheck/wiki/SC2207
-if [[ -n "${BUILDKITE_COMMAND:-}" ]] ; then
-  while IFS=$' \t\n' read -r -a line ; do
-    for token in "${line[@]}" ; do
-      run_params+=("$token")
-    done
-  done <<< "$BUILDKITE_COMMAND"
-fi
-
 (
+  IFS=
   set +e
+  set -f
+
+  # The eval statements below are used to allow $BUILDKITE_COMMAND to be interpolated correctly
+  # When paired with -f we ensure that it word splits correctly, e.g bash -c "pwd" should split
+  # into [bash, -c, "pwd"]. Eval ends up the simplest way to do this, and when paired with the
+  # set -f above we ensure globs aren't expanded (imagine a command like `cat *`, which bash would
+  # helpfully expand prior to passing it to docker-compose)
 
   if [[ -f "$override_file" ]]; then
     echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2
-    run_docker_compose "${run_params[@]}"
+    eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
   else
     echo "~~~ :docker: Building Docker Compose Service: $service_name" >&2
     run_docker_compose build --pull "$service_name"
 
     echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2
-    run_docker_compose "${run_params[@]}"
+    eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
   fi
 )
 
