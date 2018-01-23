@@ -3,7 +3,7 @@
 # Show a prompt for a command
 function plugin_prompt() {
   if [[ -z "${HIDE_PROMPT:-}" ]] ; then
-    echo -ne "\033[90m$\033[0m" >&2
+    echo -ne '\033[90m$\033[0m' >&2
     printf " %q" "$@" >&2
     echo >&2
   fi
@@ -53,9 +53,14 @@ function docker_compose_project_name() {
 
 # Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
-  config_files=( $( plugin_read_list CONFIG ) )
+  local -a config_files=()
 
-  if [[ ${#config_files[@]} -eq 0 ]]  ; then
+  # Parse the list of config files into an array
+  while read -r line ; do
+    [[ -n "$line" ]] && config_files+=("$line")
+  done <<< "$(plugin_read_list CONFIG)"
+
+  if [[ ${#config_files[@]:-} -eq 0 ]]  ; then
     echo "docker-compose.yml"
     return
   fi
@@ -66,20 +71,9 @@ function docker_compose_config_files() {
   done
 }
 
-# Returns all docker compose custom environment in the form -e "ENV=VAR"
-function docker_compose_env_params() {
-  env_vars=( $( plugin_read_list ENV ) $( plugin_read_list ENVIRONMENT ) )
-
-  [[ -z "${env_vars[*]:-}" ]] && return
-
-  for value in "${env_vars[@]}" ; do
-    echo -n "-e $value "
-  done
-}
-
 # Returns the version from the output of docker_compose_config
 function docker_compose_config_version() {
-  local config=($(docker_compose_config_files))
+  IFS=$'\n' read -r -a config <<< "$(docker_compose_config_files)"
   awk '/\s*version:/ { print $2; }' < "${config[0]}" | sed "s/[\"']//g"
 }
 
@@ -102,13 +96,13 @@ function build_image_override_file_with_version() {
     exit 1
   fi
 
-  printf "version: '%s'\n" "$version"
-  printf "services:\n"
+  printf "version: '%s'\\n" "$version"
+  printf "services:\\n"
 
   shift
   while test ${#} -gt 0 ; do
-    printf "  %s:\n" "$1"
-    printf "    image: %s\n" "$2"
+    printf "  %s:\\n" "$1"
+    printf "    image: %s\\n" "$2"
 
     if [[ -n "$3" ]] ; then
       if [[ -z "$version" || "$version" == 2* || "$version" == 3 || "$version" == 3.0* || "$version" == 3.1* ]]; then
@@ -119,9 +113,9 @@ function build_image_override_file_with_version() {
         exit 1
       fi
 
-      printf "    build:\n"
-      printf "      cache_from:\n"
-      printf "        - %s\n" "$3"
+      printf "    build:\\n"
+      printf "      cache_from:\\n"
+      printf "        - %s\\n" "$3"
     fi
 
     shift 3

@@ -13,13 +13,13 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "-f docker-compose.yml -p buildkite1111 run myservice pwd : echo ran myservice"
+    "-f docker-compose.yml -p buildkite1111 run myservice echo hello world : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"

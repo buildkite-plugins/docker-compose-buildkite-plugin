@@ -5,7 +5,7 @@ compose_image_for_service() {
   local image=""
 
   image=$(run_docker_compose config \
-    | grep -E "^(  \w+:|    image:)" \
+    | grep -E "^(  \\w+:|    image:)" \
     | grep -E "(  ${service}:)" -A 1 \
     | grep -oE '  image: (.+)' \
     | awk '{print $2}')
@@ -21,7 +21,7 @@ compose_image_for_service() {
 default_compose_image_for_service() {
   local service="$1"
 
-  printf "%s_%s\n" "$(docker_compose_project_name)" "$service"
+  printf '%s_%s\n' "$(docker_compose_project_name)" "$service"
 }
 
 docker_image_exists() {
