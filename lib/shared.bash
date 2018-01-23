@@ -51,6 +51,13 @@ function docker_compose_project_name() {
   echo "buildkite${BUILDKITE_JOB_ID//-}"
 }
 
+# Runs docker ps -a filtered by the current project name
+function docker_ps_by_project() {
+  docker ps -a \
+    --filter "label=com.docker.compose.project=$(docker_compose_project_name)" \
+    "${@}"
+}
+
 # Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
   local -a config_files=()

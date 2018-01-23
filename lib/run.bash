@@ -19,19 +19,14 @@ compose_cleanup() {
   fi
 }
 
-list_linked_containers() {
-  for container_id in $(HIDE_PROMPT=1 run_docker_compose ps -q); do
-    docker inspect --format='{{.Name}}' "$container_id"
-  done
-}
-
-check_linked_containers() {
+# Checks for failed containers and writes logs for them the the provided dir
+check_linked_containers_and_save_logs() {
   local logdir="$1"
   local cmdexit="$2"
 
   mkdir -p "$logdir"
 
-  for container_name in $(list_linked_containers); do
+  for container_name in $(docker_ps_by_project --format '{{.ID}}'); do
     container_exit_code=$(docker inspect --format='{{.State.ExitCode}}' "$container_name")
 
     if [[ $container_exit_code -ne 0 ]] ; then
