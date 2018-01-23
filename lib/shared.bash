@@ -3,7 +3,7 @@
 # Show a prompt for a command
 function plugin_prompt() {
   if [[ -z "${HIDE_PROMPT:-}" ]] ; then
-    echo -ne "\033[90m$\033[0m" >&2
+    echo -ne '\033[90m$\033[0m' >&2
     printf " %q" "$@" >&2
     echo >&2
   fi
@@ -102,13 +102,13 @@ function build_image_override_file_with_version() {
     exit 1
   fi
 
-  printf "version: '%s'\n" "$version"
-  printf "services:\n"
+  printf "version: '%s'\\n" "$version"
+  printf "services:\\n"
 
   shift
   while test ${#} -gt 0 ; do
-    printf "  %s:\n" "$1"
-    printf "    image: %s\n" "$2"
+    printf "  %s:\\n" "$1"
+    printf "    image: %s\\n" "$2"
 
     if [[ -n "$3" ]] ; then
       if [[ -z "$version" || "$version" == 2* || "$version" == 3 || "$version" == 3.0* || "$version" == 3.1* ]]; then
@@ -119,9 +119,9 @@ function build_image_override_file_with_version() {
         exit 1
       fi
 
-      printf "    build:\n"
-      printf "      cache_from:\n"
-      printf "        - %s\n" "$3"
+      printf "    build:\\n"
+      printf "      cache_from:\\n"
+      printf "        - %s\\n" "$3"
     fi
 
     shift 3

@@ -7,7 +7,7 @@ override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 
 for line in $(plugin_read_list CACHE_FROM) ; do
-  IFS=':' read -a tokens <<< "$line"
+  IFS=':' read -r -a tokens <<< "$line"
   service_name=${tokens[0]}
   service_image=$(IFS=':'; echo "${tokens[*]:1}")
 
@@ -28,7 +28,7 @@ for service_name in $(plugin_read_list BUILD) ; do
 
   build_images+=("$service_name" "$image_name")
 
-  cache_key=cache_from__${service_name}
+  cache_key="cache_from__${service_name}"
   if [[ -n "${!cache_key-}" ]]; then
     build_images+=("${!cache_key}")
   else

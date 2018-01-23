@@ -17,7 +17,7 @@ pulled_services=("")
 
 # Then we figure out what to push, and where
 for line in $(plugin_read_list PUSH) ; do
-  IFS=':' read -a tokens <<< "$line"
+  IFS=':' read -r -a tokens <<< "$line"
   service_name=${tokens[0]}
   service_image=$(compose_image_for_service "$service_name")
 
