@@ -143,10 +143,6 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
-  for token in "${@}" ; do
-    echo "token[$token]"
-  done
-
   plugin_prompt_and_run "${command[@]}" "$@"
 }
 

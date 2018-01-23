@@ -38,7 +38,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_COMMAND="sh -c 'echo hello world; pwd'"
+  export BUILDKITE_COMMAND="sh -c 'echo hello world'"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
