@@ -43,7 +43,7 @@ run_params+=("run")
 
 # append env vars provided in ENV or ENVIRONMENT, these are newline delimited
 while IFS=$'\n' read -r env ; do
-  [[ -n $env ]] && run_params+=("-e" "$env")
+  [[ -n "${env:-}" ]] && run_params+=("-e" "${env}")
 done <<< "$(printf '%s\n%s' \
   "$(plugin_read_list ENV)" \
   "$(plugin_read_list ENVIRONMENT)")"
@@ -53,8 +53,8 @@ run_params+=("$service_name")
 # append command tokens if there are any. We do this to avoid word splitting
 # issues as discussed in https://github.com/koalaman/shellcheck/wiki/SC2207
 if [[ -n "${BUILDKITE_COMMAND:-}" ]] ; then
-  while IFS=$' \t\n' read -r token ; do
-    run_params+=("$token")
+  while IFS=$' \t\n' read -r -a token ; do
+    run_params+=("${token[@]}")
   done <<< "$BUILDKITE_COMMAND"
 fi
 
