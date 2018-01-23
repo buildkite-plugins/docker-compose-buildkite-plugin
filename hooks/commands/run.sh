@@ -33,7 +33,7 @@ if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
 fi
 
 # Now we build up the run command that will be called
-declare -a run_params
+run_params=()
 
 if [[ -f "$override_file" ]]; then
   run_params+=(-f "$override_file")

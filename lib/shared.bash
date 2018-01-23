@@ -53,14 +53,14 @@ function docker_compose_project_name() {
 
 # Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
-  local -a config_files
+  local -a config_files=()
 
   # Parse the list of config files into an array
   while read -r line ; do
     [[ -n "$line" ]] && config_files+=("$line")
   done <<< "$(plugin_read_list CONFIG)"
 
-  if [[ ${#config_files[@]} -eq 0 ]]  ; then
+  if [[ ${#config_files[@]:-} -eq 0 ]]  ; then
     echo "docker-compose.yml"
     return
   fi

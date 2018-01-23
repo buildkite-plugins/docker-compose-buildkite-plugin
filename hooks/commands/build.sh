@@ -41,7 +41,7 @@ if [[ ${#build_images[@]} -gt 0 ]] ; then
   build_image_override_file "${build_images[@]}" | tee "$override_file"
 fi
 
-declare -a services
+services=()
 
 # Parse the list of services to build into an array
 while read -r line ; do
