@@ -53,8 +53,10 @@ run_params+=("$service_name")
 # append command tokens if there are any. We do this to avoid word splitting
 # issues as discussed in https://github.com/koalaman/shellcheck/wiki/SC2207
 if [[ -n "${BUILDKITE_COMMAND:-}" ]] ; then
-  while IFS=$' \t\n' read -r -a token ; do
-    run_params+=("${token[@]}")
+  while IFS=$' \t\n' read -r -a line ; do
+    for token in "${line[@]}" ; do
+      run_params+=("$token")
+    done
   done <<< "$BUILDKITE_COMMAND"
 fi
 

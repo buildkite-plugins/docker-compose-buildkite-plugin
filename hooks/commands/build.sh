@@ -42,7 +42,11 @@ if [[ ${#build_images[@]} -gt 0 ]] ; then
 fi
 
 declare -a services
-IFS=$'\n' GLOBIGNORE='*' command eval "services=(\$(plugin_read_list BUILD))"
+
+# Parse the list of services to build into an array
+while read -r line ; do
+  [[ -n "$line" ]] && services+=("$line")
+done <<< "$(plugin_read_list BUILD)"
 
 build_args=(--pull)
 
