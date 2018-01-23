@@ -32,27 +32,44 @@ if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
   retry "$pull_retries" run_docker_compose -f "$override_file" pull "$service_name"
 fi
 
-declare -a run_params cmd
+# Now we build up the run command that will be called
+declare -a run_params
 
-# Split env params and command into arrays without expanding globs
-# See https://github.com/koalaman/shellcheck/wiki/SC2207 for context
-IFS=$' \t\n' GLOBIGNORE='*' command eval "run_params=(\$(docker_compose_env_params))"
-IFS=$' \t\n' GLOBIGNORE='*' command eval "cmd=(\$BUILDKITE_COMMAND)"
+if [[ -f "$override_file" ]]; then
+  run_params+=(-f "$override_file")
+fi
+
+run_params+=("run")
+
+# append env vars provided in ENV or ENVIRONMENT, these are newline delimited
+while IFS=$'\n' read -r env ; do
+  [[ -n $env ]] && run_params+=("-e" "$env")
+done <<< "$(printf '%s\n%s' \
+  "$(plugin_read_list ENV)" \
+  "$(plugin_read_list ENVIRONMENT)")"
 
 run_params+=("$service_name")
+
+# append command tokens if there are any. We do this to avoid word splitting
+# issues as discussed in https://github.com/koalaman/shellcheck/wiki/SC2207
+if [[ -n "${BUILDKITE_COMMAND:-}" ]] ; then
+  while IFS=$' \t\n' read -r token ; do
+    run_params+=("$token")
+  done <<< "$BUILDKITE_COMMAND"
+fi
 
 (
   set +e
 
   if [[ -f "$override_file" ]]; then
     echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2
-    run_docker_compose -f "$override_file" run "${run_params[@]}" "${cmd[@]}"
+    run_docker_compose "${run_params[@]}"
   else
-    echo "~~~ :docker: Building Docker Compose Service: $service_name" >&2;
+    echo "~~~ :docker: Building Docker Compose Service: $service_name" >&2
     run_docker_compose build --pull "$service_name"
 
     echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2
-    run_docker_compose run "${run_params[@]:-}" "${cmd[@]}"
+    run_docker_compose "${run_params[@]}"
   fi
 )
 

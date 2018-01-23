@@ -67,19 +67,6 @@ function docker_compose_config_files() {
   done
 }
 
-# Returns all docker compose custom environment in the form -e "ENV=VAR"
-function docker_compose_env_params() {
-  local -a env_vars
-  IFS=$'\n' GLOBIGNORE='*' command eval \
-    "env_vars=(\$(plugin_read_list ENV) \$(plugin_read_list ENVIRONMENT))"
-
-  [[ -z "${env_vars[*]:-}" ]] && return
-
-  for value in "${env_vars[@]}" ; do
-    echo -n "-e $value "
-  done
-}
-
 # Returns the version from the output of docker_compose_config
 function docker_compose_config_version() {
   local -a config
