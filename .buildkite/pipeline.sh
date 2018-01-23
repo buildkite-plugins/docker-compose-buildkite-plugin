@@ -40,6 +40,14 @@ steps:
         environment:
           - ALPACAS=sometimes
 
+  - wait
+  - label: run, with artifact_paths
+    command: /scripts/test_artifacts.sh
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        run: alpinewithenv
+        config: tests/composefiles/docker-compose.v2.1.yml
+        artifact_paths: dist/*.txt
 
   - wait
   - label: build

@@ -106,4 +106,9 @@ if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]] ; then
   buildkite-agent artifact upload "docker-compose-logs/*.log"
 fi
 
+if [[ "$(plugin_read_config ARTIFACT_PATHS "")" != "" ]] ; then
+  echo "~~~ Uploading artifact paths"
+  run_docker_compose exec "$service_name" tar cvf - --include "dist/*" "./*" | tar xf
+fi
+
 exit $exitcode

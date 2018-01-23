@@ -50,9 +50,9 @@ steps:
 
 ## Artifacts
 
-If you’re generating artifacts in the build step, you’ll need to ensure your Docker Compose configuration volume mounts the host machine directory into the container where those artifacts are created.
+If you’re generating artifacts that you want in later steps, they will be created in the docker container, so you will need use the `artifact_paths` option to to your step. Any artifacts matching these glob patterns will be copied out of the docker container after it runs and then uploaded as normal.
 
-For example, if you had the following step:
+For example:
 
 ```yml
 steps:
@@ -63,12 +63,6 @@ steps:
         run: app
 ```
 
-Assuming your application’s directory inside the container was `/app`, you would need to ensure your `app` service in your Docker Compose config has the following host volume mount:
-
-```yml
-volumes:
-  - "./dist:/app/dist"
-```
 
 ## Environment
 
