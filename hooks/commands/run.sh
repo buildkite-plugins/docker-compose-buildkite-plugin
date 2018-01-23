@@ -5,6 +5,7 @@ set -ueo pipefail
 # and then runs docker-compose run a generated project name
 
 service_name="$(plugin_read_config RUN)"
+container_name="$(docker_compose_project_name)_${service_name}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 
@@ -39,7 +40,8 @@ if [[ -f "$override_file" ]]; then
   run_params+=(-f "$override_file")
 fi
 
-run_params+=("run")
+# We set a predictable container name so we can find it and inspect it later on
+run_params+=("run" "--name" "$container_name")
 
 # append env vars provided in ENV or ENVIRONMENT, these are newline delimited
 while IFS=$'\n' read -r env ; do
@@ -86,7 +88,9 @@ fi
 
 if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]] ; then
   echo "~~~ Checking linked containers"
-  check_linked_containers "docker-compose-logs" "$exitcode"
+  docker_ps_by_project \
+    --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
+  check_linked_containers_and_save_logs "docker-compose-logs" "$exitcode"
 
   echo "~~~ Uploading container logs as artifacts"
   buildkite-agent artifact upload "docker-compose-logs/*.log"
