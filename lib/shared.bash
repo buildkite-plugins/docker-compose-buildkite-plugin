@@ -53,8 +53,7 @@ function docker_compose_project_name() {
 
 # Returns all docker compose config file names split by newlines
 function docker_compose_config_files() {
-  local -a config_files
-  IFS=$'\n' GLOBIGNORE='*' command eval "config_files=(\$(plugin_read_list CONFIG))"
+  IFS=$'\n' read -r -a config_files <<< "$(plugin_read_list CONFIG)"
 
   if [[ ${#config_files[@]} -eq 0 ]]  ; then
     echo "docker-compose.yml"
@@ -69,8 +68,7 @@ function docker_compose_config_files() {
 
 # Returns the version from the output of docker_compose_config
 function docker_compose_config_version() {
-  local -a config
-  IFS=$'\n' GLOBIGNORE='*' command eval "config=(\$(docker_compose_config_files))"
+  IFS=$'\n' read -r -a config <<< "$(docker_compose_config_files)"
   awk '/\s*version:/ { print $2; }' < "${config[0]}" | sed "s/[\"']//g"
 }
 
