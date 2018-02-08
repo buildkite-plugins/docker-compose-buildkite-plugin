@@ -72,13 +72,13 @@ volumes:
 
 ## Environment
 
-By default, docker-compose makes whatever environment variables it gets available for 
-interpolation of docker-compose.yml, but it doesn't pass them in to your containers. 
+By default, docker-compose makes whatever environment variables it gets available for
+interpolation of docker-compose.yml, but it doesn't pass them in to your containers.
 
 You can use the [environent key in docker-compose.yml](https://docs.docker.com/compose/environment-variables/) to either set specific environment vars or "pass through" environment
 variables from outside docker-compose.
 
-If you want to add extra environment above what is declared in your `docker-compose.yml`, 
+If you want to add extra environment above what is declared in your `docker-compose.yml`,
 this plugin offers a `environment` block of it's own:
 
 ```yml
@@ -221,7 +221,7 @@ The file name of the Docker Compose configuration file to use. Can also be a lis
 
 Default: `docker-compose.yml`
 
-### `image-repository` (optional)
+### `image-repository` (optional, build only)
 
 The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"index.docker.io/org/repo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
 
@@ -229,9 +229,7 @@ The default is `""`  which only builds images on the local Docker host doing the
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
 
-Note: this option can only be specified on a `build` step.
-
-### `image-name` (optional)
+### `image-name` (optional, build only)
 
 The name to use when tagging pre-built images.
 
@@ -239,11 +237,9 @@ The default is `${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUI
 
 Note: this option can only be specified on a `build` step.
 
-### `env` or `environment` (optional)
+### `env` or `environment` (optional, run only)
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
-
-Note: this option can only be specified on a `run` step.
 
 ### `pull-retries` (optional)
 
@@ -263,21 +259,23 @@ A list of images to pull caches from in the format `service:index.docker.io/org/
 
 Note: this option can only be specified on a `build` step.
 
-### `leave-volumes` (optional)
+### `leave-volumes` (optional, run only)
 
 Prevent the removal of volumes after the command has been run.
 
 The default is `false`.
 
-Note: this option can only be specified on a `run` step.
-
-### `no-cache` (optional)
+### `no-cache` (optional, build only)
 
 Sets the build step to run with `--no-cache`, causing Docker Compose to not use any caches when building the image.
 
 The default is `false`.
 
-Note: this option can only be specified on a `build` step.
+### `tty` (optional, run only)
+
+If set to false, doesn't allocate a TTY. This is useful in some situations where TTY's aren't supported, for instance windows.
+
+The default is `true`.
 
 ### `verbose` (optional)
 

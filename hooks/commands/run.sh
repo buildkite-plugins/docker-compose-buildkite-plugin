@@ -50,6 +50,11 @@ done <<< "$(printf '%s\n%s' \
   "$(plugin_read_list ENV)" \
   "$(plugin_read_list ENVIRONMENT)")"
 
+# Optionally disable allocating a TTY
+if [[ "$(plugin_read_config TTY "true")" == "false" ]] ; then
+  run_params+=(-T)
+fi
+
 run_params+=("$service_name")
 
 (
