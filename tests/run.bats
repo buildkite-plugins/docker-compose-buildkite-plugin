@@ -185,3 +185,31 @@ load '../lib/run'
   unstub docker-compose
   unstub buildkite-agent
 }
+
+@test "Run with multiple config files" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0="llamas1.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_1="llamas2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_2="llamas3.yml"
+
+  stub docker-compose \
+    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice echo hello world : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "ran myservice"
+  unstub docker-compose
+  unstub buildkite-agent
+}

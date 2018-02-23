@@ -58,7 +58,8 @@ fi
 run_params+=("$service_name")
 
 (
-  IFS=
+  # Reset bash to the default IFS with no glob expanding and no failing on error
+  unset IFS
   set +e
   set -f
 
