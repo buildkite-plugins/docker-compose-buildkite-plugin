@@ -22,6 +22,7 @@ fi
 # We support pulling all images, in case they have been pulled on the agent machine already in
 # an earlier build, and need to be updated
 if [[ "$(plugin_read_config PULL_ALL "false")" == "true" ]] ; then
+    echo "~~~ :docker: Pulling all images"
     retry "$pull_retries" run_docker_compose pull --parallel
 fi
 
