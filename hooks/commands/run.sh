@@ -19,6 +19,13 @@ if [[ "$(plugin_read_config CLEANUP "true")" == "true" ]] ; then
   trap cleanup EXIT
 fi
 
+# We support pulling all images, in case they have been pulled on the agent machine already in
+# an earlier build, and need to be updated
+if [[ "$(plugin_read_config PULL_ALL "false")" == "true" ]] ; then
+    echo "~~~ :docker: Pulling all images"
+    retry "$pull_retries" run_docker_compose pull --parallel
+fi
+
 test -f "$override_file" && rm "$override_file"
 
 # We only look for a prebuilt image for the serice being run. This means that
