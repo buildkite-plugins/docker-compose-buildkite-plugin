@@ -57,10 +57,13 @@ fi
 
 run_params+=("$service_name")
 
+# Disable -e outside of the subshell; since the subshell returning a failure
+# would exit the parent shell (here) early.
+set +e
+
 (
   # Reset bash to the default IFS with no glob expanding and no failing on error
   unset IFS
-  set +e
   set -f
 
   # The eval statements below are used to allow $BUILDKITE_COMMAND to be interpolated correctly
@@ -82,6 +85,8 @@ run_params+=("$service_name")
 )
 
 exitcode=$?
+# Restore -e as an option.
+set -e
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
