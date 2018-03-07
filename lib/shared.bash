@@ -150,7 +150,11 @@ function run_docker_compose() {
 function build_image_name() {
   local service_name="$1"
   local service_idx="$2"
-  local image_names; image_names=($(plugin_read_list IMAGE_NAME))
+  local image_names=()
+
+  while read -r name ; do
+    image_names+=("$name")
+  done <<< "$(plugin_read_list IMAGE_NAME)"
 
   # Either look in custom image_name values, or use our default
   echo "${image_names[$service_idx]:-${BUILDKITE_PIPELINE_SLUG}-${service_name}-build-${BUILDKITE_BUILD_NUMBER}}"
