@@ -264,9 +264,7 @@ This option can also be configured on the agent machine using the environment va
 
 ### `image-name` (optional, build only)
 
-The name to use when tagging pre-built images.
-
-The default is `${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}-build-${BUILDKITE_BUILD_NUMBER}`, for example `my-project-web-build-42`.
+The name to use when tagging pre-built images. If multiple images are built in the build phase, you must provide an array of image names.
 
 Note: this option can only be specified on a `build` step.
 

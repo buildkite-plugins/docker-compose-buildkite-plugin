@@ -19,8 +19,11 @@ for line in $(plugin_read_list CACHE_FROM) ; do
   fi
 done
 
+# Run through all images in the build property, either a single item or a list
+service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
-  image_name=$(build_image_name "${service_name}")
+  image_name=$(build_image_name "${service_name}" "${service_idx}")
+  let service_idx=${service_idx}+1
 
   if [[ -n "$image_repository" ]]; then
     image_name="${image_repository}:${image_name}"
