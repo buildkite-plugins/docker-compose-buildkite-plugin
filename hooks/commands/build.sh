@@ -23,7 +23,7 @@ done
 service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}" "${service_idx}")
-  let service_idx=${service_idx}+1
+  service_idx=$((service_idx+1))
 
   if [[ -n "$image_repository" ]]; then
     image_name="${image_repository}:${image_name}"
