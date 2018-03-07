@@ -18,7 +18,8 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice echo hello world : echo ran myservice"
 
   stub buildkite-agent \
@@ -43,7 +44,8 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice $BUILDKITE_COMMAND : echo ran myservice"
 
   stub buildkite-agent \
@@ -72,7 +74,8 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_1=MYENV
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV myservice pwd : echo ran myservice"
 
   stub buildkite-agent \
@@ -132,7 +135,6 @@ load '../lib/run'
   unstub docker-compose
   unstub buildkite-agent
 }
-
 
 @test "Run with a single prebuilt image, retry on failed pull" {
   export BUILDKITE_JOB_ID=1111
@@ -199,7 +201,8 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_2="llamas3.yml"
 
   stub docker-compose \
-    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 pull myservice : echo pulling myservice" \
+    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 build myservice : echo built myservice" \
     "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice echo hello world : echo ran myservice"
 
   stub buildkite-agent \
@@ -224,7 +227,8 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=true
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulling myservice" \
+    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice pwd : exit 1" \
     "-f docker-compose.yml -p buildkite1111 kill : echo killing containers" \
     "-f docker-compose.yml -p buildkite1111 rm --force -v : echo removing stopped containers" \
@@ -251,7 +255,8 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulling myservice" \
+    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice pwd : exit 2"
 
   stub buildkite-agent \
@@ -262,6 +267,34 @@ load '../lib/run'
   assert_failure
   assert_output --partial "^^^ +++"
   assert_output --partial "Failed to run command, exited with 2"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Run with multiple prebuilt images and multiple pulls" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_0=myservice1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_1=myservice2
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull --parallel myservice1 myservice2 : echo pulled myservice1 and myservice2" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice1_build_1 myservice1 pwd : echo ran myservice1"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice1 : echo myimage1" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice2 : echo myimage2"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled myservice1 and myservice2"
+  assert_output --partial "ran myservice1"
   unstub docker-compose
   unstub buildkite-agent
 }

@@ -4,8 +4,8 @@ set -ueo pipefail
 # Run takes a service name, pulls down any pre-built image for that name
 # and then runs docker-compose run a generated project name
 
-service_name="$(plugin_read_config RUN)"
-container_name="$(docker_compose_project_name)_${service_name}_build_${BUILDKITE_BUILD_NUMBER}"
+run_service="$(plugin_read_config RUN)"
+container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 
@@ -21,23 +21,50 @@ fi
 
 test -f "$override_file" && rm "$override_file"
 
-# We only look for a prebuilt image for the serice being run. This means that
-# any other services that are dependencies that need to be built will be built
-# on-demand in this step, even if they were prebuilt in an earlier step.
+run_params=()
+pull_params=()
+pull_services=("$run_service")
 
-if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
-  echo "~~~ :docker: Found a pre-built image for $service_name"
-  build_image_override_file "${service_name}" "${prebuilt_image}" "" | tee "$override_file"
+# Build a list of services that need to be pulled down
+while read -r name ; do
+  if [[ -n "$name" ]] && ! in_array "$name" "${pull_services[@]}" ; then
+    pull_services+=("$name")
+  fi
+done <<< "$(plugin_read_list PULL)"
 
-  echo "~~~ :docker: Pulling pre-built services $service_name"
-  retry "$pull_retries" run_docker_compose -f "$override_file" pull "$service_name"
+# A list of tuples of [service image cache_from] for build_image_override_file
+prebuilt_service_overrides=()
+prebuilt_services=()
+
+# We look for a prebuilt images for all the pull services.
+for service_name in "${pull_services[@]}" ; do
+  if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
+    echo "~~~ :docker: Found a pre-built image for $service_name"
+    echo "Image is $prebuilt_image"
+    prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "")
+    prebuilt_services+=("$service_name")
+  fi
+done
+
+# If there are any prebuilts, we need to generate an override docker-compose file
+if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then
+  echo "~~~ :docker: Creating docker-compose override file for prebuilt services"
+  build_image_override_file "${prebuilt_service_overrides[@]}" | tee "$override_file"
+  run_params+=(-f "$override_file")
+  pull_params+=(-f "$override_file")
 fi
 
-# Now we build up the run command that will be called
-run_params=()
+# If there are multiple services to pull, run it in parallel
+if [[ ${#pull_services[@]} -gt 1 ]] ; then
+  pull_params+=("pull" "--parallel" "${pull_services[@]}")
+else
+  pull_params+=("pull" "${pull_services[@]}")
+fi
 
-if [[ -f "$override_file" ]]; then
-  run_params+=(-f "$override_file")
+# Pull down specified services
+if [[ ${#pull_services[@]} -gt 0 ]] ; then
+  echo "~~~ :docker: Pulling services ${pull_services[0]}"
+  retry "$pull_retries" run_docker_compose "${pull_params[@]}"
 fi
 
 # We set a predictable container name so we can find it and inspect it later on
@@ -55,7 +82,12 @@ if [[ "$(plugin_read_config TTY "true")" == "false" ]] ; then
   run_params+=(-T)
 fi
 
-run_params+=("$service_name")
+run_params+=("$run_service")
+
+if [[ ! -f "$override_file" ]]; then
+  echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
+  run_docker_compose build "$run_service"
+fi
 
 # Disable -e outside of the subshell; since the subshell returning a failure
 # would exit the parent shell (here) early.
@@ -72,16 +104,8 @@ set +e
   # set -f above we ensure globs aren't expanded (imagine a command like `cat *`, which bash would
   # helpfully expand prior to passing it to docker-compose)
 
-  if [[ -f "$override_file" ]]; then
-    echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2
-    eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
-  else
-    echo "~~~ :docker: Building Docker Compose Service: $service_name" >&2
-    run_docker_compose build --pull "$service_name"
-
-    echo "+++ :docker: Running command in Docker Compose service: $service_name" >&2
-    eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
-  fi
+  echo "+++ :docker: Running command in Docker Compose service: $run_service" >&2
+  eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
 )
 
 exitcode=$?

@@ -92,7 +92,7 @@ function build_image_override_file() {
 }
 
 # Build an docker-compose file that overrides the image for a specific
-# docker-compose version and set of service and image pairs
+# docker-compose version and set of [ service, image, cache_from ] tuples
 function build_image_override_file_with_version() {
   local version="$1"
 
