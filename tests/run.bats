@@ -18,8 +18,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice echo hello world : echo ran myservice"
 
   stub buildkite-agent \
@@ -44,8 +43,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice $BUILDKITE_COMMAND : echo ran myservice"
 
   stub buildkite-agent \
@@ -74,8 +72,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_1=MYENV
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV myservice pwd : echo ran myservice"
 
   stub buildkite-agent \
@@ -201,8 +198,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_2="llamas3.yml"
 
   stub docker-compose \
-    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 pull myservice : echo pulling myservice" \
-    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice echo hello world : echo ran myservice"
 
   stub buildkite-agent \
@@ -227,8 +223,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=true
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulling myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice pwd : exit 1" \
     "-f docker-compose.yml -p buildkite1111 kill : echo killing containers" \
     "-f docker-compose.yml -p buildkite1111 rm --force -v : echo removing stopped containers" \
@@ -255,8 +250,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulling myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice pwd : exit 2"
 
   stub buildkite-agent \

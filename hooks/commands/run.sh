@@ -23,12 +23,17 @@ test -f "$override_file" && rm "$override_file"
 
 run_params=()
 pull_params=()
-pull_services=("$run_service")
+pull_services=()
+prebuilt_candidates=("$run_service")
 
 # Build a list of services that need to be pulled down
 while read -r name ; do
-  if [[ -n "$name" ]] && ! in_array "$name" "${pull_services[@]}" ; then
+  if [[ -n "$name" ]] ; then
     pull_services+=("$name")
+
+    if ! in_array "$name" "${prebuilt_candidates[@]}" ; then
+      prebuilt_candidates+=("$name")
+    fi
   fi
 done <<< "$(plugin_read_list PULL)"
 
@@ -36,13 +41,17 @@ done <<< "$(plugin_read_list PULL)"
 prebuilt_service_overrides=()
 prebuilt_services=()
 
-# We look for a prebuilt images for all the pull services.
-for service_name in "${pull_services[@]}" ; do
+# We look for a prebuilt images for all the pull services and the run_service.
+for service_name in "${prebuilt_candidates[@]}" ; do
   if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
     echo "~~~ :docker: Found a pre-built image for $service_name"
-    echo "Image is $prebuilt_image"
     prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "")
     prebuilt_services+=("$service_name")
+
+    # If it's prebuilt, we need to pull it down
+    if [[ -z "${pull_services:-}" ]] || ! in_array "$service_name" "${pull_services[@]}" ; then
+      pull_services+=("$service_name")
+   fi
   fi
 done
 
@@ -57,8 +66,8 @@ fi
 # If there are multiple services to pull, run it in parallel
 if [[ ${#pull_services[@]} -gt 1 ]] ; then
   pull_params+=("pull" "--parallel" "${pull_services[@]}")
-else
-  pull_params+=("pull" "${pull_services[@]}")
+elif [[ ${#pull_services[@]} -eq 1 ]] ; then
+  pull_params+=("pull" "${pull_services[0]}")
 fi
 
 # Pull down specified services
@@ -86,7 +95,7 @@ run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]]; then
   echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
-  run_docker_compose build "$run_service"
+  run_docker_compose build --pull "$run_service"
 fi
 
 # Disable -e outside of the subshell; since the subshell returning a failure
