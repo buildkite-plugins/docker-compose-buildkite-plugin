@@ -7,7 +7,7 @@ function plugin_get_metadata() {
   local key="docker-compose-plugin-$1"
   plugin_prompt buildkite-agent meta-data get "$key"
   buildkite-agent meta-data get "$key" || (
-    echo "~~~ Failed to get metdata $key (exit $?)" >&2
+    echo "~~~ Failed to get metadata $key (exit $?)" >&2
     return 1
   )
 }
