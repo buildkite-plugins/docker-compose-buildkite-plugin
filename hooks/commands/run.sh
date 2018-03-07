@@ -85,6 +85,7 @@ set +e
 )
 
 exitcode=$?
+
 # Restore -e as an option.
 set -e
 

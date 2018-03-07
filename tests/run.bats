@@ -213,3 +213,55 @@ load '../lib/run'
   unstub docker-compose
   unstub buildkite-agent
 }
+
+@test "Run with a failure still runs cleanup" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=true
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice pwd : exit 1" \
+    "-f docker-compose.yml -p buildkite1111 kill : echo killing containers" \
+    "-f docker-compose.yml -p buildkite1111 rm --force -v : echo removing stopped containers" \
+    "-f docker-compose.yml -p buildkite1111 down --volumes : echo removing everything"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run $PWD/hooks/command
+
+  assert_failure
+  assert_output --partial "Failed to run command, exited with 1"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Run with a failure should expand previous group" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice pwd : exit 2"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run $PWD/hooks/command
+
+  assert_failure
+  assert_output --partial "^^^ +++"
+  assert_output --partial "Failed to run command, exited with 2"
+  unstub docker-compose
+  unstub buildkite-agent
+}
