@@ -6,12 +6,26 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 . "$DIR/../lib/shared.bash"
 . "$DIR/../lib/metadata.bash"
 
-if [[ -n "$(plugin_read_list BUILD)" ]]; then
+commands=()
+
+[[ -n "$(plugin_read_list BUILD)" ]] && commands+=("BUILD")
+[[ -n "$(plugin_read_list RUN)" ]] && commands+=("RUN")
+[[ -n "$(plugin_read_list PUSH)" ]] && commands+=("PUSH")
+
+# Check we've only got one of BUILD, RUN and PUSH
+if [[ ${#commands[@]} -gt 1 ]] ; then
+  echo "+++ Docker Compose plugin error"
+  echo "Only one of build, run and push is supported. More than one was used."
+  exit 1
+fi
+
+# Dispatch to the command file
+if in_array "BUILD" "${commands[@]}" ; then
   . "$DIR/commands/build.sh"
-elif [[ -n "$(plugin_read_config RUN)" ]]; then
+elif in_array "RUN" "${commands[@]}" ; then
   . "$DIR/../lib/run.bash"
   . "$DIR/commands/run.sh"
-elif [[ -n "$(plugin_read_list PUSH)" ]]; then
+elif in_array "PUSH" "${commands[@]}" ; then
   . "$DIR/../lib/push.bash"
   . "$DIR/commands/push.sh"
 else
