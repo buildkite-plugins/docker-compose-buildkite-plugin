@@ -62,7 +62,7 @@ if [[ -n "$image_repository" ]]; then
   run_docker_compose -f "$override_file" push "${services[@]}"
 
   while [[ ${#build_images[@]} -gt 0 ]] ; do
-    plugin_set_metadata "built-image-tag-${build_images[0]}" "${build_images[1]}"
+    set_prebuilt_image "${build_images[0]}" "${build_images[1]}"
     build_images=("${build_images[@]:3}")
   done
 fi
