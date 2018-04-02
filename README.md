@@ -279,6 +279,12 @@ If set to false, doesn't allocate a TTY. This is useful in some situations where
 
 The default is `true`.
 
+### `dependencies` (optional, run only)
+
+If set to false, doesn't start linked services.
+
+The default is `true`.
+
 ### `verbose` (optional)
 
 Sets `docker-compose` to run with `--verbose`
