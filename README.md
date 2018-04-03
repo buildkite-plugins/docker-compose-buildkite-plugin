@@ -215,6 +215,10 @@ The name of the service the command should be run within. If the docker-compose 
 
 A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built in push operation will be used.
 
+### `pull` (optional, run only)
+
+Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images.
+
 ### `config` (optional)
 
 The file name of the Docker Compose configuration file to use. Can also be a list of filenames.
