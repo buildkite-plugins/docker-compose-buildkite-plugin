@@ -1,6 +1,6 @@
 # Docker Compose Buildkite Plugin ![Build status](https://badge.buildkite.com/d8fd3a4fef8419a6a3ebea79739a09ebc91106538193f99fce.svg)
 
-A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) allowing you to create a build system capable of running any project or tool with a [Docker Compose](https://docs.docker.com/compose/) config file in its repository.
+A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) that lets you build, run and push build steps using [Docker Compose](https://docs.docker.com/compose/).
 
 * Containers are built, run and linked on demand using Docker Compose
 * Containers are namespaced to each build job, and cleaned up after use
