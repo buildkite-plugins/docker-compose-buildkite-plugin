@@ -1,98 +1,43 @@
 properties:
   run:
     type: string
-    description: >
-      The name of the service the command should be run within. If the
-      docker-compose command would usually be `docker-compose run app test.sh`
-      then the value would be `app`.
   build:
     type: [ string, array ]
     minimum: 1
-    description: >
-      The name of a service to build and store, allowing following pipeline
-      steps to run faster as they won't need to build the image. The step’s
-      `command` will be ignored and does not need to be specified.
   push:
     type: [ string, array ]
     minimum: 1
-    description: >
-      A list of services to push in the format `service:image:tag`. If an image
-      has been pre-built with the build step, that image will be re-tagged,
-      otherwise docker-compose's built in push operation will be used.
   pull:
     type: [ string, array ]
     minimum: 1
-    description: >
-      Pull down multiple pre-built images. By default only the service that is
-      being run will be pulled down, but this allows multiple images to be
-      specified to handle prebuilt dependent images.
   config:
     type: [ string, array ]
     minimum: 1
-    default: docker-compose.yml
-    description: >
-      The file name of the Docker Compose configuration file to use. Can also be
-      a list of filenames.
+  env:
+    type: [ string, array ]
+    minimum: 1
   environment:
     type: [ string, array ]
     minimum: 1
-    description: >
-      A list of either KEY or KEY=VALUE that are passed through as environment
-      variables to the container.
   image-repository:
     type: string
-    description: >
-      The repository for pushing and pulling pre-built images, same as the
-      repository location you would use for a `docker push`. Each image is
-      tagged to the specific build so you can safely share the same image
-      repository for any number of projects and builds.
-    examples: [ "index.docker.io/org/repo" ]
   image-name:
     type: string
-    default: "${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}-build-${BUILDKITE_BUILD_NUMBER}"
-    description: >
-      The name to use when tagging pre-built images.
   pull-retries:
     type: integer
-    default: 0
-    description: >
-      A number of times to retry failed docker pull. Defaults to 0.
   push-retries:
     type: integer
-    default: 0
-    description: >
-      A number of times to retry failed docker push. Defaults to 0.
   cache-from:
     type: [ string, array ]
     minimum: 1
-    description: >
-      A list of images to pull caches from in the format
-      `service:index.docker.io/org/repo/image:tag` before building. Requires
-      docker-compose file version `3.2+`. Currently only one image per service
-      is supported. If there's no image present for a service local docker cache
-      will be used.
   leave-volumes:
     type: boolean
-    default: false
-    description: >
-      Prevent the removal of volumes after the command has been run.
   no-cache:
     type: boolean
-    default: false
-    description: >
-      Sets the build step to run with `--no-cache`, causing Docker Compose to
-      not use any caches when building the image.
   tty:
     type: boolean
-    default: true
-    description: >
-      If set to false, doesn't allocate a TTY. This is useful in some situations
-      where TTY's aren't supported, for instance windows.
   verbose:
     type: boolean
-    default: false
-    description: >
-      Sets `docker-compose` to run with `--verbose`
 oneOf:
   - required:
       - run
