@@ -91,6 +91,11 @@ if [[ "$(plugin_read_config TTY "true")" == "false" ]] ; then
   run_params+=(-T)
 fi
 
+# Optionally disable dependencies
+if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
+  run_params+=(--no-deps)
+fi
+
 run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]]; then
