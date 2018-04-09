@@ -20,12 +20,8 @@ steps:
 
   - label: lint
     plugins:
-      docker#v1.1.1:
-        image: buildkite/plugin-linter
-        workdir: /plugin
-        environment:
-          - PLUGIN_NAME=docker-compose
-        always-pull: true
+      plugin-linter#v1.0.0:
+        name: docker-compose
 
   - label: run bats tests
     plugins:
