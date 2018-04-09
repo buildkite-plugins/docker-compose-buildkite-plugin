@@ -36,6 +36,8 @@ properties:
     type: boolean
   tty:
     type: boolean
+  dependencies:
+    type: boolean
   verbose:
     type: boolean
 oneOf:
@@ -57,4 +59,5 @@ dependencies:
   cache-from: [ build ]
   leave-volumes: [ run ]
   no-cache: [ build ]
+  dependencies: [ run ]
   tty: [ run ]
