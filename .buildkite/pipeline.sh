@@ -18,6 +18,15 @@ steps:
   - label: shellcheck
     command: .buildkite/steps/shellcheck
 
+  - label: lint
+    plugins:
+      docker#v1.1.1:
+        image: buildkite/plugin-linter
+        workdir: /plugin
+        environment:
+          - PLUGIN_NAME=docker-compose
+        always-pull: true
+
   - label: run bats tests
     plugins:
       ${BUILDKITE_REPO}#${commit}:
