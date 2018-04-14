@@ -93,6 +93,24 @@ steps:
 
 Note how the values in the list can either be just a key (so the value is sourced from the environment) or a KEY=VALUE pair.
 
+## Build Arguments
+
+You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/#args) to set specific build arguments when building an image.
+
+Alternatively, if you want to set build arguments when pre-building an image, this plugin offers an `args` block of it's own:
+
+```yml
+steps:
+  - command: generate-dist.sh
+    plugins:
+      docker-compose#v2.0.0:
+        build: app
+        args:
+          - MY_CUSTOM_ARG=panda
+```
+
+Note that the values in the list must be a KEY=VALUE pair.
+
 ## Pre-building the image
 
 To speed up run parallel steps you can add a pre-building step to your pipeline, allowing all the `run` steps to skip image building:
@@ -238,6 +256,10 @@ The name to use when tagging pre-built images.
 The default is `${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}-build-${BUILDKITE_BUILD_NUMBER}`, for example `my-project-web-build-42`.
 
 Note: this option can only be specified on a `build` step.
+
+### `args` (optional, build only)
+
+A list of KEY=VALUE that are passed through as build arguments when image is being built.
 
 ### `env` or `environment` (optional, run only)
 
