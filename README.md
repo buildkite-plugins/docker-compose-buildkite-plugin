@@ -46,6 +46,18 @@ steps:
           - docker-compose.test.yml
 ```
 
+You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry:
+
+```yml
+steps:
+  - command: test.sh
+    plugins:
+      docker-login#v1.0.0:
+        username: myusername
+      docker-compose#v2.0.0:
+        build: app
+```
+
 ## Artifacts
 
 If you’re generating artifacts in the build step, you’ll need to ensure your Docker Compose configuration volume mounts the host machine directory into the container where those artifacts are created.
@@ -177,6 +189,7 @@ steps:
         - app:index.docker.io/org/repo/myapp
         - app:index.docker.io/org/repo/myapp:latest
 ```
+
 ## Reusing caches from images
 
 A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a previously built image if it was pushed to the repo on a past run
@@ -227,7 +240,7 @@ Default: `docker-compose.yml`
 
 The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"index.docker.io/org/repo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
 
-The default is `""`  which only builds images on the local Docker host doing the build.
+The default is `""` which only builds images on the local Docker host doing the build.
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
 
