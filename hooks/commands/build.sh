@@ -48,14 +48,18 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
-build_args=(--pull)
+build_params=(--pull)
 
 if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
-  build_args+=(--no-cache)
+  build_params+=(--no-cache)
 fi
 
+while read -r arg ; do
+  [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
+done <<< "$(plugin_read_list ARGS)"
+
 echo "+++ :docker: Building services ${services[*]}"
-run_docker_compose -f "$override_file" build "${build_args[@]}" "${services[@]}"
+run_docker_compose -f "$override_file" build "${build_params[@]}" "${services[@]}"
 
 if [[ -n "$image_repository" ]]; then
   echo "~~~ :docker: Pushing built images to $image_repository"
