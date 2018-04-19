@@ -19,6 +19,9 @@ properties:
   environment:
     type: [ string, array ]
     minimum: 1
+  args:
+    type: [ string, array ]
+    minimum: 1
   image-repository:
     type: string
   image-name:
