@@ -64,6 +64,7 @@ if [[ -n "$run_image_alias" ]] ; then
     pull_services+=("$run_image_alias")
     prebuilt_candidates+=("$run_image_alias")
     prebuilt_services+=("$run_service")
+    prebuilt_service_overrides+=("$run_image_alias" "$prebuilt_image" "")
     prebuilt_service_overrides+=("$run_service" "$prebuilt_image" "")
   fi
 fi
