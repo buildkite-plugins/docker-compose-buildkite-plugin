@@ -38,8 +38,8 @@ while read -r name ; do
   fi
 done <<< "$(plugin_read_list PULL)"
 
-# Pull images specified from RUN_IMAGE_ALIAS
-if [[ -n "$run_image_alias" ]] ; then
+# Pull images specified from run-image-alias
+if [[ -z "${run_image_alias:-}" ]] ; then
   if prebuilt_image=$(get_prebuilt_image "$run_image_alias") ; then
     echo "~~~ :docker: Aliasing pre-built image for $run_service against $run_image_alias"
     pull_services+=("$run_image_alias")
