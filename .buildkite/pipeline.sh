@@ -118,4 +118,19 @@ steps:
         push: helloworld
         config: tests/composefiles/docker-compose.v2.1.yml
 
+  - wait
+  - label: build with alias-from
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        build: base_service
+        config: tests/composefiles/docker-compose.v3.2.shared-base-service.yml
+
+  - wait
+  - label: run with alias-from
+    plugins:
+      ${BUILDKITE_REPO}#${commit}:
+        run: service1
+        alias-from:
+          - base_image
+        config: tests/composefiles/docker-compose.v3.2.shared-base-service.yml
 YAML

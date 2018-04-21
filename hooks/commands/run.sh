@@ -37,6 +37,17 @@ while read -r name ; do
   fi
 done <<< "$(plugin_read_list PULL)"
 
+# Pull images specified from ALIAS_FROM
+while read -r name ; do
+  if [[ -n "$name" ]] ; then
+    pull_services+=("$name")
+
+    if ! in_array "$name" "${prebuilt_candidates[@]}" ; then
+      prebuilt_candidates+=("$name")
+    fi
+  fi
+done <<< "$(plugin_read_list ALIAS_FROM)"
+
 # A list of tuples of [service image cache_from] for build_image_override_file
 prebuilt_service_overrides=()
 prebuilt_services=()
@@ -54,6 +65,16 @@ for service_name in "${prebuilt_candidates[@]}" ; do
    fi
   fi
 done
+
+# Add "alias-from" service names to override file.
+while read -r name ; do
+  if [[ -n "$service_name" ]] ; then
+    if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
+      echo "~~~ :docker: Aliasing pre-built image for $service_name"
+      prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "")
+    fi
+  fi
+done <<< "$(plugin_read_list ALIAS_FROM)"
 
 # If there are any prebuilts, we need to generate an override docker-compose file
 if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then
