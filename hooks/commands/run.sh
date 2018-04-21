@@ -57,7 +57,8 @@ for service_name in "${prebuilt_candidates[@]}" ; do
 done
 
 # Pull images specified from run-image-alias
-if [[ -z "${run_image_alias:-}" ]] ; then
+echo "~~~ :docker: (DEBUG) run_image_alias is $run_image_alias"
+if [[ -z "$run_image_alias" ]] ; then
   echo "~~~ :docker: Found runtime image alias for $run_image_alias"
   if prebuilt_image=$(get_prebuilt_image "$run_image_alias") ; then
     echo "~~~ :docker: Aliasing pre-built image for $run_service against $run_image_alias"
