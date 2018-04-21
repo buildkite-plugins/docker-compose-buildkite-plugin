@@ -63,6 +63,7 @@ if [[ -z "${run_image_alias:-}" ]] ; then
     echo "~~~ :docker: Aliasing pre-built image for $run_service against $run_image_alias"
     pull_services+=("$run_image_alias")
     prebuilt_candidates+=("$run_image_alias")
+    prebuilt_services+=("$run_service")
     prebuilt_service_overrides+=("$run_service" "$prebuilt_image" "")
   fi
 fi
