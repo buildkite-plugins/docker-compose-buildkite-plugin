@@ -5,6 +5,7 @@ set -ueo pipefail
 # and then runs docker-compose run a generated project name
 
 run_service="$(plugin_read_config RUN)"
+run_image_alias="$(plugin_read_config RUN_IMAGE_ALIAS)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
@@ -37,16 +38,15 @@ while read -r name ; do
   fi
 done <<< "$(plugin_read_list PULL)"
 
-# Pull images specified from ALIAS_FROM
-while read -r name ; do
-  if [[ -n "$name" ]] ; then
-    pull_services+=("$name")
-
-    if ! in_array "$name" "${prebuilt_candidates[@]}" ; then
-      prebuilt_candidates+=("$name")
-    fi
+# Pull images specified from RUN_IMAGE_ALIAS
+if [[ -n "$run_image_alias" ]] ; then
+  if prebuilt_image=$(get_prebuilt_image "$run_image_alias") ; then
+    echo "~~~ :docker: Aliasing pre-built image for $run_service against $run_image_alias"
+    pull_services+=("$run_image_alias")
+    prebuilt_candidates+=("$run_image_alias")
+    prebuilt_service_overrides+=("$run_service" "$prebuilt_image" "")
   fi
-done <<< "$(plugin_read_list ALIAS_FROM)"
+fi
 
 # A list of tuples of [service image cache_from] for build_image_override_file
 prebuilt_service_overrides=()
@@ -65,16 +65,6 @@ for service_name in "${prebuilt_candidates[@]}" ; do
    fi
   fi
 done
-
-# Add "alias-from" service names to override file.
-while read -r service_name ; do
-  if [[ -n "$service_name" ]] ; then
-    if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
-      echo "~~~ :docker: Aliasing pre-built image for $run_service"
-      prebuilt_service_overrides+=("$run_service" "$prebuilt_image" "")
-    fi
-  fi
-done <<< "$(plugin_read_list ALIAS_FROM)"
 
 # If there are any prebuilts, we need to generate an override docker-compose file
 if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then

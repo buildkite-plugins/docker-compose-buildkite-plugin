@@ -119,18 +119,17 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
-  - label: build with alias-from
+  - label: build with run-image-alias
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         build: base_service
         config: tests/composefiles/docker-compose.v3.2.shared-base-service.yml
 
   - wait
-  - label: run with alias-from
+  - label: run with run-image-alias
     plugins:
       ${BUILDKITE_REPO}#${commit}:
         run: service1
-        alias-from:
-          - base_image
+        run-image-alias: base_image
         config: tests/composefiles/docker-compose.v3.2.shared-base-service.yml
 YAML
