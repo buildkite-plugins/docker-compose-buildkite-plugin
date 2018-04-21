@@ -67,11 +67,11 @@ for service_name in "${prebuilt_candidates[@]}" ; do
 done
 
 # Add "alias-from" service names to override file.
-while read -r name ; do
+while read -r service_name ; do
   if [[ -n "$service_name" ]] ; then
     if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
-      echo "~~~ :docker: Aliasing pre-built image for $service_name"
-      prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "")
+      echo "~~~ :docker: Aliasing pre-built image for $run_service"
+      prebuilt_service_overrides+=("$run_service" "$prebuilt_image" "")
     fi
   fi
 done <<< "$(plugin_read_list ALIAS_FROM)"
