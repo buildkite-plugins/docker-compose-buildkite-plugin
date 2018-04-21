@@ -38,16 +38,6 @@ while read -r name ; do
   fi
 done <<< "$(plugin_read_list PULL)"
 
-# Pull images specified from run-image-alias
-if [[ -z "${run_image_alias:-}" ]] ; then
-  if prebuilt_image=$(get_prebuilt_image "$run_image_alias") ; then
-    echo "~~~ :docker: Aliasing pre-built image for $run_service against $run_image_alias"
-    pull_services+=("$run_image_alias")
-    prebuilt_candidates+=("$run_image_alias")
-    prebuilt_service_overrides+=("$run_service" "$prebuilt_image" "")
-  fi
-fi
-
 # A list of tuples of [service image cache_from] for build_image_override_file
 prebuilt_service_overrides=()
 prebuilt_services=()
@@ -65,6 +55,17 @@ for service_name in "${prebuilt_candidates[@]}" ; do
    fi
   fi
 done
+
+# Pull images specified from run-image-alias
+if [[ -z "${run_image_alias:-}" ]] ; then
+  echo "~~~ :docker: Found runtime image alias for $run_image_alias"
+  if prebuilt_image=$(get_prebuilt_image "$run_image_alias") ; then
+    echo "~~~ :docker: Aliasing pre-built image for $run_service against $run_image_alias"
+    pull_services+=("$run_image_alias")
+    prebuilt_candidates+=("$run_image_alias")
+    prebuilt_service_overrides+=("$run_service" "$prebuilt_image" "")
+  fi
+fi
 
 # If there are any prebuilts, we need to generate an override docker-compose file
 if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then
