@@ -294,6 +294,12 @@ A list of images to pull caches from in the format `service:index.docker.io/org/
 
 Note: this option can only be specified on a `build` step.
 
+### `run-image-alias` (optional, run only)
+
+Pulls the image for the specified service, and aliases the service as the image-name. This can be used for builds that run multiple services using a single specified image.
+
+Note: this option can only be specified on a `run` step.
+
 ### `leave-volumes` (optional, run only)
 
 Prevent the removal of volumes after the command has been run.

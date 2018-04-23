@@ -1,0 +1,17 @@
+version: '3.2'
+services:
+  base_service:
+    build: .
+    image: myimage
+
+  service1:
+    image: myimage:latest
+    command: echo service1
+    depends_on:
+      - base_service
+
+  service2:
+    image: myimage:latest
+    command: echo service2
+    depends_on:
+      - base_service

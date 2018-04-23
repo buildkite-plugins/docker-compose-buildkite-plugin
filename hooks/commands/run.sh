@@ -5,6 +5,7 @@ set -ueo pipefail
 # and then runs docker-compose run a generated project name
 
 run_service="$(plugin_read_config RUN)"
+run_image_alias="$(plugin_read_config RUN_IMAGE_ALIAS)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
@@ -54,6 +55,19 @@ for service_name in "${prebuilt_candidates[@]}" ; do
    fi
   fi
 done
+
+# Pull images specified from run-image-alias
+if [[ -n "$run_image_alias" ]] ; then
+  echo "~~~ :docker: Found runtime image alias for $run_image_alias"
+  if prebuilt_image=$(get_prebuilt_image "$run_image_alias") ; then
+    echo "~~~ :docker: Aliasing pre-built image for $run_service against $run_image_alias"
+    pull_services+=("$run_image_alias")
+    prebuilt_candidates+=("$run_image_alias")
+    prebuilt_services+=("$run_service")
+    prebuilt_service_overrides+=("$run_image_alias" "$prebuilt_image" "")
+    prebuilt_service_overrides+=("$run_service" "$prebuilt_image" "")
+  fi
+fi
 
 # If there are any prebuilts, we need to generate an override docker-compose file
 if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then
