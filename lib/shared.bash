@@ -190,3 +190,19 @@ function retry {
 
   echo "$status"
 }
+
+function set_cached_from_for_service() {
+  local service_name="$1"
+  local service_image="$2"
+
+  printf -v "cache_from__${service_name}" %s "$service_image"
+}
+
+function get_cached_from_for_service() {
+  local service_name="$1"
+  local cache_key="cache_from__${service_name}"
+
+  if [[ -n "${!cache_key-}" ]] ; then
+    echo "${!cache_key}"
+  fi
+}
