@@ -368,3 +368,33 @@ export BUILDKITE_JOB_ID=1111
   unstub docker-compose
   unstub buildkite-agent
 }
+
+@test "Run with a service that with a prebuilt cache_from" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG=tests/composefiles/docker-compose.v3.2.yml
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM=base_service
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+
+  stub docker-compose \
+    "-f ${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG} -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull base_service : echo pulled base_service" \
+    "-f ${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG} -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 myservice pwd : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG} : exit 1" \
+    "meta-data get docker-compose-plugin-built-image-tag-base_service-${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG} : echo myimage1"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled base_service"
+  assert_output --partial "ran myservice"
+  assert_output --partial "cache_from:"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+

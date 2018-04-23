@@ -5,6 +5,7 @@ set -ueo pipefail
 # and then runs docker-compose run a generated project name
 
 run_service="$(plugin_read_config RUN)"
+pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
@@ -38,27 +39,54 @@ while read -r name ; do
 done <<< "$(plugin_read_list PULL)"
 
 # A list of tuples of [service image cache_from] for build_image_override_file
-prebuilt_service_overrides=()
+service_overrides=()
 prebuilt_services=()
 
 # We look for a prebuilt images for all the pull services and the run_service.
 for service_name in "${prebuilt_candidates[@]}" ; do
   if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
     echo "~~~ :docker: Found a pre-built image for $service_name"
-    prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "")
+    service_overrides+=("$service_name" "$prebuilt_image" "")
     prebuilt_services+=("$service_name")
 
     # If it's prebuilt, we need to pull it down
     if [[ -z "${pull_services:-}" ]] || ! in_array "$service_name" "${pull_services[@]}" ; then
       pull_services+=("$service_name")
-   fi
+    fi
   fi
 done
 
-# If there are any prebuilts, we need to generate an override docker-compose file
-if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then
+# Handle cache_from directive for run service
+cache_from="$(plugin_read_config CACHE_FROM)"
+if [[ -n "${cache_from}" ]] ; then
+  # The cache_from format is either service or service:image:tag
+  IFS=':' read -r -a cache_from_tokens <<< "$cache_from"
+  cache_from_service_name=${cache_from_tokens[0]}
+  cache_from_service_image=$(IFS=':'; echo "${cache_from_tokens[*]:1}")
+
+  # For run, cache_from and a previously build image are mutually exclusive
+  if [[ -n "${prebuilt_services[*]:-}" ]] && in_array "$run_service" "${prebuilt_services[@]}" ; then
+    echo "+++ :warn: Service $run_service has a prebuilt image, so can't also have cache_from set"
+    exit 1
+  fi
+
+  # Only look up the prebuilt image if the cache_from directive is only a service name
+  if [[ -z "$cache_from_service_image" ]] && cache_from_service_image=$(get_prebuilt_image "$cache_from_service_name") ; then
+    echo "~~~ :docker: Using prebuilt image of $cache_from_service_name as cache_from for $run_service"
+
+    # Override the cache_from service and pull it
+    service_overrides+=("$cache_from_service_name" "$cache_from_service_image" "")
+    pull_services+=("$cache_from_service_name")
+
+    # Now override the run service with an empty image, but a cache_from
+    service_overrides+=("$run_service" "" "$cache_from_service_image")
+  fi
+fi
+
+# If service overrides, generate a docker-compose file
+if [[ ${#service_overrides[@]} -gt 0 ]] ; then
   echo "~~~ :docker: Creating docker-compose override file for prebuilt services"
-  build_image_override_file "${prebuilt_service_overrides[@]}" | tee "$override_file"
+  build_image_override_file "${service_overrides[@]}" | tee "$override_file"
   run_params+=(-f "$override_file")
   pull_params+=(-f "$override_file")
 fi
