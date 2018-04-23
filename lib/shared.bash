@@ -67,7 +67,8 @@ function docker_compose_config_files() {
     [[ -n "$line" ]] && config_files+=("$line")
   done <<< "$(plugin_read_list CONFIG)"
 
-  if [[ ${#config_files[@]:-} -eq 0 ]]  ; then
+  # Use a default if there are no config files specified
+  if [[ -z "${config_files[*]:-}" ]]  ; then
     echo "docker-compose.yml"
     return
   fi
