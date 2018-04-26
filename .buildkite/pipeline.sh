@@ -15,10 +15,12 @@ fi
 
 cat <<YAML
 steps:
-  - label: shellcheck
-    command: .buildkite/steps/shellcheck
+  - label: ":shell: Shellcheck"
+    plugins:
+      shellcheck#v1.0.0:
+        files: hooks/**
 
-  - label: lint
+  - label: ":shell: Lint"
     plugins:
       plugin-linter#v1.0.0:
         name: docker-compose
