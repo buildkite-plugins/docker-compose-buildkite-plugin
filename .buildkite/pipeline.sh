@@ -17,7 +17,7 @@ cat <<YAML
 steps:
   - label: ":shell: Shellcheck"
     plugins:
-      shellcheck#v1.0.0:
+      shellcheck#v1.0.1:
         files: hooks/**
 
   - label: ":shell: Lint"
