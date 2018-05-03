@@ -10,6 +10,11 @@ override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 
 cleanup() {
+  # shellcheck disable=SC2181
+  if [[ $? -ne 0 ]] ; then
+    echo "^^^ +++"
+  fi
+
   echo "~~~ :docker: Cleaning up after docker-compose" >&2
   compose_cleanup
 }
