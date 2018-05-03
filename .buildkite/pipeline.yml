@@ -1,0 +1,107 @@
+steps:
+  - label: ":shell: Shellcheck"
+    plugins:
+      shellcheck#v1.0.1:
+        files:
+          - hooks/**
+          - lib/**
+          - commands/**
+
+  - label: ":shell: Lint"
+    plugins:
+      plugin-linter#v1.0.0:
+        name: docker-compose
+
+  - label: run bats tests
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: tests
+
+  - wait
+  - label: run, with links that fail
+    command: echo hello from alpine
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: alpinewithfailinglink
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: run, with environment
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: alpinewithenv
+        config: tests/composefiles/docker-compose.v2.1.yml
+        environment:
+          - ALPACAS=sometimes
+
+  - wait
+  - label: build
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        build: helloworld
+        image-repository: buildkiteci/docker-compose-buildkite-plugin
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: run after build with v2.0
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: helloworld
+        config: tests/composefiles/docker-compose.v2.0.yml
+
+  - wait
+  - label: run after build with v2.1
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: helloworld
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: run with default command
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: helloworld
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: build, where serice has build and image-name
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        build: helloworldimage
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: run after build
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: helloworldimage
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: build with custom image-name
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        build: helloworld
+        image-repository: buildkiteci/docker-compose-buildkite-plugin
+        image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: run after build with custom image-name
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: helloworld
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
+  - label: push after build with custom image-name
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        push: helloworld
+        config: tests/composefiles/docker-compose.v2.1.yml
