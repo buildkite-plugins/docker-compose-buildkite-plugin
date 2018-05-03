@@ -3,7 +3,9 @@ set -ueo pipefail
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
+# shellcheck source=lib/shared.bash
 . "$DIR/../lib/shared.bash"
+# shellcheck source=lib/metadata.bash
 . "$DIR/../lib/metadata.bash"
 
 commands=()
@@ -21,13 +23,18 @@ fi
 
 # Dispatch to the command file
 if in_array "BUILD" "${commands[@]}" ; then
-  . "$DIR/commands/build.sh"
+  # shellcheck source=commands/build.sh
+  . "$DIR/../commands/build.sh"
 elif in_array "RUN" "${commands[@]}" ; then
+  # shellcheck source=lib/run.bash
   . "$DIR/../lib/run.bash"
-  . "$DIR/commands/run.sh"
+  # shellcheck source=commands/run.sh
+  . "$DIR/../commands/run.sh"
 elif in_array "PUSH" "${commands[@]}" ; then
+  # shellcheck source=lib/push.bash
   . "$DIR/../lib/push.bash"
-  . "$DIR/commands/push.sh"
+  # shellcheck source=commands/push.sh
+  . "$DIR/../commands/push.sh"
 else
   echo "+++ Docker Compose plugin error"
   echo "No build or run options were specified"
