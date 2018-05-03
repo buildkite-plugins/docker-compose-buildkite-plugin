@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "docker-compose": {
-    "pinDigests": false
+  "buildkite": {
+    "enabled": true
   }
 }
