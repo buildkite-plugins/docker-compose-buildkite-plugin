@@ -135,18 +135,19 @@ set -e
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode"
-else
-  echo "~~~ :docker: Container exited normally"
 fi
 
-if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]] ; then
-  echo "~~~ Checking linked containers"
-  docker_ps_by_project \
-    --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
-  check_linked_containers_and_save_logs "docker-compose-logs" "$exitcode"
+if [[ ! -z "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
+  if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]] ; then
+    docker_ps_by_project \
+      --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
+    check_linked_containers_and_save_logs "docker-compose-logs" "$exitcode"
 
-  echo "~~~ Uploading container logs as artifacts"
-  buildkite-agent artifact upload "docker-compose-logs/*.log"
+    if [[ -d "docker-compose-logs" ]] && test -n "$(find docker-compose-logs/ -maxdepth 1 -name '*.log' -print)"; then
+      echo "~~~ Uploading linked container logs"
+      buildkite-agent artifact upload "docker-compose-logs/*.log"
+    fi
+  fi
 fi
 
 exit $exitcode
