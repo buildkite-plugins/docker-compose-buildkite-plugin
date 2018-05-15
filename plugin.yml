@@ -1,4 +1,4 @@
-name: docker-compose
+name: Docker Compose
 description: Run any CI step in isolated Docker containers using Docker Compose
 author: https://github.com/buildkite
 requirements:
