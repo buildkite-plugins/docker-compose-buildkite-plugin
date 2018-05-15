@@ -10,7 +10,7 @@ steps:
   - label: ":shell: Lint"
     plugins:
       plugin-linter#v2.0.0:
-        name: docker-compose
+        id: docker-compose
 
   - label: run bats tests
     plugins:
