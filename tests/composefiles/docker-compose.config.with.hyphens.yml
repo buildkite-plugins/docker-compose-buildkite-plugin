@@ -1,0 +1,8 @@
+version: '3.2'
+services:
+  app:
+    build: ../..
+    depends_on:
+      - foo-db
+  foo-db:
+    image: postgres:9.4
