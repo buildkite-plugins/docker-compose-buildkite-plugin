@@ -105,6 +105,7 @@ run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]]; then
   echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
+  echo "⚠️ No pre-built image found from a previous 'build' step for this service and config file. Building image..."
   run_docker_compose build --pull "$run_service"
 fi
 
