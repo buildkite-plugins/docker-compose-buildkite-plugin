@@ -50,6 +50,8 @@ configuration:
       type: boolean
     verbose:
       type: boolean
+    workdir:
+      type: string
   oneOf:
     - required:
       - run
@@ -71,3 +73,4 @@ configuration:
     no-cache: [ build ]
     dependencies: [ run ]
     tty: [ run ]
+    workdir: [ run ]

@@ -101,6 +101,10 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
   run_params+=(--no-deps)
 fi
 
+if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
+  run_params+=(--workdir="$(plugin_read_config WORKDIR)")
+fi
+
 run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]]; then
