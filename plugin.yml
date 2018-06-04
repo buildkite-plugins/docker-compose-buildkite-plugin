@@ -40,6 +40,9 @@ configuration:
     cache-from:
       type: [ string, array ]
       minimum: 1
+    volumes:
+      type: [ string, array ]
+      minimum: 1
     leave-volumes:
       type: boolean
     no-cache:
@@ -71,6 +74,7 @@ configuration:
     pull-retries: [ build, run ]
     push-retries: [ push ]
     cache-from: [ build ]
+    volumes: [ run ]
     leave-volumes: [ run ]
     no-cache: [ build ]
     dependencies: [ run ]
