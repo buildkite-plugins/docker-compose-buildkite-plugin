@@ -280,9 +280,6 @@ A list of either KEY or KEY=VALUE that are passed through as environment variabl
 
 Specify the container working directory via `docker-compose run --workdir`.
 
-For example, `workdir: "${BUILDKITE_BUILD_CHECKOUT_PATH}"` may be used to run
-within the build directory given appropriately configured volume mounts.
-
 ### `pull-retries` (optional)
 
 A number of times to retry failed docker pull. Defaults to 0.
