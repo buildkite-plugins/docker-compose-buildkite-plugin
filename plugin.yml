@@ -50,6 +50,8 @@ configuration:
       type: boolean
     verbose:
       type: boolean
+    service-ports:
+      type: boolean
   oneOf:
     - required:
       - run
@@ -71,3 +73,4 @@ configuration:
     no-cache: [ build ]
     dependencies: [ run ]
     tty: [ run ]
+    service-ports: [ run ]

@@ -276,6 +276,10 @@ A list of KEY=VALUE that are passed through as build arguments when image is bei
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
 
+### `service-ports` (optional, run only)
+
+Map the services ports to the host via `docker-compose run --service-ports`.
+
 ### `pull-retries` (optional)
 
 A number of times to retry failed docker pull. Defaults to 0.

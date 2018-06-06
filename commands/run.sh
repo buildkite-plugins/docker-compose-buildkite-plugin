@@ -101,6 +101,11 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
   run_params+=(--no-deps)
 fi
 
+# Optionally enable mapping service ports to host
+if [[ "$(plugin_read_config SERVICE_PORTS "false")" == "true" ]] ; then
+  run_params+=(--service-ports)
+fi
+
 run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]]; then
