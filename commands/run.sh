@@ -101,6 +101,11 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
   run_params+=(--no-deps)
 fi
 
+# Optionally disable ansi output
+if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
+  run_params+=(--no-ansi)
+fi
+
 run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]]; then

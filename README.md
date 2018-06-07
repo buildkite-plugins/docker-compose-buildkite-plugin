@@ -318,6 +318,12 @@ If set to false, doesn't start linked services.
 
 The default is `true`.
 
+### `ansi` (optional, run only)
+
+If set to false, disables the ansi output from containers.
+
+The default is `true`.
+
 ### `verbose` (optional)
 
 Sets `docker-compose` to run with `--verbose`
