@@ -93,10 +93,7 @@ done <<< "$(printf '%s\n%s' \
 
 while IFS=$'\n' read -r vol ; do
   [[ -n "${vol:-}" ]] && run_params+=("-v" "${vol}")
-done <<< "$(printf '%s\n%s' \
-  "$(plugin_read_list VOL)" \
-  "$(plugin_read_list VOLUMES)")"
-  
+done <<< "$(plugin_read_list VOLUMES)"
 
 # Optionally disable allocating a TTY
 if [[ "$(plugin_read_config TTY "true")" == "false" ]] ; then
