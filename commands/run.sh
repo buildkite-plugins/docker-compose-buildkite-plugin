@@ -102,7 +102,7 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
 fi
 
 if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
-  run_params+=(--workdir="$(plugin_read_config WORKDIR)")
+  run_params+=("--workdir=$(plugin_read_config WORKDIR)")
 fi
 
 # Optionally disable ansi output
