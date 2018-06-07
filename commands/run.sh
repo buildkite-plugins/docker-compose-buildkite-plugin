@@ -105,6 +105,11 @@ if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
   run_params+=(--workdir="$(plugin_read_config WORKDIR)")
 fi
 
+# Optionally disable ansi output
+if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
+  run_params+=(--no-ansi)
+fi
+
 run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]]; then

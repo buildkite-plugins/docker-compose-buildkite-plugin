@@ -48,6 +48,8 @@ configuration:
       type: boolean
     dependencies:
       type: boolean
+    ansi:
+      type: boolean
     verbose:
       type: boolean
     workdir:
@@ -72,5 +74,6 @@ configuration:
     leave-volumes: [ run ]
     no-cache: [ build ]
     dependencies: [ run ]
+    ansi: [ run ]
     tty: [ run ]
     workdir: [ run ]
