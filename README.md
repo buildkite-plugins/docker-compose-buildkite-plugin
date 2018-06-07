@@ -80,7 +80,7 @@ volumes:
   - "./dist:/app/dist"
 ```
 
-If your Docker Compose config doesn't have the volume mount, and you can't add it for some reason, then you can specify a `volumes` directive in your pipeline using the same syntax for each mount; just make sure the `volumes` key is a sibling of the `run` key. Using the earlier example, this is how it would look to specify the volumes for the plugin:
+You can also use the `volumes` plugin option to add or override a volume, for example:
 
 ```yml
 steps:
@@ -313,7 +313,7 @@ Note: this option can only be specified on a `build` step.
 
 ### `volumes` (optional, run only)
 
-A list of volumes that should be added to the container. If a matching definition for that volume's mount point exists in the Docker Compose config file, this option will override that definition, but any other volumes specified in the Docker Compose config file should remain functional.
+A list of volumes to mount into the container. If a matching volume exists in the Docker Compose config file, this option will override that definition.
 
 ### `leave-volumes` (optional, run only)
 
