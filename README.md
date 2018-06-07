@@ -15,7 +15,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: app
 ```
 
@@ -26,7 +26,7 @@ through if you need:
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: app
         config: docker-compose.tests.yml
         env:
@@ -39,7 +39,7 @@ or multiple config files:
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: app
         config:
           - docker-compose.yml
@@ -54,7 +54,7 @@ steps:
     plugins:
       docker-login#v1.0.0:
         username: myusername
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         build: app
 ```
 
@@ -69,7 +69,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: app
 ```
 
@@ -87,7 +87,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: app
         volumes:
           - "./dist:/app/dist"
@@ -108,7 +108,7 @@ this plugin offers a `environment` block of it's own:
 steps:
   - command: generate-dist.sh
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: app
         env:
           - BUILDKITE_BUILD_NUMBER
@@ -128,7 +128,7 @@ Alternatively, if you want to set build arguments when pre-building an image, th
 steps:
   - command: generate-dist.sh
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         build: app
         args:
           - MY_CUSTOM_ARG=panda
@@ -144,7 +144,7 @@ To speed up run parallel steps you can add a pre-building step to your pipeline,
 steps:
   - name: ":docker: Build"
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         build: app
 
   - wait
@@ -153,7 +153,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: app
 ```
 
@@ -165,7 +165,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         build: app
         image-repository: index.docker.io/org/repo
 
@@ -177,7 +177,7 @@ steps:
     agents:
       queue: docker-runner
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: app
 ```
 
@@ -191,7 +191,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         build:
           - app
           - tests
@@ -203,7 +203,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         run: tests
 ```
 
@@ -215,7 +215,7 @@ Prebuilt images are automatically pushed with a `build` step, but often you want
 steps:
   - name: ":docker: Push to final repository"
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         push:
         - app:index.docker.io/org/repo/myapp
         - app:index.docker.io/org/repo/myapp:latest
@@ -229,13 +229,13 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 steps:
   - name: ":docker Build an image"
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         build: app
         image-repository: index.docker.io/org/repo
         cache-from: app:index.docker.io/org/repo/myapp:latest
   - name: ":docker: Push to final repository"
     plugins:
-      docker-compose#v2.3.0:
+      docker-compose#v2.4.0:
         push:
         - app:index.docker.io/org/repo/myapp
         - app:index.docker.io/org/repo/myapp:latest
