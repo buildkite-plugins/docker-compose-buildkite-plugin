@@ -80,6 +80,19 @@ volumes:
   - "./dist:/app/dist"
 ```
 
+You can also use the `volumes` plugin option to add or override a volume, for example:
+
+```yml
+steps:
+  - command: generate-dist.sh
+    artifact_paths: "dist/*"
+    plugins:
+      docker-compose#v2.3.0:
+        run: app
+        volumes:
+          - "./dist:/app/dist"
+```
+
 ## Environment
 
 By default, docker-compose makes whatever environment variables it gets available for
@@ -297,6 +310,10 @@ This option can also be configured on the agent machine using the environment va
 A list of images to pull caches from in the format `service:index.docker.io/org/repo/image:tag` before building. Requires docker-compose file version `3.2+`. Currently only one image per service is supported. If there's no image present for a service local docker cache will be used.
 
 Note: this option can only be specified on a `build` step.
+
+### `volumes` (optional, run only)
+
+A list of volumes to mount into the container. If a matching volume exists in the Docker Compose config file, this option will override that definition.
 
 ### `leave-volumes` (optional, run only)
 
