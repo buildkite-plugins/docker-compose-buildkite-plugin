@@ -8,6 +8,12 @@ run_service="$(plugin_read_config RUN)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
+shell="$(plugin_read_config SHELL "/bin/sh -e -c")"
+
+# false means no, shell will invoke directly
+if [[ "$shell" == "false" ]] ; then
+  shell=""
+fi
 
 cleanup() {
   # shellcheck disable=SC2181
@@ -138,7 +144,11 @@ set +e
   # helpfully expand prior to passing it to docker-compose)
 
   echo "+++ :docker: Running command in Docker Compose service: $run_service" >&2
-  eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
+  if [[ $shell == "false" ]] ; then
+    eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
+  else
+    eval "run_docker_compose \${run_params[@]} $shell '$BUILDKITE_COMMAND'"
+  fi
 )
 
 exitcode=$?

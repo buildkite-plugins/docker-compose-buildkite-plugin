@@ -10,12 +10,18 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 commands=()
 
+env | grep BUILDKITE_PLUGIN_DOCKER_COMPOSE
+
 [[ -n "$(plugin_read_list BUILD)" ]] && commands+=("BUILD")
 [[ -n "$(plugin_read_list RUN)" ]] && commands+=("RUN")
 [[ -n "$(plugin_read_list PUSH)" ]] && commands+=("PUSH")
 
-# Check we've only got one of BUILD, RUN and PUSH
-if [[ ${#commands[@]} -gt 1 ]] ; then
+# Check we've only got one and only one of BUILD, RUN and PUSH
+if [[ -z "${commands[*]:-}" ]] ; then
+  echo "+++ Docker Compose plugin error"
+  echo "Must specify one of build, run or push. None was specified."
+  exit 1
+elif [[ ${#commands[@]} -gt 1 ]] ; then
   echo "+++ Docker Compose plugin error"
   echo "Only one of build, run and push is supported. More than one was used."
   exit 1
