@@ -144,7 +144,11 @@ set +e
   # helpfully expand prior to passing it to docker-compose)
 
   echo "+++ :docker: Running command in Docker Compose service: $run_service" >&2
-  eval "run_docker_compose \${run_params[@]} $shell '$BUILDKITE_COMMAND'"
+  if [[ $shell == "false" ]] ; then
+    eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
+  else
+    eval "run_docker_compose \${run_params[@]} $shell '$BUILDKITE_COMMAND'"
+  fi
 )
 
 exitcode=$?
