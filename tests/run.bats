@@ -350,7 +350,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v ./dist:/app/dist -v ./pkg:/app/pkg myservice pwd : echo ran myservice with volumes"
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v $PWD/dist:/app/dist -v $PWD/pkg:/app/pkg myservice pwd : echo ran myservice with volumes"
 
   stub buildkite-agent \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"

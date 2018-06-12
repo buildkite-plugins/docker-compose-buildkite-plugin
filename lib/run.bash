@@ -40,3 +40,12 @@ check_linked_containers_and_save_logs() {
     fi
   done
 }
+
+# docker-compose's -v arguments don't do local path expansion like the .yml
+# versions do. So we add very simple support, for the common and basic case.
+# 
+# "./foo:/foo" => "/buildkite/builds/.../foo:/foo"
+expand_relative_volume_path() {
+  local path="$1"
+  echo "${path/.\//$PWD/}"
+}

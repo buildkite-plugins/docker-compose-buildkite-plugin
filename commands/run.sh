@@ -92,7 +92,7 @@ done <<< "$(printf '%s\n%s' \
   "$(plugin_read_list ENVIRONMENT)")"
 
 while IFS=$'\n' read -r vol ; do
-  [[ -n "${vol:-}" ]] && run_params+=("-v" "${vol}")
+  [[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
 done <<< "$(plugin_read_list VOLUMES)"
 
 # Optionally disable allocating a TTY
