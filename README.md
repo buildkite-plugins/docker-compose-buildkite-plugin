@@ -315,6 +315,8 @@ Note: this option can only be specified on a `build` step.
 
 A list of volumes to mount into the container. If a matching volume exists in the Docker Compose config file, this option will override that definition.
 
+Additionally, volumes may be specified via the agent environment variable `BUILDKITE_DOCKER_DEFAULT_VOLUMES`, a `;` (semicolon)  delimited list of mounts in the `-v` syntax. (Ex. `buildkite:/buildkite;./app:/app`).
+
 ### `leave-volumes` (optional, run only)
 
 Prevent the removal of volumes after the command has been run.
