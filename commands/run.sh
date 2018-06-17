@@ -95,6 +95,10 @@ while IFS=$'\n' read -r vol ; do
   [[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
 done <<< "$(plugin_read_list VOLUMES)"
 
+while IFS=$'\n' read -r vol ; do
+  [[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
+done <<< "$(prefix_read_list BUILDKITE_DOCKER_DEFAULT_VOLUMES)"
+
 # Optionally disable allocating a TTY
 if [[ "$(plugin_read_config TTY "true")" == "false" ]] ; then
   run_params+=(-T)
