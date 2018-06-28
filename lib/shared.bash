@@ -29,7 +29,12 @@ function plugin_read_config() {
 
 # Reads either a value or a list from plugin config
 function plugin_read_list() {
-  local prefix="BUILDKITE_PLUGIN_DOCKER_COMPOSE_$1"
+  prefix_read_list "BUILDKITE_PLUGIN_DOCKER_COMPOSE_$1"
+}
+
+# Reads either a value or a list from the given env prefix
+function prefix_read_list() {
+  local prefix="$1"
   local parameter="${prefix}_0"
 
   if [[ -n "${!parameter:-}" ]]; then

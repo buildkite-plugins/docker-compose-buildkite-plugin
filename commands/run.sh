@@ -95,6 +95,13 @@ while IFS=$'\n' read -r vol ; do
   [[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
 done <<< "$(plugin_read_list VOLUMES)"
 
+IFS=';' read -r -a default_volumes <<< "${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
+for vol in "${default_volumes[@]:-}"
+do
+  vol=`echo "${vol:-}"`
+  [[ -n "${vol}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
+done
+
 # Optionally disable allocating a TTY
 if [[ "$(plugin_read_config TTY "true")" == "false" ]] ; then
   run_params+=(-T)
