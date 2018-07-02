@@ -98,8 +98,9 @@ done <<< "$(plugin_read_list VOLUMES)"
 IFS=';' read -r -a default_volumes <<< "${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
 for vol in "${default_volumes[@]:-}"
 do
-  vol=`echo "${vol:-}"`
-  [[ -n "${vol}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
+  # Trim all whitespace when checking for variable definition, handling cases
+  # with repeated delimiters.
+  [[ ! -z "${vol// }" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
 done
 
 # Optionally disable allocating a TTY
