@@ -1,0 +1,18 @@
+# Config for https://github.com/apps/release-drafter
+template: |
+  ## TODO: Added/Removed/Changed
+
+  $CHANGES
+
+  ## Upgrading
+
+  To upgrade, update your `pipeline.yml` files:
+
+  ```diff
+  steps:
+    - command: test.sh
+      plugins:
+  -     docker-compose#$PREVIOUS_TAG:
+  +     docker-compose#TODO:
+          run: app
+  ```
