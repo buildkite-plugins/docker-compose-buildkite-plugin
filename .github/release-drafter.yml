@@ -1,6 +1,6 @@
 # Config for https://github.com/apps/release-drafter
 template: |
-  ## TODO: Added/Removed/Changed
+  ## TODO: Added/Removed/Fixed/Changed
 
   $CHANGES
 
