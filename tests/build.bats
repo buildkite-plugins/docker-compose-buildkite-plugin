@@ -230,7 +230,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
-    "pull my.repository/myservice_cache:latest : exit 1"
+    "pull my.repository/my-service_cache:latest : echo pulled cache image"
 
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull hello-world : echo built hello-world"
@@ -238,9 +238,9 @@ load '../lib/shared'
   run $PWD/hooks/command
 
   assert_success
-  assert_output --partial "my.repository/my-service_cache:latest will not be used as a cache for hello-world"
-  refute_output --partial "- my.repository/my-service_cache:latest"
-  assert_output --partial "built helloworld"
+  assert_output --partial "pulled cache image"
+  assert_output --partial "- my.repository/my-service_cache:latest"
+  assert_output --partial "built hello-world"
   unstub docker
   unstub docker-compose
 }

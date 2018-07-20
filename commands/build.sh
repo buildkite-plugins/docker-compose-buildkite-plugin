@@ -6,6 +6,11 @@ pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 
+service_name_cache_from_var() {
+  local service_name="$1"
+  echo "cache_from__${service_name//-/_}"
+}
+
 for line in $(plugin_read_list CACHE_FROM) ; do
   IFS=':' read -r -a tokens <<< "$line"
   service_name=${tokens[0]}
@@ -13,7 +18,7 @@ for line in $(plugin_read_list CACHE_FROM) ; do
 
   echo "~~~ :docker: Pulling cache image for $service_name"
   if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
-    printf -v "cache_from__${service_name}" %s "$service_image"
+    printf -v "$(service_name_cache_from_var "$service_name")" "%s" "$service_image"
   else
     echo "!!! :docker: Pull failed. $service_image will not be used as a cache for $service_name"
   fi
@@ -31,9 +36,9 @@ for service_name in $(plugin_read_list BUILD) ; do
 
   build_images+=("$service_name" "$image_name")
 
-  cache_key="cache_from__${service_name}"
-  if [[ -n "${!cache_key-}" ]]; then
-    build_images+=("${!cache_key}")
+  cache_from_var="$(service_name_cache_from_var "${service_name}")"
+  if [[ -n "${!cache_from_var-}" ]]; then
+    build_images+=("${!cache_from_var}")
   else
     build_images+=("")
   fi
