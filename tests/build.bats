@@ -221,6 +221,30 @@ load '../lib/shared'
   unstub docker-compose
 }
 
+@test "Build with a cache-from image with hyphen" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=hello-world
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=hello-world:my.repository/my-service_cache:latest
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker \
+    "pull my.repository/my-service_cache:latest : echo pulled cache image"
+
+  stub docker-compose \
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull hello-world : echo built hello-world"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled cache image"
+  assert_output --partial "- my.repository/my-service_cache:latest"
+  assert_output --partial "built hello-world"
+  unstub docker
+  unstub docker-compose
+}
+
 @test "Build with a cache-from image retry on failing pull" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
