@@ -97,6 +97,14 @@ function build_image_override_file() {
     "$(docker_compose_config_version)" "$@"
 }
 
+# Checks that a specific version of docker-compose supports cache_from
+function docker_compose_supports_cache_from() {
+  local version="$1"
+  if [[ -z "$version" || "$version" == 1* || "$version" =~ ^(2|3)(\.[01])?$ ]] ; then
+    return 1
+  fi
+}
+
 # Build an docker-compose file that overrides the image for a specific
 # docker-compose version and set of [ service, image, cache_from ] tuples
 function build_image_override_file_with_version() {
@@ -118,9 +126,9 @@ function build_image_override_file_with_version() {
     printf "    image: %s\\n" "$2"
 
     if [[ -n "$3" ]] ; then
-      if [[ -z "$version" || "$version" == 2* || "$version" == 3 || "$version" == 3.0* || "$version" == 3.1* ]]; then
+      if ! docker_compose_supports_cache_from "$version" ; then
         echo "Unsupported Docker Compose config file version: $version"
-        echo "The 'cache_from' option can only be used with Compose file versions 3.2 and above."
+        echo "The 'cache_from' option can only be used with Compose file versions 2.2 or 3.2 and above."
         echo "For more information on Docker Compose configuration file versions, see:"
         echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
         exit 1
