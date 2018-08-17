@@ -145,7 +145,7 @@ set +e
   # which is portable and much harder to shoot ourselves in the foot 🎉
 
   while IFS= read -rd '' token; do
-    run_params+=("$token")
+    [[ -n "$token" ]] && run_params+=("$token")
   done < <(xargs printf '%s\0' <<< "$BUILDKITE_COMMAND")
 
   echo "+++ :docker: Running command in Docker Compose service: $run_service" >&2
