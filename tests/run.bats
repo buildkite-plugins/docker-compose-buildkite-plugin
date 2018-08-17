@@ -121,10 +121,11 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_1=MYENV
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_0=MYENV=2
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_1=MYENV
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_2=ANOTHER="this is a long string with spaces; and semi-colons"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV myservice pwd : echo ran myservice"
+    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV -e ANOTHER=this\ is\ a\ long\ string\ with\ spaces\;\ and\ semi-colons myservice pwd : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
