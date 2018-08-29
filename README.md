@@ -50,12 +50,18 @@ You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/
 
 ```yml
 steps:
-  - command: test.sh
-    plugins:
-      docker-login#v1.0.0:
-        username: myusername
+  - plugins:
+      docker-login#v2.0.1:
+        username: xyz
       docker-compose#v2.5.1:
         build: app
+  - wait
+  - command: test.sh
+    plugins:
+      docker-login#v2.0.1: ~
+        username: xyz
+      docker-compose#v2.5.1:
+        run: app
 ```
 
 ## Artifacts
