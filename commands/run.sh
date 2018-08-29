@@ -95,12 +95,12 @@ while IFS=$'\n' read -r vol ; do
   [[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
 done <<< "$(plugin_read_list VOLUMES)"
 
+# Parse BUILDKITE_DOCKER_DEFAULT_VOLUMES delimited by semi-colons, normalized to
+# ignore spaces and leading or trailing semi-colons
 IFS=';' read -r -a default_volumes <<< "${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
-for vol in "${default_volumes[@]:-}"
-do
-  # Trim all whitespace when checking for variable definition, handling cases
-  # with repeated delimiters.
-  [[ ! -z "${vol// }" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
+for vol in "${default_volumes[@]:-}" ; do
+  trimmed_vol="$(echo -n "$vol" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//')"
+  [[ -n "$trimmed_vol" ]] && run_params+=("-v" "$(expand_relative_volume_path "$trimmed_vol")")
 done
 
 # Optionally disable allocating a TTY
@@ -135,18 +135,21 @@ fi
 set +e
 
 (
-  # Reset bash to the default IFS with no glob expanding and no failing on error
+  # Reset bash to the default IFS
   unset IFS
-  set -f
 
-  # The eval statements below are used to allow $BUILDKITE_COMMAND to be interpolated correctly
-  # When paired with -f we ensure that it word splits correctly, e.g bash -c "pwd" should split
-  # into [bash, -c, "pwd"]. Eval ends up the simplest way to do this, and when paired with the
-  # set -f above we ensure globs aren't expanded (imagine a command like `cat *`, which bash would
-  # helpfully expand prior to passing it to docker-compose)
+  # Because we receive $BUILDKITE_COMMAND as a single string, it needs to be tokenized as a shell
+  # would to respect things like quoted strings. Previously we used eval to do this with some
+  # careful control around preventing glob expansion, but this ends up being difficult to get just
+  # right and also very risky. The new implementation uses xargs and printf to tokenize the string,
+  # which is portable and much harder to shoot ourselves in the foot 🎉
+
+  while IFS= read -rd '' token; do
+    [[ -n "$token" ]] && run_params+=("$token")
+  done < <(xargs printf '%s\0' <<< "$BUILDKITE_COMMAND")
 
   echo "+++ :docker: Running command in Docker Compose service: $run_service" >&2
-  eval "run_docker_compose \${run_params[@]} $BUILDKITE_COMMAND"
+  run_docker_compose "${run_params[@]}"
 )
 
 exitcode=$?
