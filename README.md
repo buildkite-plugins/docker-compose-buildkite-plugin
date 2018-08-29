@@ -46,7 +46,7 @@ steps:
           - docker-compose.test.yml
 ```
 
-You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry:
+You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry. For example, the following will build and push an image to a private repo, and pull from that private repo in subsequent run commands:
 
 ```yml
 steps:
@@ -55,10 +55,11 @@ steps:
         username: xyz
       docker-compose#v2.5.1:
         build: app
+        image-repository: index.docker.io/myorg/myrepo
   - wait
   - command: test.sh
     plugins:
-      docker-login#v2.0.1: ~
+      docker-login#v2.0.1:
         username: xyz
       docker-compose#v2.5.1:
         run: app
@@ -173,7 +174,7 @@ steps:
     plugins:
       docker-compose#v2.5.1:
         build: app
-        image-repository: index.docker.io/org/repo
+        image-repository: index.docker.io/myorg/myrepo
 
   - wait
 
@@ -201,7 +202,7 @@ steps:
         build:
           - app
           - tests
-        image-repository: index.docker.io/org/repo
+        image-repository: index.docker.io/myorg/myrepo
 
   - wait
 
@@ -215,21 +216,59 @@ steps:
 
 ## Pushing Tagged Images
 
-Prebuilt images are automatically pushed with a `build` step, but often you want to finally push your images, perhaps ready for deployment.
+If you want to push your Docker images ready for deployment, you can use the `push` configuration (which operates similar to [docker-compose push](https://docs.docker.com/compose/reference/push/):
 
 ```yml
 steps:
-  - name: ":docker: Push to final repository"
+  - name: ":docker: Push"
     plugins:
       docker-compose#v2.5.1:
+        push: app
+```
+
+If you need to authenticate to the repository to push (e.g. when pushing to Docker Hub), use the Docker Login plugin:
+
+```yml
+steps:
+  - name: ":docker: Push"
+    plugins:
+      docker-login#v2.0.1:
+        username: xyz
+      docker-compose#v2.5.1:
+        push: app
+```
+
+To push multiple images, you can use a list:
+
+```yml
+steps:
+  - name: ":docker: Push"
+    plugins:
+      docker-login#v2.0.1:
+        username: xyz
+      docker-compose#v2.5.1:
         push:
-        - app:index.docker.io/org/repo/myapp
-        - app:index.docker.io/org/repo/myapp:latest
+          - first-service
+          - second-service
+```
+
+If you want to push to a specific location (that's not defined as the `image` in your docker-compose.yml), you can use the `{service}:{repo}:{tag}` format, for example:
+
+```yml
+steps:
+  - name: ":docker: Push"
+    plugins:
+      docker-login#v2.0.1:
+        username: xyz
+      docker-compose#v2.5.1:
+        push:
+        - app:index.docker.io/myorg/myrepo/myapp
+        - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
 
 ## Reusing caches from images
 
-A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a previously built image if it was pushed to the repo on a past run
+A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a previously built image (if it was pushed from a previous build):
 
 ```yaml
 steps:
@@ -237,14 +276,14 @@ steps:
     plugins:
       docker-compose#v2.5.1:
         build: app
-        image-repository: index.docker.io/org/repo
-        cache-from: app:index.docker.io/org/repo/myapp:latest
+        image-repository: index.docker.io/myorg/myrepo
+        cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
   - name: ":docker: Push to final repository"
     plugins:
       docker-compose#v2.5.1:
         push:
-        - app:index.docker.io/org/repo/myapp
-        - app:index.docker.io/org/repo/myapp:latest
+        - app:index.docker.io/myorg/myrepo/myapp
+        - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
 
 ## Configuration
@@ -275,7 +314,7 @@ Default: `docker-compose.yml`
 
 ### `image-repository` (optional, build only)
 
-The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"index.docker.io/org/repo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
+The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"index.docker.io/myorg/myrepo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
 
 The default is `""` which only builds images on the local Docker host doing the build.
 
@@ -313,7 +352,7 @@ This option can also be configured on the agent machine using the environment va
 
 ### `cache-from` (optional)
 
-A list of images to pull caches from in the format `service:index.docker.io/org/repo/image:tag` before building. Requires docker-compose file version `3.2+`. Currently only one image per service is supported. If there's no image present for a service local docker cache will be used.
+A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building. Requires docker-compose file version `3.2+`. Currently only one image per service is supported. If there's no image present for a service local docker cache will be used.
 
 Note: this option can only be specified on a `build` step.
 
