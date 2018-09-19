@@ -152,7 +152,7 @@ if [[ $exitcode -ne 0 ]] ; then
   echo "+++ :warning: Failed to run command, exited with $exitcode"
 fi
 
-if [[ ! -z "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
+if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]] ; then
     docker_ps_by_project \
       --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
