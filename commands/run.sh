@@ -9,20 +9,10 @@ container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 
-cleanup() {
-  # shellcheck disable=SC2181
-  if [[ $? -ne 0 ]] ; then
-    echo "^^^ +++"
-  fi
-
-  echo "~~~ :docker: Cleaning up after docker-compose" >&2
-  compose_cleanup
+expand_headers_on_error() {
+  echo "^^^ +++"
 }
-
-# clean up docker containers on EXIT
-if [[ "$(plugin_read_config CLEANUP "true")" == "true" ]] ; then
-  trap cleanup EXIT
-fi
+trap cleanup ERR
 
 test -f "$override_file" && rm "$override_file"
 

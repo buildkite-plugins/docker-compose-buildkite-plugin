@@ -1,0 +1,19 @@
+#!/bin/bash
+set -ueo pipefail
+
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+# shellcheck source=lib/shared.bash
+. "$DIR/../lib/shared.bash"
+# shellcheck source=lib/metadata.bash
+. "$DIR/../lib/metadata.bash"
+
+# clean up resources after a run command. we do this here so that it will
+# run after a job is cancelled
+if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true")" == "true" ]] ; then
+  # shellcheck source=lib/run.bash
+  . "$DIR/../lib/run.bash"
+
+  echo "~~~ :docker: Cleaning up after docker-compose" >&2
+  compose_cleanup
+fi
