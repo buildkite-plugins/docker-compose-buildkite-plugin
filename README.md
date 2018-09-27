@@ -65,6 +65,18 @@ steps:
         run: app
 ```
 
+Note that the `command` of any step run within Docker Compose must consist of only a single command. This is because Docker Compose itself is only capable of running one command at a time.
+
+If you need to run multiple commands, and your Docker image contains a suitable shell, you can use an approach like this:
+
+```yml
+steps:
+  - command: sh -c "rubocop; rspec"
+    plugins:
+      docker-compose#v2.5.1:
+        run: app
+```
+
 ## Artifacts
 
 If you’re generating artifacts in the build step, you’ll need to ensure your Docker Compose configuration volume mounts the host machine directory into the container where those artifacts are created.
