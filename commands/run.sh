@@ -12,7 +12,7 @@ pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 expand_headers_on_error() {
   echo "^^^ +++"
 }
-trap cleanup ERR
+trap expand_headers_on_error ERR
 
 test -f "$override_file" && rm "$override_file"
 
