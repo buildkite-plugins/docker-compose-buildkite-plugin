@@ -15,8 +15,8 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v2.5.1:
-        run: app
+      - docker-compose#v2.5.1:
+          run: app
 ```
 
 You can also specify a custom Docker Compose config file and what environment to pass
@@ -26,11 +26,11 @@ through if you need:
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v2.5.1:
-        run: app
-        config: docker-compose.tests.yml
-        env:
-          - BUILDKITE_BUILD_NUMBER
+      - docker-compose#v2.5.1:
+          run: app
+          config: docker-compose.tests.yml
+          env:
+            - BUILDKITE_BUILD_NUMBER
 ```
 
 or multiple config files:
@@ -39,11 +39,11 @@ or multiple config files:
 steps:
   - command: test.sh
     plugins:
-      docker-compose#v2.5.1:
-        run: app
-        config:
-          - docker-compose.yml
-          - docker-compose.test.yml
+      - docker-compose#v2.5.1:
+          run: app
+          config:
+            - docker-compose.yml
+            - docker-compose.test.yml
 ```
 
 You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry. For example, the following will build and push an image to a private repo, and pull from that private repo in subsequent run commands:
@@ -51,18 +51,18 @@ You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/
 ```yml
 steps:
   - plugins:
-      docker-login#v2.0.1:
-        username: xyz
-      docker-compose#v2.5.1:
-        build: app
-        image-repository: index.docker.io/myorg/myrepo
+      - docker-login#v2.0.1:
+          username: xyz
+      - docker-compose#v2.5.1:
+          build: app
+          image-repository: index.docker.io/myorg/myrepo
   - wait
   - command: test.sh
     plugins:
-      docker-login#v2.0.1:
-        username: xyz
-      docker-compose#v2.5.1:
-        run: app
+      - docker-login#v2.0.1:
+          username: xyz
+      - docker-compose#v2.5.1:
+          run: app
 ```
 
 ## Artifacts
@@ -76,8 +76,8 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      docker-compose#v2.5.1:
-        run: app
+      - docker-compose#v2.5.1:
+          run: app
 ```
 
 Assuming your application’s directory inside the container was `/app`, you would need to ensure your `app` service in your Docker Compose config has the following host volume mount:
@@ -94,10 +94,10 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      docker-compose#v2.5.1:
-        run: app
-        volumes:
-          - "./dist:/app/dist"
+      - docker-compose#v2.5.1:
+          run: app
+          volumes:
+            - "./dist:/app/dist"
 ```
 
 ## Environment
@@ -115,12 +115,12 @@ this plugin offers a `environment` block of it's own:
 steps:
   - command: generate-dist.sh
     plugins:
-      docker-compose#v2.5.1:
-        run: app
-        env:
-          - BUILDKITE_BUILD_NUMBER
-          - BUILDKITE_PULL_REQUEST
-          - MY_CUSTOM_ENV=llamas
+      - docker-compose#v2.5.1:
+          run: app
+          env:
+            - BUILDKITE_BUILD_NUMBER
+            - BUILDKITE_PULL_REQUEST
+            - MY_CUSTOM_ENV=llamas
 ```
 
 Note how the values in the list can either be just a key (so the value is sourced from the environment) or a KEY=VALUE pair.
@@ -135,10 +135,10 @@ Alternatively, if you want to set build arguments when pre-building an image, th
 steps:
   - command: generate-dist.sh
     plugins:
-      docker-compose#v2.5.1:
-        build: app
-        args:
-          - MY_CUSTOM_ARG=panda
+      - docker-compose#v2.5.1:
+          build: app
+          args:
+            - MY_CUSTOM_ARG=panda
 ```
 
 Note that the values in the list must be a KEY=VALUE pair.
@@ -151,8 +151,8 @@ To speed up run parallel steps you can add a pre-building step to your pipeline,
 steps:
   - name: ":docker: Build"
     plugins:
-      docker-compose#v2.5.1:
-        build: app
+      - docker-compose#v2.5.1:
+          build: app
 
   - wait
 
@@ -160,8 +160,8 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      docker-compose#v2.5.1:
-        run: app
+      - docker-compose#v2.5.1:
+          run: app
 ```
 
 If you’re running agents across multiple machines and Docker hosts you’ll want to push the pre-built image to a docker image repository using the `image-repository` option. The following example uses this option, along with dedicated builder and runner agent queues:
@@ -172,9 +172,9 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      docker-compose#v2.5.1:
-        build: app
-        image-repository: index.docker.io/myorg/myrepo
+      - docker-compose#v2.5.1:
+          build: app
+          image-repository: index.docker.io/myorg/myrepo
 
   - wait
 
@@ -184,8 +184,8 @@ steps:
     agents:
       queue: docker-runner
     plugins:
-      docker-compose#v2.5.1:
-        run: app
+      - docker-compose#v2.5.1:
+          run: app
 ```
 
 ## Building multiple images
@@ -198,11 +198,11 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      docker-compose#v2.5.1:
-        build:
-          - app
-          - tests
-        image-repository: index.docker.io/myorg/myrepo
+      - docker-compose#v2.5.1:
+          build:
+            - app
+            - tests
+          image-repository: index.docker.io/myorg/myrepo
 
   - wait
 
@@ -210,8 +210,8 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      docker-compose#v2.5.1:
-        run: tests
+      - docker-compose#v2.5.1:
+          run: tests
 ```
 
 ## Pushing Tagged Images
@@ -222,8 +222,8 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 steps:
   - name: ":docker: Push"
     plugins:
-      docker-compose#v2.5.1:
-        push: app
+      - docker-compose#v2.5.1:
+          push: app
 ```
 
 If you need to authenticate to the repository to push (e.g. when pushing to Docker Hub), use the Docker Login plugin:
@@ -232,10 +232,10 @@ If you need to authenticate to the repository to push (e.g. when pushing to Dock
 steps:
   - name: ":docker: Push"
     plugins:
-      docker-login#v2.0.1:
-        username: xyz
-      docker-compose#v2.5.1:
-        push: app
+      - docker-login#v2.0.1:
+          username: xyz
+      - docker-compose#v2.5.1:
+          push: app
 ```
 
 To push multiple images, you can use a list:
@@ -244,12 +244,12 @@ To push multiple images, you can use a list:
 steps:
   - name: ":docker: Push"
     plugins:
-      docker-login#v2.0.1:
-        username: xyz
-      docker-compose#v2.5.1:
-        push:
-          - first-service
-          - second-service
+      - docker-login#v2.0.1:
+          username: xyz
+      - docker-compose#v2.5.1:
+          push:
+            - first-service
+            - second-service
 ```
 
 If you want to push to a specific location (that's not defined as the `image` in your docker-compose.yml), you can use the `{service}:{repo}:{tag}` format, for example:
@@ -258,12 +258,12 @@ If you want to push to a specific location (that's not defined as the `image` in
 steps:
   - name: ":docker: Push"
     plugins:
-      docker-login#v2.0.1:
-        username: xyz
-      docker-compose#v2.5.1:
-        push:
-        - app:index.docker.io/myorg/myrepo/myapp
-        - app:index.docker.io/myorg/myrepo/myapp:latest
+      - docker-login#v2.0.1:
+          username: xyz
+      - docker-compose#v2.5.1:
+          push:
+          - app:index.docker.io/myorg/myrepo/myapp
+          - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
 
 ## Reusing caches from images
@@ -274,16 +274,16 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 steps:
   - name: ":docker Build an image"
     plugins:
-      docker-compose#v2.5.1:
-        build: app
-        image-repository: index.docker.io/myorg/myrepo
-        cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
+      - docker-compose#v2.5.1:
+          build: app
+          image-repository: index.docker.io/myorg/myrepo
+          cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
   - name: ":docker: Push to final repository"
     plugins:
-      docker-compose#v2.5.1:
-        push:
-        - app:index.docker.io/myorg/myrepo/myapp
-        - app:index.docker.io/myorg/myrepo/myapp:latest
+      - docker-compose#v2.5.1:
+          push:
+          - app:index.docker.io/myorg/myrepo/myapp
+          - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
 
 ## Configuration
