@@ -40,7 +40,7 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: buildkiteci/docker-compose-buildkite-plugin
+        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
@@ -87,7 +87,7 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: buildkiteci/docker-compose-buildkite-plugin
+        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
         image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
         config: tests/composefiles/docker-compose.v2.1.yml
 
