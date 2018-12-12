@@ -149,14 +149,14 @@ To speed up run parallel steps you can add a pre-building step to your pipeline,
 
 ```yml
 steps:
-  - name: ":docker: Build"
+  - label: ":docker: Build"
     plugins:
       - docker-compose#v2.5.1:
           build: app
 
   - wait
 
-  - name: ":docker: Test %n"
+  - label: ":docker: Test %n"
     command: test.sh
     parallelism: 25
     plugins:
@@ -168,7 +168,7 @@ If you’re running agents across multiple machines and Docker hosts you’ll wa
 
 ```yml
 steps:
-  - name: ":docker: Build"
+  - label: ":docker: Build"
     agents:
       queue: docker-builder
     plugins:
@@ -178,7 +178,7 @@ steps:
 
   - wait
 
-  - name: ":docker: Test %n"
+  - label: ":docker: Test %n"
     command: test.sh
     parallelism: 25
     agents:
@@ -194,7 +194,7 @@ Sometimes your compose file has multiple services that need building. The exampl
 
 ```yml
 steps:
-  - name: ":docker: Build"
+  - label: ":docker: Build"
     agents:
       queue: docker-builder
     plugins:
@@ -206,7 +206,7 @@ steps:
 
   - wait
 
-  - name: ":docker: Test %n"
+  - label: ":docker: Test %n"
     command: test.sh
     parallelism: 25
     plugins:
@@ -220,7 +220,7 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 
 ```yml
 steps:
-  - name: ":docker: Push"
+  - label: ":docker: Push"
     plugins:
       - docker-compose#v2.5.1:
           push: app
@@ -230,7 +230,7 @@ If you need to authenticate to the repository to push (e.g. when pushing to Dock
 
 ```yml
 steps:
-  - name: ":docker: Push"
+  - label: ":docker: Push"
     plugins:
       - docker-login#v2.0.1:
           username: xyz
@@ -242,7 +242,7 @@ To push multiple images, you can use a list:
 
 ```yml
 steps:
-  - name: ":docker: Push"
+  - label: ":docker: Push"
     plugins:
       - docker-login#v2.0.1:
           username: xyz
@@ -256,7 +256,7 @@ If you want to push to a specific location (that's not defined as the `image` in
 
 ```yml
 steps:
-  - name: ":docker: Push"
+  - label: ":docker: Push"
     plugins:
       - docker-login#v2.0.1:
           username: xyz
@@ -272,13 +272,13 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 
 ```yaml
 steps:
-  - name: ":docker Build an image"
+  - label: ":docker Build an image"
     plugins:
       - docker-compose#v2.5.1:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
-  - name: ":docker: Push to final repository"
+  - label: ":docker: Push to final repository"
     plugins:
       - docker-compose#v2.5.1:
           push:
