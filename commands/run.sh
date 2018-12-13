@@ -112,6 +112,11 @@ if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
   run_params+=(--no-ansi)
 fi
 
+# Enable alias support for networks
+if [[ "$(plugin_read_config USE_ALIASES "false")" == "true" ]] ; then
+  run_params+=(--use-aliases)
+fi
+
 run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]]; then
