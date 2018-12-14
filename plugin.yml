@@ -47,6 +47,8 @@ configuration:
       type: boolean
     no-cache:
       type: boolean
+    use-aliases:
+      type: boolean
     tty:
       type: boolean
     dependencies:
@@ -77,6 +79,7 @@ configuration:
     volumes: [ run ]
     leave-volumes: [ run ]
     no-cache: [ build ]
+    use-aliases: [ run ]
     dependencies: [ run ]
     ansi: [ run ]
     tty: [ run ]

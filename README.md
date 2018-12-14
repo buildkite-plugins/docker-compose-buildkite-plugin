@@ -392,6 +392,12 @@ If set to false, disables the ansi output from containers.
 
 The default is `true`.
 
+### `use-aliases` (optional, run only)
+
+If set to true, docker compose will use the service's network aliases in the network(s) the container connects to.
+
+The default is `false`.
+
 ### `verbose` (optional)
 
 Sets `docker-compose` to run with `--verbose`
