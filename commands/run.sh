@@ -107,6 +107,11 @@ if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
   run_params+=("--workdir=$(plugin_read_config WORKDIR)")
 fi
 
+# Optionally run as specified username or uid
+if [[ -n "$(plugin_read_config USER)" ]] ; then
+  run_params+=("--user=$(plugin_read_config USER)")
+fi
+
 # Optionally disable ansi output
 if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
   run_params+=(--no-ansi)
