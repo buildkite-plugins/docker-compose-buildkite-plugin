@@ -338,7 +338,7 @@ A list of either KEY or KEY=VALUE that are passed through as environment variabl
 
 Specify the container working directory via `docker-compose run --workdir`.
 
-### `workdir` (optional, run only)
+### `user` (optional, run only)
 
 Run as specified username or uid via `docker-compose run --user`.
 
