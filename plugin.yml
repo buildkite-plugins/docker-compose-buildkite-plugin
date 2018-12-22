@@ -59,8 +59,6 @@ configuration:
       type: boolean
     workdir:
       type: string
-    run:
-      type: string
   oneOf:
     - required:
       - run
