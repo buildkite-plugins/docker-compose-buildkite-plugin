@@ -59,6 +59,8 @@ configuration:
       type: boolean
     workdir:
       type: string
+    run:
+      type: string
   oneOf:
     - required:
       - run
@@ -84,3 +86,4 @@ configuration:
     ansi: [ run ]
     tty: [ run ]
     workdir: [ run ]
+    user: [ run ]

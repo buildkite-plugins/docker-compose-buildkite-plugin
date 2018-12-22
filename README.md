@@ -338,6 +338,10 @@ A list of either KEY or KEY=VALUE that are passed through as environment variabl
 
 Specify the container working directory via `docker-compose run --workdir`.
 
+### `user` (optional, run only)
+
+Run as specified username or uid via `docker-compose run --user`.
+
 ### `pull-retries` (optional)
 
 A number of times to retry failed docker pull. Defaults to 0.
