@@ -324,8 +324,6 @@ This option can also be configured on the agent machine using the environment va
 
 The name to use when tagging pre-built images. If multiple images are built in the build phase, you must provide an array of image names.
 
-Note: this option can only be specified on a `build` step.
-
 ### `args` (optional, build only)
 
 A list of KEY=VALUE that are passed through as build arguments when image is being built.
@@ -354,11 +352,9 @@ A number of times to retry failed docker push. Defaults to 0.
 
 This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES`.
 
-### `cache-from` (optional)
+### `cache-from` (optional, build only)
 
-A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building. Requires docker-compose file version `3.2+`. Currently only one image per service is supported. If there's no image present for a service local docker cache will be used.
-
-Note: this option can only be specified on a `build` step.
+A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
 
 ### `volumes` (optional, run only)
 
