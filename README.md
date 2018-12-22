@@ -15,7 +15,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
 ```
 
@@ -26,7 +26,7 @@ through if you need:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
           config: docker-compose.tests.yml
           env:
@@ -39,7 +39,7 @@ or multiple config files:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
           config:
             - docker-compose.yml
@@ -53,7 +53,7 @@ steps:
   - plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
   - wait
@@ -61,7 +61,7 @@ steps:
     plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
 ```
 
@@ -76,7 +76,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
 ```
 
@@ -94,7 +94,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
           volumes:
             - "./dist:/app/dist"
@@ -115,7 +115,7 @@ this plugin offers a `environment` block of it's own:
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
           env:
             - BUILDKITE_BUILD_NUMBER
@@ -135,7 +135,7 @@ Alternatively, if you want to set build arguments when pre-building an image, th
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           build: app
           args:
             - MY_CUSTOM_ARG=panda
@@ -151,7 +151,7 @@ To speed up run parallel steps you can add a pre-building step to your pipeline,
 steps:
   - label: ":docker: Build"
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           build: app
 
   - wait
@@ -160,7 +160,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
 ```
 
@@ -172,7 +172,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
 
@@ -184,7 +184,7 @@ steps:
     agents:
       queue: docker-runner
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: app
 ```
 
@@ -198,7 +198,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           build:
             - app
             - tests
@@ -210,7 +210,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           run: tests
 ```
 
@@ -222,7 +222,7 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           push: app
 ```
 
@@ -234,7 +234,7 @@ steps:
     plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           push: app
 ```
 
@@ -246,7 +246,7 @@ steps:
     plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           push:
             - first-service
             - second-service
@@ -260,7 +260,7 @@ steps:
     plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           push:
           - app:index.docker.io/myorg/myrepo/myapp
           - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -274,13 +274,13 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 steps:
   - label: ":docker Build an image"
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v2.5.1:
+      - docker-compose#v2.6.0:
           push:
           - app:index.docker.io/myorg/myrepo/myapp
           - app:index.docker.io/myorg/myrepo/myapp:latest
