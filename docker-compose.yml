@@ -1,6 +1,6 @@
 version: '2'
 services:
   tests:
-    image: buildkite/plugin-tester:latest@sha256:38c4bc75d1886f0d2aa2d3416531397c11f260ef325fcbf1182755cc6f8a17db
+    image: buildkite/plugin-tester:latest@sha256:ee0d1ad34ee94a33a5d3d04ca306b8de683c736433bd853bf12a780f2b9ce683
     volumes:
       - ".:/plugin"
