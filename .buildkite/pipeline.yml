@@ -49,7 +49,7 @@ steps:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
         config: tests/composefiles/docker-compose.v2.0.yml
-        command: /hello
+        command: ["/hello"]
 
   - wait
   - label: run after build with v2.1

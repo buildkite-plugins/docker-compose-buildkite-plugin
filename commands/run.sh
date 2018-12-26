@@ -168,7 +168,7 @@ command=()
 
 # Show a helpful error message if string version of command is used
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND:-}" ]] ; then
-  echo -n "🚨 The Docker Compose Plugin’s command configuration option must be an array."
+  echo "🚨 The Docker Compose Plugin’s command configuration option must be an array."
   exit 1
 fi
 
