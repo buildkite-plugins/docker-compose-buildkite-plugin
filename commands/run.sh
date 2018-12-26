@@ -130,25 +130,87 @@ if [[ ! -f "$override_file" ]]; then
   run_docker_compose build --pull "$run_service"
 fi
 
+shell=()
+shell_disabled=1
+result=()
+
+if [[ -n "${BUILDKITE_COMMAND}" ]]; then
+  shell_disabled=''
+fi
+
+# Handle shell being disabled
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_SHELL:-}" =~ ^(false|off|0)$ ]] ; then
+  shell_disabled=1
+
+# Show a helpful error message if a string version of shell is used
+elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_SHELL:-}" ]] ; then
+  echo -n "🚨 The Docker Compose Plugin’s shell configuration option must be specified as an array. "
+  echo -n "Please update your pipeline.yml to use an array, "
+  echo "for example: [\"/bin/sh\", \"-e\", \"-u\"]."
+  echo
+  echo -n "Note that a shell will be inferred if one is required, so you might be able to remove"
+  echo "the option entirely"
+  exit 1
+
+# Handle shell being provided as a string or list
+elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_SHELL ; then
+  shell_disabled=''
+  for arg in "${result[@]}" ; do
+    shell+=("$arg")
+  done
+fi
+
+if [[ -z $shell_disabled ]] && [[ ${#shell[@]} -eq 0 ]] ; then
+  shell=("/bin/sh" "-e" "-c")
+fi
+
+command=()
+
+# Show a helpful error message if string version of command is used
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND:-}" ]] ; then
+  echo -n "🚨 The Docker Compose Plugin’s command configuration option must be an array."
+  exit 1
+fi
+
+# Parse plugin command if provided
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND ; then
+  for arg in "${result[@]}" ; do
+    command+=("$arg")
+  done
+fi
+
+if [[ ${#command[@]} -gt 0 ]] && [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+  echo "+++ Error: Can't use both a step level command and the command parameter of the plugin"
+  exit 1
+fi
+
+# Assemble the shell and command arguments into the docker arguments
+
+display_command=()
+
+if [[ ${#shell[@]} -gt 0 ]] ; then
+  for shell_arg in "${shell[@]}" ; do
+    run_params+=("$shell_arg")
+    display_command+=("$shell_arg")
+  done
+fi
+
+if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+  run_params+=("${BUILDKITE_COMMAND}")
+  display_command+=("'${BUILDKITE_COMMAND}'")
+elif [[ ${#command[@]} -gt 0 ]] ; then
+  for command_arg in "${command[@]}" ; do
+    run_params+=("$command_arg")
+    display_command+=("${command_arg}")
+  done
+fi
+
 # Disable -e outside of the subshell; since the subshell returning a failure
 # would exit the parent shell (here) early.
 set +e
 
 (
-  # Reset bash to the default IFS
-  unset IFS
-
-  # Because we receive $BUILDKITE_COMMAND as a single string, it needs to be tokenized as a shell
-  # would to respect things like quoted strings. Previously we used eval to do this with some
-  # careful control around preventing glob expansion, but this ends up being difficult to get just
-  # right and also very risky. The new implementation uses xargs and printf to tokenize the string,
-  # which is portable and much harder to shoot ourselves in the foot 🎉
-
-  while IFS= read -rd '' token; do
-    [[ -n "$token" ]] && run_params+=("$token")
-  done < <(xargs printf '%s\0' <<< "$BUILDKITE_COMMAND")
-
-  echo "+++ :docker: Running command in Docker Compose service: $run_service" >&2
+  echo "--- :docker: Running ${display_command[*]:-} in service $run_service" >&2
   run_docker_compose "${run_params[@]}"
 )
 

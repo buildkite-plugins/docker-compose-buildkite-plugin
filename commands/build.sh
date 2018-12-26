@@ -11,6 +11,7 @@ service_name_cache_from_var() {
   echo "cache_from__${service_name//-/_}"
 }
 
+# Read any cache-from parameters provided and pull down those images first
 for line in $(plugin_read_list CACHE_FROM) ; do
   IFS=':' read -r -a tokens <<< "$line"
   service_name=${tokens[0]}
@@ -30,6 +31,8 @@ for line in $(plugin_read_list CACHE_FROM) ; do
 done
 
 # Run through all images in the build property, either a single item or a list
+# and build up a list of service name, image name and optional cache-froms to
+# write into a docker-compose override file
 service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}" "${service_idx}")
