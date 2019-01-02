@@ -40,24 +40,24 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: buildkiteci/docker-compose-buildkite-plugin
+        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
   - label: run after build with v2.0
-    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
         config: tests/composefiles/docker-compose.v2.0.yml
+        command: ["/hello"]
 
   - wait
   - label: run after build with v2.1
-    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
         config: tests/composefiles/docker-compose.v2.1.yml
+        command: ["/hello"]
 
   - wait
   - label: run with default command
@@ -68,36 +68,36 @@ steps:
 
   - wait
   - label: build, where serice has build and image-name
-    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworldimage
         config: tests/composefiles/docker-compose.v2.1.yml
+        commmand: ["/hello"]
 
   - wait
   - label: run after build
-    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworldimage
         config: tests/composefiles/docker-compose.v2.1.yml
+        commmand: ["/hello"]
 
   - wait
   - label: build with custom image-name
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: buildkiteci/docker-compose-buildkite-plugin
+        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
         image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
   - label: run after build with custom image-name
-    command: /hello
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
         config: tests/composefiles/docker-compose.v2.1.yml
+        commmand: ["/hello"]
 
   - wait
   - label: push after build with custom image-name
