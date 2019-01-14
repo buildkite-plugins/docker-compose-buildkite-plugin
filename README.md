@@ -356,6 +356,10 @@ This option can also be configured on the agent machine using the environment va
 
 A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
 
+### `cache-from-command` (optional, build only)
+
+A command that returns a list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
+
 ### `volumes` (optional, run only)
 
 A list of volumes to mount into the container. If a matching volume exists in the Docker Compose config file, this option will override that definition.

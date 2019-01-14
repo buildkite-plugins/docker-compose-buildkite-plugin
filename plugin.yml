@@ -40,6 +40,8 @@ configuration:
     cache-from:
       type: [ string, array ]
       minimum: 1
+    cache-from-command:
+      type: [ string ]
     volumes:
       type: [ string, array ]
       minimum: 1
@@ -76,6 +78,7 @@ configuration:
     pull-retries: [ build, run ]
     push-retries: [ push ]
     cache-from: [ build ]
+    cache-from-command: [ build ]
     volumes: [ run ]
     leave-volumes: [ run ]
     no-cache: [ build ]

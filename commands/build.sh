@@ -11,15 +11,14 @@ service_name_cache_from_var() {
   echo "cache_from__${service_name//-/_}"
 }
 
-# Read any cache-from parameters provided and pull down those images first
-for line in $(plugin_read_list CACHE_FROM) ; do
-  IFS=':' read -r -a tokens <<< "$line"
+read_and_pull_cache_images() {
+  IFS=':' read -r -a tokens <<< "${1}"
   service_name=${tokens[0]}
   service_image=$(IFS=':'; echo "${tokens[*]:1}")
   cache_image_name="$(service_name_cache_from_var "$service_name")"
 
   if [[ -n ${!cache_image_name+x} ]]; then
-    continue # skipping since there's already a pulled cache image for this service
+    return # skipping since there's already a pulled cache image for this service
   fi
 
   echo "~~~ :docker: Pulling cache image for $service_name"
@@ -28,8 +27,20 @@ for line in $(plugin_read_list CACHE_FROM) ; do
   else
     echo "!!! :docker: Pull failed. $service_image will not be used as a cache for $service_name"
   fi
+}
+
+# Read any cache-from parameters provided and pull down those images first
+for line in $(plugin_read_list CACHE_FROM) ; do
+  read_and_pull_cache_images "${line}"
 done
 
+# Read any cache-from-command parameters provided and pull down those images first
+command=$(plugin_read_config CACHE_FROM_COMMAND)
+if [ "${command}" != "" ]; then
+  for line in $(${command}); do
+    read_and_pull_cache_images "${line}"
+  done
+fi
 # Run through all images in the build property, either a single item or a list
 # and build up a list of service name, image name and optional cache-froms to
 # write into a docker-compose override file
