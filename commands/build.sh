@@ -3,6 +3,7 @@ set -ueo pipefail
 
 image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
+push_retries="$(plugin_read_config PUSH_RETRIES "0")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 
@@ -79,7 +80,7 @@ run_docker_compose -f "$override_file" build "${build_params[@]}" "${services[@]
 
 if [[ -n "$image_repository" ]]; then
   echo "~~~ :docker: Pushing built images to $image_repository"
-  run_docker_compose -f "$override_file" push "${services[@]}"
+  retry "$push_retries" run_docker_compose -f "$override_file" push "${services[@]}"
 
   while [[ ${#build_images[@]} -gt 0 ]] ; do
     set_prebuilt_image "${build_images[0]}" "${build_images[1]}"
