@@ -21,6 +21,11 @@ if [[ ${#commands[@]} -gt 1 ]] ; then
   exit 1
 fi
 
+# Don't convert paths on gitbash on windows
+if is_windows ; then
+  export MSYS_NO_PATHCONV=1
+fi
+
 # Dispatch to the command file
 if in_array "BUILD" "${commands[@]}" ; then
   # shellcheck source=commands/build.sh
