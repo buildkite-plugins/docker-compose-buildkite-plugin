@@ -5,7 +5,7 @@ compose_image_for_service() {
   local image=""
 
   image=$(run_docker_compose config \
-    | grep -E "^(  [_[:alnum:]-]+:|    image:)" \
+    | grep -E "^(  [_[:alnum:]-.]+:|    image:)" \
     | grep -E "(  ${service}:)" -A 1 \
     | grep -oE '  image: (.+)' \
     | awk '{print $2}')
