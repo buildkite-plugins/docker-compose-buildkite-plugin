@@ -65,6 +65,16 @@ steps:
           run: app
 ```
 
+If you want to control how your command is passed to docker-compose, you can use the command parameter on the plugin directly:
+
+```yml
+steps:
+  - plugins:
+      - docker-compose#v2.6.0:
+          run: app
+          command: ["custom", "command", "values"]
+```
+
 ## Artifacts
 
 If you’re generating artifacts in the build step, you’ll need to ensure your Docker Compose configuration volume mounts the host machine directory into the container where those artifacts are created.
@@ -332,6 +342,20 @@ A list of KEY=VALUE that are passed through as build arguments when image is bei
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
 
+### `command` (optional, run only, array)
+
+Sets the command for the Docker image, and defaults the `shell` option to `false`. Useful if the Docker image has an entrypoint, or doesn't contain a shell.
+
+This option can't be used if your step already has a top-level, non-plugin `command` option present.
+
+Examples: `[ "/bin/mycommand", "-c", "test" ]`, `["arg1", "arg2"]`
+
+### `shell` (optional, run only, array or boolean)
+
+Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker-compose run` command. The default is `["/bin/sh", "-e", "-c"]` unless you have provided a `command`.
+
+Example: `[ "powershell", "-Command" ]`
+
 ### `workdir` (optional, run only)
 
 Specify the container working directory via `docker-compose run --workdir`.
@@ -378,7 +402,7 @@ The default is `false`.
 
 If set to false, doesn't allocate a TTY. This is useful in some situations where TTY's aren't supported, for instance windows.
 
-The default is `true`.
+The default is `true` on unix, `false` on windows
 
 ### `dependencies` (optional, run only)
 
