@@ -225,3 +225,11 @@ function retry {
 
   echo "$status"
 }
+
+function is_windows() {
+  [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]]
+}
+
+function is_macos() {
+  [[ "$OSTYPE" =~ ^(darwin) ]]
+}

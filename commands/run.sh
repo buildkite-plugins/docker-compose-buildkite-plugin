@@ -93,8 +93,15 @@ for vol in "${default_volumes[@]:-}" ; do
   [[ -n "$trimmed_vol" ]] && run_params+=("-v" "$(expand_relative_volume_path "$trimmed_vol")")
 done
 
+tty_default='true'
+
+# Set operating system specific defaults
+if is_windows ; then
+  tty_default='false'
+fi
+
 # Optionally disable allocating a TTY
-if [[ "$(plugin_read_config TTY "true")" == "false" ]] ; then
+if [[ "$(plugin_read_config TTY "$tty_default")" == "false" ]] ; then
   run_params+=(-T)
 fi
 
@@ -160,8 +167,13 @@ elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_SHELL ; then
   done
 fi
 
+# Set a default shell if one is needed
 if [[ -z $shell_disabled ]] && [[ ${#shell[@]} -eq 0 ]] ; then
-  shell=("/bin/sh" "-e" "-c")
+  if is_windows ; then
+    shell=("CMD.EXE" "/c")
+  else
+    shell=("/bin/sh" "-e" "-c")
+  fi
 fi
 
 command=()
