@@ -65,10 +65,13 @@ elif [[ ${#pull_services[@]} -eq 1 ]] ; then
   pull_params+=("pull" "${pull_services[0]}")
 fi
 
-# Pull down specified services
+# Pull down dependent services
 if [[ ${#pull_services[@]} -gt 0 ]] ; then
   echo "~~~ :docker: Pulling services ${pull_services[0]}"
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
+else
+  echo "~~~ :docker: Pulling dependent containers for ${run_service}"
+  retry "$pull_retries" run_docker_compose pull "$run_service"
 fi
 
 # We set a predictable container name so we can find it and inspect it later on
