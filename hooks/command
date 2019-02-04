@@ -12,36 +12,41 @@ commands=()
 
 [[ -n "$(plugin_read_list BUILD)" ]] && commands+=("BUILD")
 [[ -n "$(plugin_read_list RUN)" ]] && commands+=("RUN")
-[[ -n "$(plugin_read_list PUSH)" ]] && commands+=("PUSH")
 
-# Check we've only got one of BUILD, RUN and PUSH
+# Check we've only got one of BUILD or RUN
 if [[ ${#commands[@]} -gt 1 ]] ; then
   echo "+++ Docker Compose plugin error"
-  echo "Only one of build, run and push is supported. More than one was used."
+  echo "Only one of build or run is supported. More than one was used."
   exit 1
 fi
+
+[[ -n "$(plugin_read_list PUSH)" ]] && commands+=("PUSH")
 
 # Don't convert paths on gitbash on windows
 if is_windows ; then
   export MSYS_NO_PATHCONV=1
 fi
 
+if [[ ${#commands[@]} -lt 1 ]] ; then
+  echo "+++ Docker Compose plugin error"
+  echo "No build or run options were specified"
+  exit 1
+fi
+
 # Dispatch to the command file
 if in_array "BUILD" "${commands[@]}" ; then
   # shellcheck source=commands/build.sh
   . "$DIR/../commands/build.sh"
-elif in_array "RUN" "${commands[@]}" ; then
+fi
+if in_array "RUN" "${commands[@]}" ; then
   # shellcheck source=lib/run.bash
   . "$DIR/../lib/run.bash"
   # shellcheck source=commands/run.sh
   . "$DIR/../commands/run.sh"
-elif in_array "PUSH" "${commands[@]}" ; then
+fi
+if in_array "PUSH" "${commands[@]}" ; then
   # shellcheck source=lib/push.bash
   . "$DIR/../lib/push.bash"
   # shellcheck source=commands/push.sh
   . "$DIR/../commands/push.sh"
-else
-  echo "+++ Docker Compose plugin error"
-  echo "No build or run options were specified"
-  exit 1
 fi
