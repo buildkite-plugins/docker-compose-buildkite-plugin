@@ -278,6 +278,7 @@ steps:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
+  - wait
   - label: ":docker: Push to final repository"
     plugins:
       - docker-compose#v2.6.0:
