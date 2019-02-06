@@ -4,7 +4,13 @@
 function plugin_prompt() {
   if [[ -z "${HIDE_PROMPT:-}" ]] ; then
     echo -ne '\033[90m$\033[0m' >&2
-    printf " %q" "$@" >&2
+    for arg in "${@}" ; do
+      if [[ $arg =~ [[:space:]] ]] ; then
+        echo -n " '$arg'" >&2
+      else
+        echo -n " $arg" >&2
+      fi
+    done
     echo >&2
   fi
 }
