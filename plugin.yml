@@ -43,6 +43,8 @@ configuration:
     volumes:
       type: [ string, array ]
       minimum: 1
+    command:
+      type: array
     leave-volumes:
       type: boolean
     no-cache:
