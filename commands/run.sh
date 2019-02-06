@@ -18,6 +18,7 @@ test -f "$override_file" && rm "$override_file"
 
 run_params=()
 pull_params=()
+up_params=()
 pull_services=()
 prebuilt_candidates=("$run_service")
 
@@ -56,9 +57,10 @@ if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then
   build_image_override_file "${prebuilt_service_overrides[@]}" | tee "$override_file"
   run_params+=(-f "$override_file")
   pull_params+=(-f "$override_file")
+  up_params+=(-f "$override_file")
 fi
 
-# If there are multiple services to pull, run it in parallel
+# If there are multiple services to pull, run it in parallel (although this is now the default)
 if [[ ${#pull_services[@]} -gt 1 ]] ; then
   pull_params+=("pull" "--parallel" "${pull_services[@]}")
 elif [[ ${#pull_services[@]} -eq 1 ]] ; then
@@ -71,11 +73,18 @@ if [[ ${#pull_services[@]} -gt 0 ]] ; then
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
 fi
 
-echo "~~~ :docker: Starting dependencies"
-run_docker_compose --log-level ERROR up -d --scale "${run_service}=0" "${run_service}"
+# Start up service dependencies in a different header to keep the main run with less noise
+if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
+  echo "~~~ :docker: Starting dependencies"
+  if [[ ${#up_params[@]} -gt 0 ]] ; then
+    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
+  else
+    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
+  fi
 
-# Sometimes docker leaves unfinished ansi codes
-echo
+  # Sometimes docker-compose leaves unfinished ansi codes
+  echo
+fi
 
 # We set a predictable container name so we can find it and inspect it later on
 run_params+=("run" "--name" "$container_name")
@@ -140,7 +149,8 @@ run_params+=("$run_service")
 if [[ ! -f "$override_file" ]]; then
   echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
   echo "⚠️ No pre-built image found from a previous 'build' step for this service and config file. Building image..."
-  run_docker_compose build --pull "$run_service"
+  retry "$pull_retries" run_docker_compose pull "${run_service}"
+  run_docker_compose build  "$run_service"
 fi
 
 shell=()
@@ -229,7 +239,7 @@ set +e
 
 (
   echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
-  run_docker_compose --log-level ERROR "${run_params[@]}"
+  run_docker_compose "${run_params[@]}"
 )
 
 exitcode=$?

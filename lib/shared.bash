@@ -228,8 +228,6 @@ function retry {
       sleep $(((attempts - 2) * 2))
     fi
   done
-
-  echo "$status"
 }
 
 function is_windows() {
