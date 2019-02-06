@@ -71,6 +71,12 @@ if [[ ${#pull_services[@]} -gt 0 ]] ; then
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
 fi
 
+echo "~~~ :docker: Starting dependencies"
+run_docker_compose --log-level ERROR up -d --scale "${run_service}=0" "${run_service}"
+
+# Sometimes docker leaves unfinished ansi codes
+echo
+
 # We set a predictable container name so we can find it and inspect it later on
 run_params+=("run" "--name" "$container_name")
 
@@ -222,8 +228,8 @@ fi
 set +e
 
 (
-  echo "--- :docker: Running ${display_command[*]:-} in service $run_service" >&2
-  run_docker_compose "${run_params[@]}"
+  echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
+  run_docker_compose --log-level ERROR "${run_params[@]}"
 )
 
 exitcode=$?
@@ -238,9 +244,7 @@ fi
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]] ; then
-    docker_ps_by_project \
-      --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
-    check_linked_containers_and_save_logs "docker-compose-logs" "$exitcode"
+    check_linked_containers_and_save_logs "$run_service" "docker-compose-logs"
 
     if [[ -d "docker-compose-logs" ]] && test -n "$(find docker-compose-logs/ -maxdepth 1 -name '*.log' -print)"; then
       echo "~~~ Uploading linked container logs"
