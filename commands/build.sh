@@ -14,7 +14,7 @@ service_name_cache_from_var() {
 
 if [[ -z "$image_repository" ]] ; then
   echo "+++ ⚠️ Build step doesn't have an image-repository defined"
-  echo "Without a repository to push to using a prebuild doesn't do anything. The run step will build before run"
+  echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
 fi
 
 # Read any cache-from parameters provided and pull down those images first
