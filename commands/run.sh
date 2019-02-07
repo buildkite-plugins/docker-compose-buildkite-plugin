@@ -73,19 +73,6 @@ if [[ ${#pull_services[@]} -gt 0 ]] ; then
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
 fi
 
-# Start up service dependencies in a different header to keep the main run with less noise
-if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
-  echo "~~~ :docker: Starting dependencies"
-  if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
-  else
-    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
-  fi
-
-  # Sometimes docker-compose leaves unfinished ansi codes
-  echo
-fi
-
 # We set a predictable container name so we can find it and inspect it later on
 run_params+=("run" "--name" "$container_name")
 
@@ -147,7 +134,7 @@ fi
 run_params+=("$run_service")
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
-  echo "+++ 🚨 No pre-build image found from a previous build step"
+  echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
   echo "The step specified that it was required"
   exit 1
 
@@ -156,6 +143,19 @@ elif [[ ! -f "$override_file" ]]; then
   echo "⚠️ No pre-built image found from a previous 'build' step for this service and config file. Building image..."
   retry "$pull_retries" run_docker_compose pull "${run_service}"
   run_docker_compose build  "$run_service"
+fi
+
+# Start up service dependencies in a different header to keep the main run with less noise
+if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
+  echo "~~~ :docker: Starting dependencies"
+  if [[ ${#up_params[@]} -gt 0 ]] ; then
+    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
+  else
+    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
+  fi
+
+  # Sometimes docker-compose leaves unfinished ansi codes
+  echo
 fi
 
 shell=()
