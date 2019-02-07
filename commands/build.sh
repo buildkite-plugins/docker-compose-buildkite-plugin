@@ -13,9 +13,8 @@ service_name_cache_from_var() {
 }
 
 if [[ -z "$image_repository" ]] ; then
-  echo "+++ 🚨 Build step doesn't have an image-repository defined"
+  echo "+++ ⚠️ Build step doesn't have an image-repository defined"
   echo "Without a repository to push to using a prebuild doesn't do anything. The run step will build before run"
-  exit 1
 fi
 
 # Read any cache-from parameters provided and pull down those images first
@@ -45,7 +44,7 @@ for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}" "${service_idx}")
   service_idx=$((service_idx+1))
 
-  if [[ -n "$image_repository" ]]; then
+  if [[ -n "$image_repository" ]] ; then
     image_name="${image_repository}:${image_name}"
   fi
 
@@ -84,11 +83,12 @@ done <<< "$(plugin_read_list ARGS)"
 echo "+++ :docker: Building services ${services[*]}"
 run_docker_compose -f "$override_file" build "${build_params[@]}" "${services[@]}"
 
-echo "~~~ :docker: Pushing built images to $image_repository"
-retry "$push_retries" run_docker_compose -f "$override_file" push "${services[@]}"
+if [[ -n "$image_repository" ]] ; then
+  echo "~~~ :docker: Pushing built images to $image_repository"
+  retry "$push_retries" run_docker_compose -f "$override_file" push "${services[@]}"
 
-while [[ ${#build_images[@]} -gt 0 ]] ; do
-  set_prebuilt_image "${build_images[0]}" "${build_images[1]}"
-  build_images=("${build_images[@]:3}")
-done
-
+  while [[ ${#build_images[@]} -gt 0 ]] ; do
+    set_prebuilt_image "${build_images[0]}" "${build_images[1]}"
+    build_images=("${build_images[@]:3}")
+  done
+fi
