@@ -377,6 +377,32 @@ load '../lib/shared'
   unstub buildkite-agent
 }
 
+@test "Build with a custom image-name and a config" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_NAME=my-llamas-image
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker-compose \
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice" \
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml push myservice : echo pushed myservice" \
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v3.2.yml my.repository/llamas:my-llamas-image : echo set image metadata for myservice"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "pushed myservice"
+  assert_output --partial "set image metadata for myservice"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
 @test "Build multiple images with custom image-names" {
   export BUILDKITE_JOB_ID=1112
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=myservice1
@@ -405,5 +431,3 @@ load '../lib/shared'
   unstub docker-compose
   unstub buildkite-agent
 }
-
-
