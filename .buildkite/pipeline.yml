@@ -35,7 +35,25 @@ steps:
           - ALPACAS=sometimes
 
   - wait
-  - label: build
+  - label: prebuild with v2.0
+    command: /hello
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        build: helloworld
+        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
+        config: tests/composefiles/docker-compose.v2.0.yml
+
+  - wait
+  - label: run after build with v2.0
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: helloworld
+        require-prebuild: true
+        config: tests/composefiles/docker-compose.v2.0.yml
+        command: ["/hello"]
+
+  - wait
+  - label: prebuild with v2.1
     command: /hello
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
@@ -44,18 +62,11 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
-  - label: run after build with v2.0
-    plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        run: helloworld
-        config: tests/composefiles/docker-compose.v2.0.yml
-        command: ["/hello"]
-
-  - wait
   - label: run after build with v2.1
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
+        require-prebuild: true
         config: tests/composefiles/docker-compose.v2.1.yml
         command: ["/hello"]
 
@@ -67,23 +78,25 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
-  - label: build, where serice has build and image-name
+  - label: prebuild, where service has build and image-name
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworldimage
+        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
 
   - wait
-  - label: run after build
+  - label: run after prebuild
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworldimage
+        require-prebuild: true
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
 
   - wait
-  - label: build with custom image-name
+  - label: prebuild with custom image-name
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
@@ -92,10 +105,11 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - wait
-  - label: run after build with custom image-name
+  - label: run after prebuild with custom image-name
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
+        require-prebuild: true
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
 
@@ -104,4 +118,5 @@ steps:
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         push: helloworld
+        image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
         config: tests/composefiles/docker-compose.v2.1.yml

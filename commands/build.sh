@@ -12,6 +12,11 @@ service_name_cache_from_var() {
   echo "cache_from__${service_name//-/_}"
 }
 
+if [[ -z "$image_repository" ]] ; then
+  echo "+++ ⚠️ Build step missing image-repository setting"
+  echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
+fi
+
 # Read any cache-from parameters provided and pull down those images first
 for line in $(plugin_read_list CACHE_FROM) ; do
   IFS=':' read -r -a tokens <<< "$line"
@@ -39,7 +44,7 @@ for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}" "${service_idx}")
   service_idx=$((service_idx+1))
 
-  if [[ -n "$image_repository" ]]; then
+  if [[ -n "$image_repository" ]] ; then
     image_name="${image_repository}:${image_name}"
   fi
 
@@ -78,7 +83,7 @@ done <<< "$(plugin_read_list ARGS)"
 echo "+++ :docker: Building services ${services[*]}"
 run_docker_compose -f "$override_file" build "${build_params[@]}" "${services[@]}"
 
-if [[ -n "$image_repository" ]]; then
+if [[ -n "$image_repository" ]] ; then
   echo "~~~ :docker: Pushing built images to $image_repository"
   retry "$push_retries" run_docker_compose -f "$override_file" push "${services[@]}"
 

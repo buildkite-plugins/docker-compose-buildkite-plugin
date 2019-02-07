@@ -18,6 +18,7 @@ test -f "$override_file" && rm "$override_file"
 
 run_params=()
 pull_params=()
+up_params=()
 pull_services=()
 prebuilt_candidates=("$run_service")
 
@@ -56,9 +57,10 @@ if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then
   build_image_override_file "${prebuilt_service_overrides[@]}" | tee "$override_file"
   run_params+=(-f "$override_file")
   pull_params+=(-f "$override_file")
+  up_params+=(-f "$override_file")
 fi
 
-# If there are multiple services to pull, run it in parallel
+# If there are multiple services to pull, run it in parallel (although this is now the default)
 if [[ ${#pull_services[@]} -gt 1 ]] ; then
   pull_params+=("pull" "--parallel" "${pull_services[@]}")
 elif [[ ${#pull_services[@]} -eq 1 ]] ; then
@@ -131,10 +133,32 @@ fi
 
 run_params+=("$run_service")
 
-if [[ ! -f "$override_file" ]]; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
+  echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
+  echo "The step specified that it was required"
+  exit 1
+
+elif [[ ! -f "$override_file" ]]; then
   echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
   echo "⚠️ No pre-built image found from a previous 'build' step for this service and config file. Building image..."
+
+  # Ideally we'd do a pull with a retry first here, but we need the conditional pull behaviour here
+  # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
+  # pull an image that doesn't exist
   run_docker_compose build --pull "$run_service"
+fi
+
+# Start up service dependencies in a different header to keep the main run with less noise
+if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
+  echo "~~~ :docker: Starting dependencies"
+  if [[ ${#up_params[@]} -gt 0 ]] ; then
+    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
+  else
+    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
+  fi
+
+  # Sometimes docker-compose leaves unfinished ansi codes
+  echo
 fi
 
 shell=()
@@ -222,7 +246,7 @@ fi
 set +e
 
 (
-  echo "--- :docker: Running ${display_command[*]:-} in service $run_service" >&2
+  echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
   run_docker_compose "${run_params[@]}"
 )
 
@@ -238,9 +262,7 @@ fi
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]] ; then
-    docker_ps_by_project \
-      --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
-    check_linked_containers_and_save_logs "docker-compose-logs" "$exitcode"
+    check_linked_containers_and_save_logs "$run_service" "docker-compose-logs"
 
     if [[ -d "docker-compose-logs" ]] && test -n "$(find docker-compose-logs/ -maxdepth 1 -name '*.log' -print)"; then
       echo "~~~ Uploading linked container logs"
