@@ -13,7 +13,7 @@ service_name_cache_from_var() {
 }
 
 if [[ -z "$image_repository" ]] ; then
-  echo "+++ ⚠️ Build step doesn't have an image-repository defined"
+  echo "+++ ⚠️ Build step missing image-repository setting"
   echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
 fi
 
