@@ -141,8 +141,11 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]
 elif [[ ! -f "$override_file" ]]; then
   echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
   echo "⚠️ No pre-built image found from a previous 'build' step for this service and config file. Building image..."
-  retry "$pull_retries" run_docker_compose pull "${run_service}"
-  run_docker_compose build  "$run_service"
+
+  # Ideally we'd do a pull with a retry first here, but we need the conditional pull behaviour here
+  # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
+  # pull an image that doesn't exist
+  run_docker_compose build --pull "$run_service"
 fi
 
 # Start up service dependencies in a different header to keep the main run with less noise

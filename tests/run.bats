@@ -18,8 +18,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -45,8 +44,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice : echo ran myservice"
 
@@ -73,8 +71,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pull myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --workdir=/test_workdir myservice : echo ran myservice"
 
@@ -100,8 +97,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pull myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'sh -c \'echo hello world\'' : echo ran myservice"
 
@@ -129,8 +125,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pull myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice echo hello world' : echo ran myservice"
 
@@ -161,8 +156,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_2=ANOTHER="this is a long string with spaces; and semi-colons"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pull myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV -e ANOTHER=this\ is\ a\ long\ string\ with\ spaces\;\ and\ semi-colons myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
@@ -530,8 +524,7 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_2="llamas3.yml"
 
   stub docker-compose \
-    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 pull myservice : echo pulled myservice" \
-    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
     "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -557,8 +550,7 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo built myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'pwd' : exit 2"
 
@@ -614,8 +606,7 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER="1000"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 pull myservice : echo pulled myservice" \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --user=1000 myservice /bin/sh -e -c 'sh -c \'whoami\'' : echo ran myservice"
 
