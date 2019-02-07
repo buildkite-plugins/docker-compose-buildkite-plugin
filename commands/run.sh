@@ -146,7 +146,12 @@ fi
 
 run_params+=("$run_service")
 
-if [[ ! -f "$override_file" ]]; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
+  echo "+++ 🚨 No pre-build image found from a previous build step"
+  echo "The step specified that it was required"
+  exit 1
+
+elif [[ ! -f "$override_file" ]]; then
   echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
   echo "⚠️ No pre-built image found from a previous 'build' step for this service and config file. Building image..."
   retry "$pull_retries" run_docker_compose pull "${run_service}"
