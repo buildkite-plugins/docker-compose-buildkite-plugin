@@ -1,5 +1,10 @@
 {
   "extends": [
     "config:base"
-  ]
+  ],
+  "docker-compose": {
+    "digest": {
+      "enabled": false
+    }
+  }
 }
