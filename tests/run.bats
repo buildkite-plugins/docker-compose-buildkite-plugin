@@ -126,7 +126,8 @@ cmd3"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'cmd1\\ncmd2\\ncmd3' : echo ran myservice"
+    "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'cmd1\ncmd2\ncmd3' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"

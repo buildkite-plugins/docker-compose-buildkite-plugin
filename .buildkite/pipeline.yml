@@ -35,6 +35,17 @@ steps:
           - ALPACAS=sometimes
 
   - wait
+  - label: run, with multi-line command
+    command: |
+      echo \
+      hello \
+      world
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: alpinewithenv
+        config: tests/composefiles/docker-compose.v2.1.yml
+
+  - wait
   - label: prebuild with v2.0
     command: /hello
     plugins:
