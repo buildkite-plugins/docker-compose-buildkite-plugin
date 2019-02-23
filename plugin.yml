@@ -29,6 +29,9 @@ configuration:
     args:
       type: [ string, array ]
       minimum: 1
+    alias:
+      type: [ string, array ]
+      minimum:
     image-repository:
       type: string
     image-name:
