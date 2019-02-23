@@ -29,7 +29,7 @@ configuration:
     args:
       type: [ string, array ]
       minimum: 1
-    alias:
+    build-alias:
       type: [ string, array ]
       minimum: 1
     image-repository:

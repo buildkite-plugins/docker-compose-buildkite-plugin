@@ -92,7 +92,7 @@ if [[ -n "$image_repository" ]] ; then
     set_prebuilt_image "${build_images[0]}" "${build_images[1]}"
 
     # set aliases
-    for service_alias in $(plugin_read_list ALIAS) ; do
+    for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
       set_prebuilt_image "$service_alias" "${build_images[1]}"
     done
 

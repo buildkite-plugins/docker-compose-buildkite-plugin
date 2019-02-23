@@ -82,12 +82,12 @@ load '../lib/shared'
   unstub buildkite-agent
 }
 
-@test "Build with a repository and multiple aliases" {
+@test "Build with a repository and multiple build aliases" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ALIAS_0=myservice-1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ALIAS_1=myservice-2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_0=myservice-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_1=myservice-2
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
