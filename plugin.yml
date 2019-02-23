@@ -45,6 +45,8 @@ configuration:
       minimum: 1
     command:
       type: array
+    skip-checkout:
+      type: boolean
     leave-volumes:
       type: boolean
     no-cache:
