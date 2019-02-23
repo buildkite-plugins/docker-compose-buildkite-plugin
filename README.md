@@ -357,6 +357,10 @@ Set the shell to use for the command. Set it to `false` to pass the command dire
 
 Example: `[ "powershell", "-Command" ]`
 
+### `skip-checkout` (optional, run only)
+
+Whether to skip the repository checkout phase. This is useful for steps that use a pre-built image. This will fail if there is no pre-built image.
+
 ### `workdir` (optional, run only)
 
 Specify the container working directory via `docker-compose run --workdir`.
