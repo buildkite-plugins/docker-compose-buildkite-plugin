@@ -31,7 +31,7 @@ configuration:
       minimum: 1
     alias:
       type: [ string, array ]
-      minimum:
+      minimum: 1
     image-repository:
       type: string
     image-name:
