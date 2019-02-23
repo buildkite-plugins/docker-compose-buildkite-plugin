@@ -82,6 +82,36 @@ load '../lib/shared'
   unstub buildkite-agent
 }
 
+@test "Build with a repository and multiple aliases" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ALIAS_0=myservice-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ALIAS_1=myservice-2
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml push myservice : echo pushed myservice" \
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-1 my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice-1" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-2 my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice-2"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "pushed myservice"
+  assert_output --partial "set image metadata for myservice"
+  assert_output --partial "set image metadata for myservice-1"
+  assert_output --partial "set image metadata for myservice-2"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
 @test "Build with a repository and push retries" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
