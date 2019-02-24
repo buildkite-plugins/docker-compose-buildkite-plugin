@@ -87,8 +87,16 @@ if [[ -n "$image_repository" ]] ; then
   echo "~~~ :docker: Pushing built images to $image_repository"
   retry "$push_retries" run_docker_compose -f "$override_file" push "${services[@]}"
 
+  # iterate over build images
   while [[ ${#build_images[@]} -gt 0 ]] ; do
     set_prebuilt_image "${build_images[0]}" "${build_images[1]}"
+
+    # set aliases
+    for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
+      set_prebuilt_image "$service_alias" "${build_images[1]}"
+    done
+
+    # pop-off the last build image
     build_images=("${build_images[@]:3}")
   done
 fi

@@ -335,6 +335,10 @@ This option can also be configured on the agent machine using the environment va
 
 The name to use when tagging pre-built images. If multiple images are built in the build phase, you must provide an array of image names.
 
+### `build-alias` (optional, build only)
+
+Other docker-compose services that should be aliased to the main service that was built. This is for when different docker-compose services share the same prebuilt image.
+
 ### `args` (optional, build only)
 
 A list of KEY=VALUE that are passed through as build arguments when image is being built.
