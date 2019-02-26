@@ -147,6 +147,7 @@ steps:
     plugins:
       - docker-compose#v2.6.0:
           build: app
+          image-repository: index.docker.io/myorg/myrepo
           args:
             - MY_CUSTOM_ARG=panda
 ```
@@ -155,32 +156,11 @@ Note that the values in the list must be a KEY=VALUE pair.
 
 ## Pre-building the image
 
-To speed up run parallel steps you can add a pre-building step to your pipeline, allowing all the `run` steps to skip image building:
+To speed up run steps that use the same service/image (such as steps that run in parallel), you can add a pre-build step to your pipeline:
 
 ```yml
 steps:
   - label: ":docker: Build"
-    plugins:
-      - docker-compose#v2.6.0:
-          build: app
-
-  - wait
-
-  - label: ":docker: Test %n"
-    command: test.sh
-    parallelism: 25
-    plugins:
-      - docker-compose#v2.6.0:
-          run: app
-```
-
-If you’re running agents across multiple machines and Docker hosts you’ll want to push the pre-built image to a docker image repository using the `image-repository` option. The following example uses this option, along with dedicated builder and runner agent queues:
-
-```yml
-steps:
-  - label: ":docker: Build"
-    agents:
-      queue: docker-builder
     plugins:
       - docker-compose#v2.6.0:
           build: app
@@ -191,12 +171,12 @@ steps:
   - label: ":docker: Test %n"
     command: test.sh
     parallelism: 25
-    agents:
-      queue: docker-runner
     plugins:
       - docker-compose#v2.6.0:
           run: app
 ```
+
+All `run` steps for the service `app` will automatically pull and use the pre-built image.
 
 ## Building multiple images
 
