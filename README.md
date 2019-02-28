@@ -297,6 +297,10 @@ A list of services to push in the format `service:image:tag`. If an image has be
 
 Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images.
 
+### `deps` (optional, run only)
+
+Start dependent services for your service. By default only your service is started (and any accompanying linked services). However, since links is officially deprecated this command is useful for starting what would normally be linked services.
+
 ### `config` (optional)
 
 The file name of the Docker Compose configuration file to use. Can also be a list of filenames.

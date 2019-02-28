@@ -17,6 +17,9 @@ configuration:
     pull:
       type: [ string, array ]
       minimum: 1
+    deps:
+      type: [ string, array ]
+      minimum: 1
     config:
       type: [ string, array ]
       minimum: 1
@@ -76,6 +79,7 @@ configuration:
   additionalProperties: false
   dependencies:
     pull: [ run ]
+    deps: [ run ]
     image-repository: [ build ]
     image-name: [ build ]
     env: [ run ]

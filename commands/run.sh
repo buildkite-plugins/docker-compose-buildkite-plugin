@@ -21,6 +21,7 @@ pull_params=()
 up_params=()
 pull_services=()
 prebuilt_candidates=("$run_service")
+service_deps=()
 
 # Build a list of services that need to be pulled down
 while read -r name ; do
@@ -32,6 +33,17 @@ while read -r name ; do
     fi
   fi
 done <<< "$(plugin_read_list PULL)"
+
+# Build a list of service dependencies that need to be pulled down
+while read -r name ; do
+  if [[ -n "$name" ]] ; then
+    service_deps+=("$name")
+
+    if ! in_array "$name" "${prebuilt_candidates[@]}" ; then
+      pull_services+=("$name")
+    fi
+  fi
+done <<< "$(plugin_read_list DEPS)"
 
 # A list of tuples of [service image cache_from] for build_image_override_file
 prebuilt_service_overrides=()
@@ -69,7 +81,7 @@ fi
 
 # Pull down specified services
 if [[ ${#pull_services[@]} -gt 0 ]] ; then
-  echo "~~~ :docker: Pulling services ${pull_services[0]}"
+  echo "~~~ :docker: Pulling services" "${pull_services[@]}"
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
 fi
 
@@ -151,10 +163,14 @@ fi
 # Start up service dependencies in a different header to keep the main run with less noise
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
   echo "~~~ :docker: Starting dependencies"
+  scaled_service_deps=()
+  for service in "${service_deps[@]}"; do
+    scaled_service_deps+=(--scale "${service}=1")
+  done
   if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
+    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${scaled_service_deps[@]}" "${run_service}" "${service_deps[@]}"
   else
-    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
+    run_docker_compose up -d "${scaled_service_deps[@]}" --scale "${run_service}=0" "${run_service}" "${service_deps[@]}"
   fi
 
   # Sometimes docker-compose leaves unfinished ansi codes

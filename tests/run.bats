@@ -623,6 +623,35 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
+@test "Run with multiple prebuilt images and multiple deps" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_DEPS_0=myservice2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_DEPS_1=myservice3
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull --parallel myservice2 myservice3 myservice1 : echo pulled myservice1, myservice2 and myservice3" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice2=1 myservice2 --scale myservice3=1 myservice3 --scale myservice1=0 myservice1 : echo started dependencies for myservice1" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice1_build_1 myservice1 /bin/sh -e -c 'pwd' : echo ran myservice1"
+
+  stub buildkite-agent \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice1 : echo myimage1"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled myservice1, myservice2 and myservice3"
+  assert_output --partial "ran myservice1"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+
 @test "Run without a prebuilt image and a custom user" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
