@@ -29,6 +29,11 @@ check_linked_containers_and_save_logs() {
   mkdir -p "$logdir"
 
   while read -r line; do
+    if [[ -z "${line}" ]]; then
+      # Skip empty lines
+      continue
+    fi
+
     service_name="$(cut -d$'\t' -f2 <<<"$line")"
     service_container_id="$(cut -d$'\t' -f1 <<<"$line")"
 
