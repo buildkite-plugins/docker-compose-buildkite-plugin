@@ -9,28 +9,28 @@ configuration:
     run:
       type: string
     build:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     push:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     pull:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     config:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     env:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     environment:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     args:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     build-alias:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     image-repository:
       type: string
@@ -41,10 +41,10 @@ configuration:
     push-retries:
       type: integer
     cache-from:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     volumes:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     command:
       type: array
@@ -66,29 +66,31 @@ configuration:
       type: boolean
     workdir:
       type: string
+    all-logs:
+      type: boolean
   oneOf:
     - required:
-      - run
+        - run
     - required:
-      - build
+        - build
     - required:
-      - push
+        - push
   additionalProperties: false
   dependencies:
-    pull: [ run ]
-    image-repository: [ build ]
-    image-name: [ build ]
-    env: [ run ]
-    environment: [ run ]
-    pull-retries: [ build, run ]
-    push-retries: [ push ]
-    cache-from: [ build ]
-    volumes: [ run ]
-    leave-volumes: [ run ]
-    no-cache: [ build ]
-    use-aliases: [ run ]
-    dependencies: [ run ]
-    ansi: [ run ]
-    tty: [ run ]
-    workdir: [ run ]
-    user: [ run ]
+    pull: [run]
+    image-repository: [build]
+    image-name: [build]
+    env: [run]
+    environment: [run]
+    pull-retries: [build, run]
+    push-retries: [push]
+    cache-from: [build]
+    volumes: [run]
+    leave-volumes: [run]
+    no-cache: [build]
+    use-aliases: [run]
+    dependencies: [run]
+    ansi: [run]
+    tty: [run]
+    workdir: [run]
+    user: [run]

@@ -23,27 +23,30 @@ compose_cleanup() {
 check_linked_containers_and_save_logs() {
   local service="$1"
   local logdir="$2"
+  local all_logs="$3"
 
   [[ -d "$logdir" ]] && rm -rf "$logdir"
   mkdir -p "$logdir"
 
-  while read -r line ; do
-    service_name="$(cut -d$'\t' -f2 <<< "$line")"
-    service_container_id="$(cut -d$'\t' -f1 <<< "$line")"
+  while read -r line; do
+    service_name="$(cut -d$'\t' -f2 <<<"$line")"
+    service_container_id="$(cut -d$'\t' -f1 <<<"$line")"
 
-    if [[ "$service_name" == "$service" ]] ; then
+    if [[ "$service_name" == "$service" ]]; then
       continue
     fi
 
     service_exit_code="$(docker inspect --format='{{.State.ExitCode}}' "$service_container_id")"
 
     # Capture logs if the linked container failed
-    if [[ "$service_exit_code" -ne 0 ]] ; then
+    if [[ "$service_exit_code" -ne 0 ]]; then
       echo "+++ :warning: Linked service $service_name exited with $service_exit_code"
       plugin_prompt_and_run docker logs --timestamps --tail 5 "$service_container_id"
-      docker logs -t "$service_container_id" &> "${logdir}/${service_name}.log"
+      docker logs -t "$service_container_id" &>"${logdir}/${service_name}.log"
+    elif [[ "$all_logs" == "true" && "$service_exit_code" -eq 0 ]]; then
+      docker logs -t "$service_container_id" &>"${logdir}/${service_name}.log"
     fi
-  done <<< "$(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')"
+  done <<<"$(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')"
 }
 
 # docker-compose's -v arguments don't do local path expansion like the .yml

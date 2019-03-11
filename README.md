@@ -417,6 +417,12 @@ Sets `docker-compose` to run with `--verbose`
 
 The default is `false`.
 
+### `all-logs` (optional)
+
+If set to false, only upload failed container logs.
+
+The default is `true`.
+
 ## Developing
 
 To run the tests:
