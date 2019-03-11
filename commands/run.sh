@@ -131,6 +131,11 @@ if [[ "$(plugin_read_config USE_ALIASES "false")" == "true" ]]; then
   run_params+=(--use-aliases)
 fi
 
+# Optionally remove containers after run
+if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
+  run_params+=(--rm)
+fi
+
 run_params+=("$run_service")
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]]; then

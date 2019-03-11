@@ -68,6 +68,8 @@ configuration:
       type: string
     all-logs:
       type: boolean
+    rm:
+      type: boolean
   oneOf:
     - required:
         - run
