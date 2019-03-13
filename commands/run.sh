@@ -267,6 +267,10 @@ fi
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]]; then
   if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" == "true" ]]; then
+    echo "~~~ Checking containers"
+    docker_ps_by_project \
+      --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
+
     check_linked_containers_and_save_logs \
       "$run_service" "docker-compose-logs" \
       "$(plugin_read_config ALL_LOGS "true")"
