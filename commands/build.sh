@@ -76,6 +76,10 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
   build_params+=(--no-cache)
 fi
 
+if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
+  build_params+=(--parallel)
+fi
+
 while read -r arg ; do
   [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
 done <<< "$(plugin_read_list ARGS)"
