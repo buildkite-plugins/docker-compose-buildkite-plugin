@@ -36,10 +36,11 @@ check_linked_containers_and_save_logs() {
   [[ -d "$logdir" ]] && rm -rf "$logdir"
   mkdir -p "$logdir"
 
+  # Get array of containers
   containers=$(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
-  IFS=$'\n'
+  IFS=$'\n' # Change IFS to new line
   for line in ${containers} ; do
-    if [[ -z "${line}" ]]; then
+    if [[ -z "${line}" ]] ; then
       # Skip empty lines
       continue
     fi
