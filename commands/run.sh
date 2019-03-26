@@ -146,6 +146,9 @@ elif [[ ! -f "$override_file" ]]; then
   # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
   # pull an image that doesn't exist
   run_docker_compose build --pull "$run_service"
+
+  # Sometimes docker-compose leaves unfinished ansi codes
+  echo
 fi
 
 # Start up service dependencies in a different header to keep the main run with less noise
