@@ -421,6 +421,12 @@ Sets `docker-compose` to run with `--verbose`
 
 The default is `false`.
 
+### `rm` (optional, run only)
+
+If set to true, docker compose will remove the primary container after run. Equivalent to `--rm` in docker-compose.
+
+The default is `true`.
+
 ## Developing
 
 To run the tests:
