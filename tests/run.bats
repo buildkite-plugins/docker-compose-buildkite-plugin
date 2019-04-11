@@ -23,7 +23,7 @@ load '../lib/run'
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 
@@ -49,7 +49,7 @@ load '../lib/run'
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 
@@ -76,7 +76,7 @@ load '../lib/run'
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --workdir=/test_workdir myservice : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 
@@ -102,7 +102,7 @@ load '../lib/run'
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'sh -c \'echo hello world\'' : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 
@@ -130,7 +130,7 @@ cmd3"
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'cmd1\ncmd2\ncmd3' : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 
@@ -158,7 +158,7 @@ cmd3"
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 
@@ -189,7 +189,7 @@ cmd3"
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV -e ANOTHER=this\ is\ a\ long\ string\ with\ spaces\;\ and\ semi-colons myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 
@@ -214,6 +214,7 @@ cmd3"
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -240,6 +241,7 @@ cmd3"
     "-f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : echo myimage"
 
   run $PWD/hooks/command
@@ -267,6 +269,7 @@ export BUILDKITE_JOB_ID=1111
     "-f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml-tests/composefiles/docker-compose.v2.1.yml : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml-tests/composefiles/docker-compose.v2.1.yml : echo myimage"
 
   run $PWD/hooks/command
@@ -290,6 +293,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : exit 2"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -317,6 +321,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -344,6 +349,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -T myservice /bin/sh -e -c 'pwd' : echo ran myservice without tty"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -369,6 +375,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --no-deps myservice /bin/sh -e -c 'pwd' : echo ran myservice without dependencies"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -395,6 +402,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --no-ansi myservice /bin/sh -e -c 'pwd' : echo ran myservice without ansi output"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -421,6 +429,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --use-aliases myservice /bin/sh -e -c 'pwd' : echo ran myservice with use aliases output"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -448,6 +457,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v $PWD/dist:/app/dist -v $PWD/pkg:/app/pkg myservice /bin/sh -e -c 'pwd' : echo ran myservice with volumes"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -474,6 +484,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v buildkite:/buildkite myservice /bin/sh -e -c 'pwd' : echo ran myservice with volumes"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -503,6 +514,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v buildkite:/buildkite -v $PWD/dist:/app/dist myservice /bin/sh -e -c 'pwd' : echo ran myservice with volumes"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -529,6 +541,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v buildkite:/buildkite -v $PWD/dist:/app/dist myservice /bin/sh -e -c 'pwd' : echo ran myservice with volumes"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -557,7 +570,7 @@ export BUILDKITE_JOB_ID=1111
     "-f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice-llamas1.yml-llamas2.yml-llamas3.yml : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice-llamas1.yml-llamas2.yml-llamas3.yml : exit 1"
 
   run $PWD/hooks/command
 
@@ -583,7 +596,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'pwd' : exit 2"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 
@@ -611,7 +624,9 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice1_build_1 myservice1 /bin/sh -e -c 'pwd' : echo ran myservice1"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice1 : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice1 : echo myimage1" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice2 : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice2 : echo myimage2"
 
   run $PWD/hooks/command
@@ -639,7 +654,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --user=1000 myservice /bin/sh -e -c 'sh -c \'whoami\'' : echo ran myservice"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
   run $PWD/hooks/command
 

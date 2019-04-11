@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+# export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
+
 load '/usr/local/lib/bats/load.bash'
 load '../lib/shared'
 load '../lib/metadata'
@@ -28,4 +30,26 @@ load '../lib/metadata'
 
   assert_success
   assert_output "built-image-tag-service-tests/composefiles/docker-compose.v2.0.yml-tests/composefiles/docker-compose.v2.1.yml"
+}
+
+@test "Check if image exists in metadata before trying to retrieve" {
+  # Only expect the 'exists' command to be called, not the 'get'
+  stub buildkite-agent "meta-data exists docker-compose-plugin-built-image-tag-test : exit 1"
+
+  run get_prebuilt_image "test"
+  
+  assert_failure
+  unstub buildkite-agent
+}
+
+@test "Only get prebuilt image from metadata if 'exists' check returns true" {
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-test : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-test : exit 0" 
+
+  run get_prebuilt_image "test"
+  
+  assert_success
+  assert_output --partial "buildkite-agent meta-data get docker-compose-plugin-built-image-tag-test"
+  unstub buildkite-agent
 }
