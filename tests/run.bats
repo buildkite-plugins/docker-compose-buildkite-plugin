@@ -681,6 +681,7 @@ export BUILDKITE_JOB_ID=1111
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 myservice /bin/sh -e -c 'pwd' : echo ran myservice without tty"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : echo myimage" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
