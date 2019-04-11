@@ -15,7 +15,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-app : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-app : exit 1"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
@@ -56,8 +56,8 @@ load '../lib/shared'
     "push my.repository/myservice2:llamas : echo pushing myservice2 image"
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice1 : exit 1" \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice2 : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice1 : exit 1" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice2 : exit 1"
 
   run $PWD/hooks/command
 
@@ -87,6 +87,7 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 config : echo blah"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
   run $PWD/hooks/command
@@ -126,8 +127,11 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 config : echo blah"
 
   stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt"
 
   run $PWD/hooks/command
@@ -152,7 +156,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
-    "meta-data get docker-compose-plugin-built-image-tag-helper : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-helper : exit 1"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
