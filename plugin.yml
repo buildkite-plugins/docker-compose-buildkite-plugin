@@ -66,6 +66,8 @@ configuration:
       type: boolean
     workdir:
       type: string
+    rm:
+      type: boolean
   oneOf:
     - required:
       - run
