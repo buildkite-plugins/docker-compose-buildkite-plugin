@@ -153,6 +153,12 @@ fi
 
 # Start up service dependencies in a different header to keep the main run with less noise
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
+  # There was a bug with a previous version of this plugin
+  # This is a temporary work around to clear out containers that
+  # are hanging around from previous builds
+  if [[ $(docker ps -q) ]]; then
+    docker kill $(docker ps -q)
+  fi
   echo "~~~ :docker: Starting dependencies"
   if [[ ${#up_params[@]} -gt 0 ]] ; then
     run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
