@@ -71,6 +71,9 @@ fi
 if [[ ${#pull_services[@]} -gt 0 ]] ; then
   echo "~~~ :docker: Pulling services ${pull_services[0]}"
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
+
+  # Sometimes docker-compose pull leaves unfinished ansi codes
+  echo
 fi
 
 # We set a predictable container name so we can find it and inspect it later on
@@ -147,7 +150,7 @@ elif [[ ! -f "$override_file" ]]; then
   # pull an image that doesn't exist
   run_docker_compose build --pull "$run_service"
 
-  # Sometimes docker-compose leaves unfinished ansi codes
+  # Sometimes docker-compose pull leaves unfinished ansi codes
   echo
 fi
 
