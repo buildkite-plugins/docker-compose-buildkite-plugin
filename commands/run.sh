@@ -8,6 +8,7 @@ run_service="$(plugin_read_config RUN)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
+remove_containers_after_run="$(plugin_read_config RM "true")"
 
 expand_headers_on_error() {
   echo "^^^ +++"
@@ -135,7 +136,7 @@ if [[ "$(plugin_read_config USE_ALIASES "false")" == "true" ]] ; then
 fi
 
 # Optionally remove containers after run
-if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
+if [[ "$remove_containers_after_run" == "true" ]]; then
   run_params+=(--rm)
 fi
 
@@ -271,26 +272,29 @@ if [[ $exitcode -ne 0 ]] ; then
   echo "+++ :warning: Failed to run command, exited with $exitcode"
 fi
 
-if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
-  if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" != "false" ]] ; then
+if [[ "$remove_containers_after_run" == "true" ]]; then
+  echo "+++ :warning: Can't check linked containers when 'rm' is enabled"
+else
+  if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
+    if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" != "false" ]] ; then
+      # Get list of failed containers
+      failed_containers=($(
+        docker inspect -f '{{if ne 0 .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{ end }}' \
+        $(docker_ps_by_project -q)
+      ))
 
-    # Get list of failed containers
-    failed_containers=($(
-      docker inspect -f '{{if ne 0 .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{ end }}' \
-      $(docker_ps_by_project -q)
-    ))
+      if [[ 0 != "${#failed_containers[@]}" ]] ; then
+        echo "+++ :warning: Some containers had non-zero exit codes"
+        docker_ps_by_project \
+          --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
+      fi
 
-    if [[ 0 != "${#failed_containers[@]}" ]] ; then
-      echo "+++ :warning: Some containers had non-zero exit codes"
-      docker_ps_by_project \
-        --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
-    fi
+      check_linked_containers_and_save_logs "$run_service" "docker-compose-logs"
 
-    check_linked_containers_and_save_logs "$run_service" "docker-compose-logs"
-
-    if [[ -d "docker-compose-logs" ]] && test -n "$(find docker-compose-logs/ -maxdepth 1 -name '*.log' -print)"; then
-      echo "~~~ Uploading linked container logs"
-      buildkite-agent artifact upload "docker-compose-logs/*.log"
+      if [[ -d "docker-compose-logs" ]] && test -n "$(find docker-compose-logs/ -maxdepth 1 -name '*.log' -print)"; then
+        echo "~~~ Uploading linked container logs"
+        buildkite-agent artifact upload "docker-compose-logs/*.log"
+      fi
     fi
   fi
 fi
