@@ -27,7 +27,9 @@ check_linked_containers_and_save_logs() {
   [[ -d "$logdir" ]] && rm -rf "$logdir"
   mkdir -p "$logdir"
 
-  while read -r line ; do
+  containers=$(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
+  IFS=$'\n'
+  for line in ${containers} ; do
     if [[ -z "${line}" ]]; then
       # Skip empty lines
       continue
@@ -48,7 +50,7 @@ check_linked_containers_and_save_logs() {
       plugin_prompt_and_run docker logs --timestamps --tail 5 "$service_container_id"
       docker logs -t "$service_container_id" &> "${logdir}/${service_name}.log"
     fi
-  done <<< "$(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')"
+  done
 }
 
 # docker-compose's -v arguments don't do local path expansion like the .yml
