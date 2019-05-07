@@ -12,12 +12,7 @@ load '../lib/shared'
   export LOG_DIR="docker-compose-logs"
 
   function docker_ps_by_project() {
-    echo -e "
-232323\tmain
-454545\tfailed
-676767\tlinkedworked
-898989\tlinkedworked2
-"
+    cat tests/fixtures/id-service-multiple-services.txt
   }
 
   function plugin_prompt_and_run() {
@@ -25,10 +20,9 @@ load '../lib/shared'
   }
 
   stub docker \
-    "inspect --format={{.State.ExitCode}} 454545 : echo 1" \
-    "logs -t 454545 : echo got logs for failed" \
-    "inspect --format={{.State.ExitCode}} 676767 : echo 0" \
-    "inspect --format={{.State.ExitCode}} 898989 : echo 0"
+    "inspect --format={{.State.ExitCode}} 456456 : echo 1" \
+    "logs -t 456456 : echo got logs for failed" \
+    "inspect --format={{.State.ExitCode}} 789789 : echo 0"
 
   run check_linked_containers_and_save_logs \
     "main" "/tmp/docker-compose-logs" "on-error"
@@ -43,12 +37,7 @@ load '../lib/shared'
   export LOG_DIR="docker-compose-logs"
 
   function docker_ps_by_project() {
-    echo -e "
-232323\tmain
-454545\tfailed
-676767\tlinkedworked
-898989\tlinkedworked2
-"
+    cat tests/fixtures/id-service-multiple-services.txt
   }
 
   function plugin_prompt_and_run() {
@@ -56,12 +45,10 @@ load '../lib/shared'
   }
 
   stub docker \
-    "inspect --format={{.State.ExitCode}} 454545 : echo 1" \
-    "logs -t 454545 : echo got logs for failed" \
-    "inspect --format={{.State.ExitCode}} 676767 : echo 0" \
-    "logs -t 676767 : echo got logs for failed" \
-    "inspect --format={{.State.ExitCode}} 898989 : echo 0" \
-    "logs -t 898989 : echo got logs for failed"
+    "inspect --format={{.State.ExitCode}} 456456 : echo 1" \
+    "logs -t 456456 : echo got logs for failed" \
+    "inspect --format={{.State.ExitCode}} 789789 : echo 0" \
+    "logs -t 789789 : echo got logs for failed"
 
   run check_linked_containers_and_save_logs \
     "main" "/tmp/docker-compose-logs" "always"
@@ -76,12 +63,7 @@ load '../lib/shared'
   export LOG_DIR="docker-compose-logs"
 
   function docker_ps_by_project() {
-    echo -e "
-232323\tmain
-454545\tfailed
-676767\tlinkedworked
-898989\tlinkedworked2
-"
+    cat tests/fixtures/id-service-multiple-services.txt
   }
 
   function plugin_prompt_and_run() {
