@@ -38,6 +38,7 @@ check_linked_containers_and_save_logs() {
 
   # Get array of containers
   containers=$(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
+  OLDIFS="$IFS"
   IFS=$'\n' # Change IFS to new line
   for line in ${containers} ; do
     if [[ -z "${line}" ]] ; then
@@ -64,6 +65,7 @@ check_linked_containers_and_save_logs() {
       docker logs -t "$service_container_id" &>"${logdir}/${service_name}.log"
     fi
   done
+  OLDIFS="$IFS"
 }
 
 # docker-compose's -v arguments don't do local path expansion like the .yml
