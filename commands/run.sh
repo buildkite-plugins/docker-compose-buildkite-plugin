@@ -275,13 +275,17 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" != "false" ]] ; then
 
     # Get list of failed containers
-    containers=($(docker_ps_by_project -q))
+    containers=()
+    while read -r container ; do
+      [[ -n "$container" ]] && containers+=("$container")
+    done <<< "$(docker_ps_by_project -q)"
+
     failed_containers=()
     if [[ 0 != "${#containers[@]}" ]] ; then
-      failed_containers=($(
-        docker inspect -f '{{if ne 0 .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{ end }}' \
-        ${containers[@]}
-      ))
+      while read -r container ; do
+        [[ -n "$container" ]] && failed_containers+=("$container")
+      done <<< "$(docker inspect -f '{{if ne 0 .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{ end }}' \
+        '${containers[@]}')"
     fi
 
     if [[ 0 != "${#failed_containers[@]}" ]] ; then
