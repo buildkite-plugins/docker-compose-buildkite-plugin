@@ -285,7 +285,7 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
       while read -r container ; do
         [[ -n "$container" ]] && failed_containers+=("$container")
       done <<< "$(docker inspect -f '{{if ne 0 .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{ end }}' \
-        '${containers[@]}')"
+        "${containers[@]}")"
     fi
 
     if [[ 0 != "${#failed_containers[@]}" ]] ; then
