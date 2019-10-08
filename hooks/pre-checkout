@@ -12,4 +12,9 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 if [[ "$(plugin_read_config SKIP_CHECKOUT "false")" == "true" ]] ; then
   export BUILDKITE_REPO=""
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD="true"
+
+  echo "~~~ :docker: Skipping git checkout. Downloading docker compose file from metadata"
+  for file in $(docker_compose_config_files) ; do
+    plugin_get_metadata "${file}-content" | tee "$file"
+  done
 fi

@@ -104,3 +104,8 @@ if [[ -n "$image_repository" ]] ; then
     build_images=("${build_images[@]:3}")
   done
 fi
+
+echo "~~~ :docker: Uploading docker compose file to metadata"
+for file in $(docker_compose_config_files) ; do
+  plugin_set_metadata "${file}-content" $(cat "$file")
+done
