@@ -21,8 +21,8 @@ compose_image_for_service() {
 compose_custom_tag_for_service() {
   local service="$1"
   # i.e., BUILDKITE_DOCKER_TAG_SERVICE_SERVICENAME
-  if [[ -n $BUILDKITE_DOCKER_TAG_SERVICE_${service^^} ]]; then
-    echo $BUILDKITE_DOCKER_TAG_SERVICE_${service^^}
+  if [[ -n $BUILDKITE_DOCKER_PUSH_TAG_SERVICE_${service^^} ]]; then
+    echo $BUILDKITE_DOCKER_PUSH_TAG_SERVICE_${service^^}
   fi
 }
 
@@ -35,8 +35,8 @@ compose_custom_tag() {
 
   if [[ -n $tag ]]; then
     echo $tag
-  elif [[ -n $BUILDKITE_DOCKER_TAG ]]; then
-    echo $BUILDKITE_DOCKER_TAG
+  elif [[ -n $BUILDKITE_DOCKER_PUSH_TAG ]]; then
+    echo $BUILDKITE_DOCKER_PUSH_TAG
   fi
 }
 
