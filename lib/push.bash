@@ -18,6 +18,13 @@ compose_image_for_service() {
   echo "$image"
 }
 
+compose_custom_tag_for_service() {
+  local service="$1"
+  local tag=""
+}
+
+env
+
 default_compose_image_for_service() {
   local service="$1"
 
