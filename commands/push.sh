@@ -51,9 +51,20 @@ for line in $(plugin_read_list PUSH) ; do
     retry "$push_retries" run_docker_compose push "${service_name}"
   # push: "service-name:repo:tag"
   else
-    target_image="$(IFS=:; echo "${tokens[*]:1}")"
-    echo "~~~ :docker: Pushing image $target_image" >&2;
-    plugin_prompt_and_run docker tag "$service_image" "$target_image"
-    retry "$push_retries" plugin_prompt_and_run docker push "$target_image"
+    target_image="$(IFS=:; echo "${tokens[1]}")"
+    target_tag="$(IFS=:; echo "${tokens[2]}")"
+    custom_tag="$(compose_custom_tag)"
+
+    if [[ -n $custom_tag ]]; then
+      echo "~~~ :docker: Using provided custom tag: $custom_tag" >&2;
+      if [[ -n $target_tag ]]; then
+        echo "~~~ WARNING: Custom tag preferred over plugin tag: $target_tag" >&2;
+      fi
+      target_tag=${custom_tag}
+    fi
+
+    echo "~~~ :docker: Pushing image ${target_image}:${target_tag}" >&2;
+    plugin_prompt_and_run docker tag "$service_image" "${target_image}:${target_tag}"
+    retry "$push_retries" plugin_prompt_and_run docker push "${target_image}:${target_tag}"
   fi
 done
