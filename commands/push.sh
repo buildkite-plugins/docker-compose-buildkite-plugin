@@ -59,7 +59,7 @@ for line in $(plugin_read_list PUSH) ; do
       target_tag=""
     fi
 
-    custom_tag="$(compose_custom_tag)"
+    custom_tag="$(compose_custom_tag ${service_name})"
 
     if [[ -n $custom_tag ]]; then
       echo "~~~ :docker: Using provided custom tag: $custom_tag" >&2;
