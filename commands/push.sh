@@ -49,10 +49,16 @@ for line in $(plugin_read_list PUSH) ; do
   if [[ ${#tokens[@]} -eq 1 ]] ; then
     echo "~~~ :docker: Pushing images for ${service_name}" >&2;
     retry "$push_retries" run_docker_compose push "${service_name}"
-  # push: "service-name:repo:tag"
+  # push: "service-name:repo" or "service-name:repo:tag"
   else
     target_image="$(IFS=:; echo "${tokens[1]}")"
-    target_tag="$(IFS=:; echo "${tokens[2]}")"
+
+    if [[ ${#tokens[@]} -eq 3 ]]; then
+      target_tag=$(IFS=:; echo "${tokens[2]}")
+    else
+      target_tag=""
+    fi
+
     custom_tag="$(compose_custom_tag)"
 
     if [[ -n $custom_tag ]]; then
