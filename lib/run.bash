@@ -23,14 +23,23 @@ compose_cleanup() {
 check_linked_containers_and_save_logs() {
   local service="$1"
   local logdir="$2"
+  local uploadlogs="$3"
+  local uploadall="false"
+
+  if [[ "$uploadlogs" =~ ^(false|off|0|never)$ ]]; then
+    # Skip all if we are not uploading logs
+    return
+  elif [[ "$uploadlogs" =~ ^(true|on|1|always)$ ]]; then
+    uploadall="true"
+  fi
 
   [[ -d "$logdir" ]] && rm -rf "$logdir"
   mkdir -p "$logdir"
 
-  containers=$(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
-  IFS=$'\n'
-  for line in ${containers} ; do
-    if [[ -z "${line}" ]]; then
+  # Get array of containers
+  mapfile -t containers < <(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
+  for line in "${containers[@]}" ; do
+    if [[ -z "${line}" ]] ; then
       # Skip empty lines
       continue
     fi
@@ -38,6 +47,7 @@ check_linked_containers_and_save_logs() {
     service_name="$(cut -d$'\t' -f2 <<<"$line")"
     service_container_id="$(cut -d$'\t' -f1 <<<"$line")"
 
+    # Skip uploading logs for the primary service container
     if [[ "$service_name" == "$service" ]] ; then
       continue
     fi
@@ -48,7 +58,9 @@ check_linked_containers_and_save_logs() {
     if [[ "$service_exit_code" -ne 0 ]] ; then
       echo "+++ :warning: Linked service $service_name exited with $service_exit_code"
       plugin_prompt_and_run docker logs --timestamps --tail 5 "$service_container_id"
-      docker logs -t "$service_container_id" &> "${logdir}/${service_name}.log"
+      docker logs -t "$service_container_id" &>"${logdir}/${service_name}.log"
+    elif $uploadall; then
+      docker logs -t "$service_container_id" &>"${logdir}/${service_name}.log"
     fi
   done
 }

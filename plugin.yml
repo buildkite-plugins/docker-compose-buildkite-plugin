@@ -68,6 +68,8 @@ configuration:
       type: string
     rm:
       type: boolean
+    upload-container-logs:
+      type: string
   oneOf:
     - required:
       - run

@@ -427,6 +427,16 @@ If set to true, docker compose will remove the primary container after run. Equi
 
 The default is `true`.
 
+### `upload-container-logs` (optional, run only)
+
+Select when to upload container logs.
+
+- `on-error` Upload logs for all containers when an error occurs
+- `always` Always upload logs for all container
+- `never` Never upload logs for all container
+
+The default is `on-error`.
+
 ## Developing
 
 To run the tests:
