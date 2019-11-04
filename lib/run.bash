@@ -42,7 +42,8 @@ check_linked_containers_and_save_logs() {
     [[ -n "$container" ]] && containers+=("$container")
   done < <(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
 
-  for line in "${containers[@]}" ; do
+  # Iterate over containers, handling empty container array as a possibility
+  for line in "${containers[@]+"${containers[@]}"}" ; do
     # Split tab-delimited tokens into service name and container id
     service_name="$(cut -d$'\t' -f2 <<<"$line")"
     service_container_id="$(cut -d$'\t' -f1 <<<"$line")"
