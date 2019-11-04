@@ -36,16 +36,14 @@ check_linked_containers_and_save_logs() {
   [[ -d "$logdir" ]] && rm -rf "$logdir"
   mkdir -p "$logdir"
 
-  # Get array of containers
+  # Get list of container if to service labels
   containers=()
-  mapfile -t containers < <(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
+  while IFS=$'\n' read -r container ; do
+    [[ -n "$container" ]] && containers+=("$container")
+  done < <(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
 
   for line in "${containers[@]}" ; do
-    if [[ -z "${line}" ]] ; then
-      # Skip empty lines
-      continue
-    fi
-
+    # Split tab-delimited tokens into service name and container id
     service_name="$(cut -d$'\t' -f2 <<<"$line")"
     service_container_id="$(cut -d$'\t' -f1 <<<"$line")"
 
