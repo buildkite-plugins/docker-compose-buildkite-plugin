@@ -37,7 +37,9 @@ check_linked_containers_and_save_logs() {
   mkdir -p "$logdir"
 
   # Get array of containers
+  containers=()
   mapfile -t containers < <(docker_ps_by_project --format '{{.ID}}\t{{.Label "com.docker.compose.service"}}')
+
   for line in "${containers[@]}" ; do
     if [[ -z "${line}" ]] ; then
       # Skip empty lines
