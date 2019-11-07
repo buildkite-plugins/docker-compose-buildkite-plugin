@@ -16,6 +16,19 @@ load '../lib/run'
   assert_equal "${lines[2]}" "down --volumes"
 }
 
+@test "Possible to gracefully shutdown containers in docker-compose cleanup" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_GRACEFUL_SHUTDOWN=1
+  run_docker_compose() {
+    echo "$@"
+  }
+  run compose_cleanup
+
+  assert_success
+  assert_equal "${lines[0]}" "stop"
+  assert_equal "${lines[1]}" "rm --force"
+  assert_equal "${lines[2]}" "down"
+}
+
 @test "Possible to skip volume destruction in docker-compose cleanup" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES=1
   run_docker_compose() {

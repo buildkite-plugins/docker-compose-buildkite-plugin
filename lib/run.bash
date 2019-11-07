@@ -1,8 +1,13 @@
 #!/bin/bash
 
 compose_cleanup() {
-  # Send them a friendly kill
-  run_docker_compose kill || true
+if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "false" ]]; then
+    # Send all containers a SIGKILL
+    run_docker_compose kill || true
+  else
+    # Send all containers a friendly SIGTERM, followed by a SIGKILL after exceeding the stop_grace_period
+    run_docker_compose stop || true
+  fi
 
   # `compose down` doesn't support force removing images
   if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
