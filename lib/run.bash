@@ -1,7 +1,7 @@
 #!/bin/bash
 
 compose_cleanup() {
-if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "false" ]]; then
+  if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "false" ]]; then
     # Send all containers a SIGKILL
     run_docker_compose kill || true
   else
