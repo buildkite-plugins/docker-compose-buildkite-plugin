@@ -17,6 +17,8 @@ if [[ -z "$image_repository" ]] ; then
   echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
 fi
 
+build_services=$(plugin_read_list BUILD)
+
 # Read any cache-from parameters provided and pull down those images first
 for line in $(plugin_read_list CACHE_FROM) ; do
   IFS=':' read -r -a tokens <<< "$line"
@@ -26,6 +28,16 @@ for line in $(plugin_read_list CACHE_FROM) ; do
 
   if [[ -n ${!cache_image_name+x} ]]; then
     continue # skipping since there's already a pulled cache image for this service
+  fi
+
+  # check the the cache-from line will be useful (that is, refers to a service that is being built
+  # by this step)
+  if ! in_array "$service_name" "${build_services[@]}"; then
+    echo "+++ ⚠ cache-from refers to service '$service_name' that is not being built"
+    echo "Found cache-from specification that has no effect:"
+    echo "    $line"
+    echo "Service name '$service_name' is not one of the services being built:"
+    echo "    ${build_services[*]}"
   fi
 
   echo "~~~ :docker: Pulling cache image for $service_name"
@@ -40,7 +52,7 @@ done
 # and build up a list of service name, image name and optional cache-froms to
 # write into a docker-compose override file
 service_idx=0
-for service_name in $(plugin_read_list BUILD) ; do
+for service_name in "${build_services[@]}" ; do
   image_name=$(build_image_name "${service_name}" "${service_idx}")
   service_idx=$((service_idx+1))
 
