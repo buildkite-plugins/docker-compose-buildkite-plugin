@@ -385,6 +385,8 @@ The default is `false`.
 
 Sets the build step to run with `--no-cache`, causing Docker Compose to not use any caches when building the image.
 
+The default is false.
+
 ### `build-parallel` (optional, build only)
 
 Set the build step to run with `--parallel`, causing Docker Compose to run builds in parallel. Requires docker-compose `1.23+`.
