@@ -163,9 +163,9 @@ fi
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
   echo "~~~ :docker: Starting dependencies"
   if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose --compatibility "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
+    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
   else
-    run_docker_compose --compatibility up -d --scale "${run_service}=0" "${run_service}"
+    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
   fi
 
   # Sometimes docker-compose leaves unfinished ansi codes
@@ -258,7 +258,7 @@ set +e
 
 (
   echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
-  run_docker_compose --compatibility "${run_params[@]}"
+  run_docker_compose "${run_params[@]}"
 )
 
 exitcode=$?
