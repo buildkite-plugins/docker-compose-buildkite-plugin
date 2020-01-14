@@ -70,6 +70,8 @@ configuration:
       type: boolean
     upload-container-logs:
       type: string
+    use-compatibility-mode:
+      type: boolean
   oneOf:
     - required:
       - run

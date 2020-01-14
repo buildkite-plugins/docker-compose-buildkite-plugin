@@ -437,6 +437,12 @@ Select when to upload container logs.
 
 The default is `on-error`.
 
+### `use-compatibility-mode` (optional, run only)
+
+Sets `docker-compose` to run with `--compatibility`
+
+The default is `false`.
+
 ## Developing
 
 To run the tests:

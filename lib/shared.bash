@@ -179,6 +179,10 @@ function run_docker_compose() {
     command+=(--verbose)
   fi
 
+  if [[ "$(plugin_read_config  USE_COMPATIBILITY_MODE "false")" == "true" ]] ; then
+    command+=(--compatibility)
+  fi
+
   for file in $(docker_compose_config_files) ; do
     command+=(-f "$file")
   done
