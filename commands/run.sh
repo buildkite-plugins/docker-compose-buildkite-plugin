@@ -305,4 +305,4 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   fi
 fi
 
-exit $exitcode
+return $exitcode
