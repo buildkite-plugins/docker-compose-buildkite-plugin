@@ -161,20 +161,10 @@ elif [[ ! -f "$override_file" ]]; then
   echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
   echo "⚠️ No pre-built image found from a previous 'build' step for this service and config file. Building image..."
 
-  build_params=()
-
-  if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
-    build_params+=(--no-cache)
-  fi
-
-  while read -r arg ; do
-    [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
-  done <<< "$(plugin_read_list ARGS)"
-
   # Ideally we'd do a pull with a retry first here, but we need the conditional pull behaviour here
   # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
   # pull an image that doesn't exist
-  run_docker_compose build --pull "${build_params[@]}" "$run_service"
+  run_docker_compose build --pull "$run_service"
 
   # Sometimes docker-compose pull leaves unfinished ansi codes
   echo
