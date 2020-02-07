@@ -70,6 +70,8 @@ configuration:
       type: boolean
     upload-container-logs:
       type: string
+    propagate-uid-gid:
+      type: boolean
   oneOf:
     - required:
       - run
@@ -97,3 +99,4 @@ configuration:
     workdir: [ run ]
     user: [ run ]
     args: [ build, run ]
+    propagate-uid-gid: [ run ]

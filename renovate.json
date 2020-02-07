@@ -6,5 +6,6 @@
     "digest": {
       "enabled": false
     }
-  }
+  },
+  "labels": ["dependencies"]
 }

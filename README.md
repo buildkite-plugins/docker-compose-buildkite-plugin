@@ -353,6 +353,12 @@ Specify the container working directory via `docker-compose run --workdir`.
 
 Run as specified username or uid via `docker-compose run --user`.
 
+### `propagate-uid-gid` (optional, run-only, boolean)
+
+Whether to match the user ID and group ID for the container user to the user ID and group ID for the host user. It is similar to specifying user: 1000:1000, except it avoids hardcoding a particular user/group ID.
+
+Using this option ensures that any files created on shared mounts from within the container will be accessible to the host user. It is otherwise common to accidentally create root-owned files that Buildkite will be unable to remove, since containers by default run as the root user.
+
 ### `pull-retries` (optional)
 
 A number of times to retry failed docker pull. Defaults to 0.
@@ -384,6 +390,8 @@ The default is `false`.
 ### `no-cache` (optional)
 
 Sets the build step to run with `--no-cache`, causing Docker Compose to not use any caches when building the image.
+
+The default is `false`.
 
 ### `build-parallel` (optional, build only)
 
