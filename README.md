@@ -319,7 +319,7 @@ The name to use when tagging pre-built images. If multiple images are built in t
 
 Other docker-compose services that should be aliased to the main service that was built. This is for when different docker-compose services share the same prebuilt image.
 
-### `args` (optional, build only)
+### `args` (optional)
 
 A list of KEY=VALUE that are passed through as build arguments when image is being built.
 
@@ -387,7 +387,7 @@ Prevent the removal of volumes after the command has been run.
 
 The default is `false`.
 
-### `no-cache` (optional, build only)
+### `no-cache` (optional)
 
 Sets the build step to run with `--no-cache`, causing Docker Compose to not use any caches when building the image.
 
