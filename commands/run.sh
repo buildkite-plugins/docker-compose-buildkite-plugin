@@ -119,9 +119,20 @@ if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
   run_params+=("--workdir=$(plugin_read_config WORKDIR)")
 fi
 
+# Can't set both user and propagate-uid-gid
+if [[ -n "$(plugin_read_config USER)" ]] && [[ -n "$(plugin_read_config PROPAGATE_UID_GID)" ]]; then
+  echo "+++ Error: Can't set both user and propagate-uid-gid"
+  exit 1
+fi
+
 # Optionally run as specified username or uid
 if [[ -n "$(plugin_read_config USER)" ]] ; then
   run_params+=("--user=$(plugin_read_config USER)")
+fi
+
+# Optionally run as specified username or uid
+if [[ "$(plugin_read_config PROPAGATE_UID_GID "false")" == "true" ]] ; then
+  run_params+=("--user=$(id -u):$(id -g)")
 fi
 
 # Optionally disable ansi output
