@@ -1,7 +1,10 @@
 # Config for https://github.com/apps/release-drafter
+name-template: 'v$NEXT_MINOR_VERSION (🌈 Insert Release Name)'
+tag-template: 'v$NEXT_MINOR_VERSION'
+categories:
+  - title: 'Dependency Updates'
+    label: 'dependencies'
 template: |
-  ## TODO: Added/Removed/Fixed/Changed
-
   $CHANGES
 
   ## Upgrading
@@ -12,7 +15,8 @@ template: |
   steps:
     - command: test.sh
       plugins:
-  -     docker-compose#$PREVIOUS_TAG:
-  +     docker-compose#TODO:
-          run: app
+  -     docker#$PREVIOUS_TAG:
+  +     docker#v$NEXT_MINOR_VERSION:
+          image: someimage
+          workdir: /app
   ```
