@@ -38,6 +38,7 @@ for line in $(plugin_read_list CACHE_FROM) ; do
     echo "    $line"
     echo "Service name '$service_name' is not one of the services being built:"
     echo "    ${build_services[*]}"
+    exit 1
   fi
 
   echo "~~~ :docker: Pulling cache image for $service_name"
