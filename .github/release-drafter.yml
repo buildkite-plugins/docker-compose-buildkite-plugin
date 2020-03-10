@@ -5,6 +5,8 @@ categories:
   - title: 'Dependency Updates'
     label: 'dependencies'
 template: |
+  ## Changes
+
   $CHANGES
 
   ## Upgrading
