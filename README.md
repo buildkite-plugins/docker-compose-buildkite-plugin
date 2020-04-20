@@ -435,6 +435,10 @@ If set to true, docker compose will remove the primary container after run. Equi
 
 The default is `true`.
 
+### `entrypoint` (optional, run only)
+
+Sets the `--entrypoint` argument when running `docker-compose`.
+
 ### `upload-container-logs` (optional, run only)
 
 Select when to upload container logs.
