@@ -41,7 +41,7 @@ prebuilt_services=()
 for service_name in "${prebuilt_candidates[@]}" ; do
   if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
     echo "~~~ :docker: Found a pre-built image for $service_name"
-    prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "")
+    prebuilt_service_overrides+=("$service_name" "$prebuilt_image" 0)
     prebuilt_services+=("$service_name")
 
     # If it's prebuilt, we need to pull it down

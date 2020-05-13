@@ -12,6 +12,24 @@ service_name_cache_from_var() {
   echo "cache_from__${service_name//-/_}"
 }
 
+service_name_group_name_cache_from_var() {
+  local service_name="$1"
+  local group_index="$2"
+  echo "group_cache_from__${service_name//-/_}__${group_index//-/_}"
+}
+
+count_of_named_array() {
+  local tmp="$1[@]"
+  local copy=( "${!tmp}" )
+  echo "${#copy[@]}"
+}
+
+named_array_values() {
+  local tmp="$1[@]"
+  local copy=( "${!tmp}" )
+  echo "${copy[@]}"
+}
+
 if [[ -z "$image_repository" ]] ; then
   echo "+++ ⚠️ Build step missing image-repository setting"
   echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
@@ -23,16 +41,34 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
   for line in $(plugin_read_list CACHE_FROM) ; do
     IFS=':' read -r -a tokens <<< "$line"
     service_name=${tokens[0]}
-    service_image=$(IFS=':'; echo "${tokens[*]:1}")
+    service_image=$(IFS=':'; echo "${tokens[*]:1:2}")
+    cache_from_group_name=$(IFS=':'; echo "${tokens[*]:3}")
+    if [[ -z "$cache_from_group_name" ]]; then
+      cache_from_group_name=":default:"
+    fi
+    # The variable with this name will hold an array of group names:
     cache_image_name="$(service_name_cache_from_var "$service_name")"
 
     if [[ -n ${!cache_image_name+x} ]]; then
-      continue # skipping since there's already a pulled cache image for this service
+      if [[ "$(named_array_values ${cache_image_name})" =~ "${cache_from_group_name}" ]]; then
+        continue # skipping since there's already a pulled cache image for this service+group
+      fi
     fi
 
     echo "~~~ :docker: Pulling cache image for $service_name"
     if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
-      printf -v "$cache_image_name" "%s" "$service_image"
+      if [[ -z "${!cache_image_name+x}" ]]; then
+        declare -a "$cache_image_name"
+        cache_image_length=0
+      else
+        cache_image_length="$(count_of_named_array "${cache_image_name}")"
+      fi
+
+      declare "$cache_image_name+=( $cache_from_group_name )"
+      # The variable with this name will hold the image for the this group
+      # (based on index into the array of group names):
+      cache_from_group_var="$(service_name_group_name_cache_from_var "$service_name" "${cache_image_length}")"
+      printf -v "$cache_from_group_var" "%s" "$service_image"
     else
       echo "!!! :docker: Pull failed. $service_image will not be used as a cache for $service_name"
     fi
@@ -55,9 +91,15 @@ for service_name in $(plugin_read_list BUILD) ; do
 
   cache_from_var="$(service_name_cache_from_var "${service_name}")"
   if [[ -n "${!cache_from_var-}" ]]; then
-    build_images+=("${!cache_from_var}")
+    cache_from_length="$(count_of_named_array "${cache_from_var}")"
+    build_images+=("${cache_from_length}")
+
+    for i in $(seq 0 "$((cache_from_length-1))"); do
+      cache_from_group_var="$(service_name_group_name_cache_from_var "$service_name" "$i")"
+      build_images+=("${!cache_from_group_var}")
+    done
   else
-    build_images+=("")
+    build_images+=(0)
   fi
 done
 
@@ -104,6 +146,7 @@ if [[ -n "$image_repository" ]] ; then
     done
 
     # pop-off the last build image
-    build_images=("${build_images[@]:3}")
+    # 3 for service, image, num_cache_from; plus num_cache_from
+    build_images=("${build_images[@]:(3 + ${build_images[2]})}")
   done
 fi

@@ -131,7 +131,7 @@ You can use the [environment key in docker-compose.yml](https://docs.docker.com/
 variables from outside docker-compose.
 
 If you want to add extra environment above what is declared in your `docker-compose.yml`,
-this plugin offers a `environment` block of it's own:
+this plugin offers a `environment` block of its own:
 
 ```yml
 steps:
@@ -151,7 +151,7 @@ Note how the values in the list can either be just a key (so the value is source
 
 You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/#args) to set specific build arguments when building an image.
 
-Alternatively, if you want to set build arguments when pre-building an image, this plugin offers an `args` block of it's own:
+Alternatively, if you want to set build arguments when pre-building an image, this plugin offers an `args` block of its own:
 
 ```yml
 steps:
@@ -264,8 +264,8 @@ steps:
           username: xyz
       - docker-compose#v3.9.0:
           push:
-          - app:index.docker.io/myorg/myrepo/myapp
-          - app:index.docker.io/myorg/myrepo/myapp:latest
+            - app:index.docker.io/myorg/myrepo/myapp
+            - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
 
 ## Reusing caches from images
@@ -285,9 +285,61 @@ steps:
     plugins:
       - docker-compose#v3.9.0:
           push:
-          - app:index.docker.io/myorg/myrepo/myapp
-          - app:index.docker.io/myorg/myrepo/myapp:latest
+            - app:index.docker.io/myorg/myrepo/myapp
+            - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
+
+#### Multiple cache-from values
+
+This plugin allows for the value of `cache-from` to be a string or a list. If it's a list, as below, then the first successfully pulled image will be used.
+
+```yaml
+steps:
+  - label: ":docker Build an image"
+    plugins:
+      - docker-compose#v3.2.0:
+          build: app
+          image-repository: index.docker.io/myorg/myrepo
+          cache-from:
+            - app:index.docker.io/myorg/myrepo/myapp:my-branch
+            - app:index.docker.io/myorg/myrepo/myapp:latest
+  - wait
+  - label: ":docker: Push to final repository"
+    plugins:
+      - docker-compose#v3.2.0:
+          push:
+            - app:index.docker.io/myorg/myrepo/myapp
+            - app:index.docker.io/myorg/myrepo/myapp:my-branch
+            - app:index.docker.io/myorg/myrepo/myapp:latest
+```
+
+You may actually want to build your image with multiple cache-from values, for instance, with the cached images of multiple stages in a multi-stage build.
+By adding a grouping tag to the end of a cache-from list item, this plugin can differentiate between groups within which only the first successfully downloaded image should be used.
+This way, not all of the images need to be downloaded and used as cache, and also not just the first.
+
+```yaml
+steps:
+  - label: ":docker Build an image"
+    plugins:
+      - docker-compose#v3.2.0:
+          build: app
+          image-repository: index.docker.io/myorg/myrepo
+          cache-from:
+            - app:index.docker.io/myorg/myrepo/myapp-intermediate-target:this-build-number:intermediate
+            - app:index.docker.io/myorg/myrepo/myapp:my-branch
+            - app:index.docker.io/myorg/myrepo/myapp:latest
+  - wait
+  - label: ":docker: Push to final repository"
+    plugins:
+      - docker-compose#v3.2.0:
+          push:
+            - app:index.docker.io/myorg/myrepo/myapp
+            - app:index.docker.io/myorg/myrepo/myapp:my-branch
+            - app:index.docker.io/myorg/myrepo/myapp:latest
+```
+
+In the example above, the `myapp-intermediate-target:this-build-number` is one group named "intermediate", and `myapp:my-branch` and `myapp:latest`
+are another (with a default name). The first successfully downloaded image in each group will be used as a cache.
 
 ## Configuration
 
