@@ -1,0 +1,15 @@
+#!/bin/bash
+set -ueo pipefail
+
+if [[ -n "${RESTORE_REGISTRY:-}" ]]; then
+  echo "~~~ Downloading test Docker registry data"
+  buildkite-agent artifact download "${RESTORE_REGISTRY}" .
+  tar -xzf "${RESTORE_REGISTRY}"
+fi
+
+echo "~~~ Starting test Docker registry"
+docker run -d \
+  -p 5005:5000 \
+  --name docker-compose-plugin-registry \
+  -v "$(pwd)/tmp/registry:/var/lib/registry" \
+  registry:2

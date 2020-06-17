@@ -1,0 +1,8 @@
+#!/bin/bash
+set -ueo pipefail
+
+if [[ -n "${PERSIST_REGISTRY:-}" ]]; then
+  echo "~~~ Uploading test Docker registry data"
+  tar -czf "${PERSIST_REGISTRY}" tmp/registry
+  buildkite-agent artifact upload "${PERSIST_REGISTRY}"
+fi
