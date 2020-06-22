@@ -1,10 +1,10 @@
 #!/bin/bash
 set -ueo pipefail
 
-if [[ -n "${RESTORE_REGISTRY:-}" ]]; then
+if [[ -n "${RESTORE_REGISTRY_FROM:-}" ]]; then
   echo "~~~ Downloading test Docker registry data"
-  buildkite-agent artifact download "${RESTORE_REGISTRY}" .
-  tar -xzf "${RESTORE_REGISTRY}"
+  buildkite-agent artifact download --step "${RESTORE_REGISTRY_FROM}" docker-registry.tar.gz .
+  tar -xzf docker-registry.tar.gz
 fi
 
 echo "~~~ Starting test Docker registry"
