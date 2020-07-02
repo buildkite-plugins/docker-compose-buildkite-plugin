@@ -115,6 +115,10 @@ function docker_compose_config_files() {
 # Returns the version from the output of docker_compose_config
 function docker_compose_config_version() {
   IFS=$'\n' read -r -a config <<< "$(docker_compose_config_files)"
+  if [ ${#config[@]} -eq 0 ] ; then
+    echo "2"
+    return
+  fi
   awk '/^\s*version:/ { print $2; }' < "${config[0]}" | sed "s/[\"']//g"
 }
 
