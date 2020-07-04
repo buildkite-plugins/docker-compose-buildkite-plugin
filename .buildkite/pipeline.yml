@@ -64,7 +64,7 @@ steps:
   - label: run after build with v2.0
     depends_on: prebuild-2-0
     env:
-      RESTORE_REGISTRY_FROM: prebuild-2-0
+      RESTORE_REGISTRY_FROM: 'prebuild with v2.0'
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
