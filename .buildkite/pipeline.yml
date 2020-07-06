@@ -53,7 +53,7 @@ steps:
   - label: prebuild with v2.0
     key: prebuild-2-0
     env:
-      PERSIST_REGISTRY: "registry-prebuild-2.0.tar.gz"
+      PERSIST_REGISTRY: true
     command: /hello
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
@@ -64,7 +64,7 @@ steps:
   - label: run after build with v2.0
     depends_on: prebuild-2-0
     env:
-      RESTORE_REGISTRY: "registry-prebuild-2.0.tar.gz"
+      RESTORE_REGISTRY_FROM: prebuild-2-0
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
@@ -75,7 +75,7 @@ steps:
   - label: prebuild with v2.1
     key: prebuild-2-1
     env:
-      PERSIST_REGISTRY: "registry-prebuild-2.1.tar.gz"
+      PERSIST_REGISTRY: true
     command: /hello
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
@@ -86,7 +86,7 @@ steps:
   - label: run with default command
     depends_on: prebuild-2-1
     env:
-      RESTORE_REGISTRY: "registry-prebuild-2.1.tar.gz"
+      RESTORE_REGISTRY_FROM: prebuild-2-1
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
@@ -95,7 +95,7 @@ steps:
   - label: prebuild, where service has build and image-repo
     key: prebuild-2-1-build-image-repo
     env:
-      PERSIST_REGISTRY: "registry-prebuild-2.1-build-image-repo.tar.gz"
+      PERSIST_REGISTRY: true
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworldimage
@@ -106,7 +106,7 @@ steps:
   - label: run after prebuild
     depends_on: prebuild-2-1-build-image-repo
     env:
-      RESTORE_REGISTRY: "registry-prebuild-2.1-build-image-repo.tar.gz"
+      RESTORE_REGISTRY_FROM: prebuild-2-1-build-image-repo
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworldimage
@@ -117,7 +117,7 @@ steps:
   - label: prebuild with custom image-name
     key: prebuild-custom-image-name
     env:
-      PERSIST_REGISTRY: "registry-prebuild-custom-image-name.tar.gz"
+      PERSIST_REGISTRY: true
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
@@ -128,7 +128,7 @@ steps:
   - label: run after prebuild with custom image-name
     depends_on: prebuild-custom-image-name
     env:
-      RESTORE_REGISTRY: "registry-prebuild-custom-image-name.tar.gz"
+      RESTORE_REGISTRY_FROM: prebuild-custom-image-name
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
@@ -139,7 +139,7 @@ steps:
   - label: push after build with custom image-name
     depends_on: prebuild-custom-image-name
     env:
-      RESTORE_REGISTRY: "registry-prebuild-custom-image-name.tar.gz"
+      RESTORE_REGISTRY_FROM: prebuild-custom-image-name
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         push: helloworld

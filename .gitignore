@@ -1,4 +1,4 @@
 docker-compose.buildkite-1-override.yml 
 docker-compose-logs/
 tmp/
-registry-*.tar.gz
+docker-registry.tar.gz
