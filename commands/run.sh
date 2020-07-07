@@ -119,9 +119,20 @@ if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
   run_params+=("--workdir=$(plugin_read_config WORKDIR)")
 fi
 
+# Can't set both user and propagate-uid-gid
+if [[ -n "$(plugin_read_config USER)" ]] && [[ -n "$(plugin_read_config PROPAGATE_UID_GID)" ]]; then
+  echo "+++ Error: Can't set both user and propagate-uid-gid"
+  exit 1
+fi
+
 # Optionally run as specified username or uid
 if [[ -n "$(plugin_read_config USER)" ]] ; then
   run_params+=("--user=$(plugin_read_config USER)")
+fi
+
+# Optionally run as specified username or uid
+if [[ "$(plugin_read_config PROPAGATE_UID_GID "false")" == "true" ]] ; then
+  run_params+=("--user=$(id -u):$(id -g)")
 fi
 
 # Optionally disable ansi output
@@ -139,7 +150,26 @@ if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
   run_params+=(--rm)
 fi
 
+# Optionally sets --entrypoint
+if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
+  run_params+=("--entrypoint \"$(plugin_read_config ENTRYPOINT)\"")
+fi
+
 run_params+=("$run_service")
+
+build_params=(--pull)
+
+if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
+  build_params+=(--no-cache)
+fi
+
+if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
+  build_params+=(--parallel)
+fi
+
+while read -r arg ; do
+  [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
+done <<< "$(plugin_read_list ARGS)"
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
   echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
@@ -153,7 +183,7 @@ elif [[ ! -f "$override_file" ]]; then
   # Ideally we'd do a pull with a retry first here, but we need the conditional pull behaviour here
   # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
   # pull an image that doesn't exist
-  run_docker_compose build --pull "$run_service"
+  run_docker_compose build "${build_params[@]}" "$run_service"
 
   # Sometimes docker-compose pull leaves unfinished ansi codes
   echo
@@ -305,4 +335,4 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   fi
 fi
 
-exit $exitcode
+return $exitcode
