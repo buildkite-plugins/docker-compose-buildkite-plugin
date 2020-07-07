@@ -150,6 +150,11 @@ if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
   run_params+=(--rm)
 fi
 
+# Optionally sets --entrypoint
+if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
+  run_params+=("--entrypoint \"$(plugin_read_config ENTRYPOINT)\"")
+fi
+
 run_params+=("$run_service")
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
