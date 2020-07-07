@@ -1,3 +1,9 @@
+env:
+  # Some of these are end-to-end integration tests that require a Docker
+  # registry to run. We boot one up in the .hooks/pre-command, and then use that
+  # registry for doing all the push/pull testing.
+  IMAGE_REPO: "localhost:5005/docker-compose-test"
+
 steps:
   - label: ":shell: Shellcheck"
     plugins:
@@ -14,120 +20,128 @@ steps:
 
   - label: ":bash: Tests"
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: tests
 
-  - wait
+  # The rest of the steps are integration tests
+
   - label: run, with links that fail
     command: echo hello from alpine
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: alpinewithfailinglink
         config: tests/composefiles/docker-compose.v2.1.yml
 
-  - wait
   - label: run, with environment
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: alpinewithenv
         config: tests/composefiles/docker-compose.v2.1.yml
         environment:
           - ALPACAS=sometimes
 
-  - wait
   - label: run, with multi-line command
     command: |
       echo \
       hello \
       world
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: alpinewithenv
         config: tests/composefiles/docker-compose.v2.1.yml
 
-  - wait
   - label: prebuild with v2.0
+    key: prebuild-2-0
+    env:
+      PERSIST_REGISTRY: true
     command: /hello
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
+        image-repository: "$IMAGE_REPO"
         config: tests/composefiles/docker-compose.v2.0.yml
 
-  - wait
   - label: run after build with v2.0
+    depends_on: prebuild-2-0
+    env:
+      RESTORE_REGISTRY_FROM: prebuild-2-0
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
         require-prebuild: true
         config: tests/composefiles/docker-compose.v2.0.yml
         command: ["/hello"]
 
-  - wait
   - label: prebuild with v2.1
+    key: prebuild-2-1
+    env:
+      PERSIST_REGISTRY: true
     command: /hello
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
+        image-repository: "$IMAGE_REPO"
         config: tests/composefiles/docker-compose.v2.1.yml
 
-  - wait
-  - label: run after build with v2.1
-    plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        run: helloworld
-        require-prebuild: true
-        config: tests/composefiles/docker-compose.v2.1.yml
-        command: ["/hello"]
-
-  - wait
   - label: run with default command
+    depends_on: prebuild-2-1
+    env:
+      RESTORE_REGISTRY_FROM: prebuild-2-1
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
         config: tests/composefiles/docker-compose.v2.1.yml
 
-  - wait
-  - label: prebuild, where service has build and image-name
+  - label: prebuild, where service has build and image-repo
+    key: prebuild-2-1-build-image-repo
+    env:
+      PERSIST_REGISTRY: true
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworldimage
-        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
+        image-repository: "$IMAGE_REPO"
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
 
-  - wait
   - label: run after prebuild
+    depends_on: prebuild-2-1-build-image-repo
+    env:
+      RESTORE_REGISTRY_FROM: prebuild-2-1-build-image-repo
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworldimage
         require-prebuild: true
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
 
-  - wait
   - label: prebuild with custom image-name
+    key: prebuild-custom-image-name
+    env:
+      PERSIST_REGISTRY: true
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: ${DOCKER_REPO-buildkiteci/docker-compose-buildkite-plugin}
+        image-repository: "$IMAGE_REPO"
         image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
         config: tests/composefiles/docker-compose.v2.1.yml
 
-  - wait
   - label: run after prebuild with custom image-name
+    depends_on: prebuild-custom-image-name
+    env:
+      RESTORE_REGISTRY_FROM: prebuild-custom-image-name
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
         require-prebuild: true
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
 
-  - wait
   - label: push after build with custom image-name
+    depends_on: prebuild-custom-image-name
+    env:
+      RESTORE_REGISTRY_FROM: prebuild-custom-image-name
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         push: helloworld
         image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
         config: tests/composefiles/docker-compose.v2.1.yml
