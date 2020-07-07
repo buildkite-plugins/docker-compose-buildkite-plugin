@@ -381,6 +381,12 @@ A list of volumes to mount into the container. If a matching volume exists in th
 
 Additionally, volumes may be specified via the agent environment variable `BUILDKITE_DOCKER_DEFAULT_VOLUMES`, a `;` (semicolon)  delimited list of mounts in the `-v` syntax. (Ex. `buildkite:/buildkite;./app:/app`).
 
+### `graceful-shutdown` (optional, run only)
+
+Gracefully shuts down all containers via 'docker-compose stop`.
+
+The default is `false`.
+
 ### `leave-volumes` (optional, run only)
 
 Prevent the removal of volumes after the command has been run.
