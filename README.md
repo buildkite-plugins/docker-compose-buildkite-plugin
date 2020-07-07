@@ -387,15 +387,15 @@ Prevent the removal of volumes after the command has been run.
 
 The default is `false`.
 
-### `no-cache` (optional, build only)
+### `no-cache` (optional, build and run only)
 
-Sets the build step to run with `--no-cache`, causing Docker Compose to not use any caches when building the image.
+Build with `--no-cache`, causing Docker Compose to not use any caches when building the image.
 
 The default is `false`.
 
-### `build-parallel` (optional, build only)
+### `build-parallel` (optional, build and run only)
 
-Set the build step to run with `--parallel`, causing Docker Compose to run builds in parallel. Requires docker-compose `1.23+`.
+Build with `--parallel`, causing Docker Compose to run builds in parallel. Requires docker-compose `1.23+`.
 
 The default is `false`.
 
