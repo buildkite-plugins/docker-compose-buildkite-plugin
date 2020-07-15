@@ -1,0 +1,6 @@
+#!/bin/bash
+set -ueo pipefail
+
+# If they're using Buildkit, make sure it doesn't output the '---' lines that
+# mess up Buildkite's log output grouping
+export BUILDKIT_PROGRESS=plain
