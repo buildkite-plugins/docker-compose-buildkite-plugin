@@ -454,7 +454,7 @@ export BUILDKITE_JOB_ID=1111
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --no-ansi --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice without ansi output"
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml --no-ansi run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice without ansi output"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \

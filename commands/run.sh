@@ -76,6 +76,11 @@ if [[ ${#pull_services[@]} -gt 0 ]] ; then
   echo
 fi
 
+# Optionally disable ansi output
+if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
+  run_params+=(--no-ansi)
+fi
+
 # We set a predictable container name so we can find it and inspect it later on
 run_params+=("run" "--name" "$container_name")
 
@@ -133,11 +138,6 @@ fi
 # Optionally run as specified username or uid
 if [[ "$(plugin_read_config PROPAGATE_UID_GID "false")" == "true" ]] ; then
   run_params+=("--user=$(id -u):$(id -g)")
-fi
-
-# Optionally disable ansi output
-if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
-  run_params+=(--no-ansi)
 fi
 
 # Enable alias support for networks
