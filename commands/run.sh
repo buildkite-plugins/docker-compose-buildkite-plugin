@@ -152,7 +152,8 @@ fi
 
 # Optionally sets --entrypoint
 if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
-  run_params+=("--entrypoint \"$(plugin_read_config ENTRYPOINT)\"")
+  run_params+=(--entrypoint)
+  run_params+=("$(plugin_read_config ENTRYPOINT)")
 fi
 
 run_params+=("$run_service")
