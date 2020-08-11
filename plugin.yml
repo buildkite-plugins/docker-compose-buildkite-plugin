@@ -66,6 +66,8 @@ configuration:
       type: boolean
     workdir:
       type: string
+    mount-buildkite-agent:
+      type: boolean
   oneOf:
     - required:
       - run
@@ -92,3 +94,4 @@ configuration:
     tty: [ run ]
     workdir: [ run ]
     user: [ run ]
+    mount-buildkite-agent: [ run ]
