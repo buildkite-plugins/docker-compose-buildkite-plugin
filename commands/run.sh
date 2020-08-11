@@ -320,7 +320,8 @@ set -e
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
-  echo "+++ :warning: Failed to run command, exited with $exitcode"
+  echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
+  echo "${run_params[@]}"
 fi
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
