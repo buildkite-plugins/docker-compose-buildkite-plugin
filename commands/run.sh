@@ -62,9 +62,9 @@ fi
 
 # If there are multiple services to pull, run it in parallel (although this is now the default)
 if [[ ${#pull_services[@]} -gt 1 ]] ; then
-  pull_params+=("pull" "--parallel" "${pull_services[@]}")
+  pull_params+=("pull" "--parallel" "--include-deps" "${pull_services[@]}")
 elif [[ ${#pull_services[@]} -eq 1 ]] ; then
-  pull_params+=("pull" "${pull_services[0]}")
+  pull_params+=("pull" "--include-deps" "${pull_services[0]}")
 fi
 
 # Pull down specified services
@@ -152,9 +152,9 @@ fi
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
   echo "~~~ :docker: Starting dependencies"
   if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
+    retry "$pull_retries" run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
   else
-    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
+    retry "$pull_retries" run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
   fi
 
   # Sometimes docker-compose leaves unfinished ansi codes
