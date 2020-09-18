@@ -8,6 +8,7 @@ run_service="$(plugin_read_config RUN)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
+mount_ssh_agent=''
 
 expand_headers_on_error() {
   echo "^^^ +++"
@@ -281,6 +282,25 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
     run_params+=("$command_arg")
     display_command+=("${command_arg}")
   done
+fi
+
+# Mount ssh-agent socket and known_hosts
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-$mount_ssh_agent}" =~ ^(true|on|1)$ ]] ; then
+  if [[ -z "${SSH_AUTH_SOCK:-}" ]] ; then
+    echo "+++ 🚨 \$SSH_AUTH_SOCK isn't set, has ssh-agent started?"
+    exit 1
+  fi
+  if [[ -z "${IS_IN_TEST:-}" ]]; then
+    if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
+      echo "+++ 🚨 The file at ${SSH_AUTH_SOCK} isn't a socket, has ssh-agent started?"
+      exit 1
+    fi
+  fi
+  run_params+=(
+    "--env" "SSH_AUTH_SOCK=/ssh-agent"
+    "--volume" "${SSH_AUTH_SOCK}:/ssh-agent"
+    "--volume" "${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts"
+  )
 fi
 
 # Disable -e outside of the subshell; since the subshell returning a failure
