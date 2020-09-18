@@ -96,6 +96,25 @@ while IFS=$'\n' read -r vol ; do
   [[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
 done <<< "$(plugin_read_list VOLUMES)"
 
+# Mount ssh-agent socket and known_hosts
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-$mount_ssh_agent}" =~ ^(true|on|1)$ ]] ; then
+  if [[ -z "${SSH_AUTH_SOCK:-}" ]] ; then
+    echo "+++ 🚨 \$SSH_AUTH_SOCK isn't set, has ssh-agent started?"
+    exit 1
+  fi
+  if [[ -z "${IS_IN_TEST:-}" ]]; then
+    if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
+      echo "+++ 🚨 The file at ${SSH_AUTH_SOCK} isn't a socket, has ssh-agent started?"
+      exit 1
+    fi
+  fi
+  run_params+=(
+    "--env" "SSH_AUTH_SOCK=/ssh-agent"
+    "--volume" "${SSH_AUTH_SOCK}:/ssh-agent"
+    "--volume" "${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts"
+  )
+fi
+
 # Parse BUILDKITE_DOCKER_DEFAULT_VOLUMES delimited by semi-colons, normalized to
 # ignore spaces and leading or trailing semi-colons
 IFS=';' read -r -a default_volumes <<< "${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
@@ -282,25 +301,6 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
     run_params+=("$command_arg")
     display_command+=("${command_arg}")
   done
-fi
-
-# Mount ssh-agent socket and known_hosts
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-$mount_ssh_agent}" =~ ^(true|on|1)$ ]] ; then
-  if [[ -z "${SSH_AUTH_SOCK:-}" ]] ; then
-    echo "+++ 🚨 \$SSH_AUTH_SOCK isn't set, has ssh-agent started?"
-    exit 1
-  fi
-  if [[ -z "${IS_IN_TEST:-}" ]]; then
-    if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
-      echo "+++ 🚨 The file at ${SSH_AUTH_SOCK} isn't a socket, has ssh-agent started?"
-      exit 1
-    fi
-  fi
-  run_params+=(
-    "--env" "SSH_AUTH_SOCK=/ssh-agent"
-    "--volume" "${SSH_AUTH_SOCK}:/ssh-agent"
-    "--volume" "${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts"
-  )
 fi
 
 # Disable -e outside of the subshell; since the subshell returning a failure
