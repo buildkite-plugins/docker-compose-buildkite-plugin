@@ -843,7 +843,8 @@ export BUILDKITE_JOB_ID=1111
 
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo /tmp/fake-socket" \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo /tmp/fake-socket : built myservice" \
+    "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e SSH_AUTH_SOCK=/ssh-agent --volume /tmp/fake-socket:/ssh-agent --volume /root/.ssh/known_hosts:/root/.ssh/known_hosts --rm myservice /bin/sh -e -c 'echo /tmp/fake-socket' : echo ran myservice"
 
   stub buildkite-agent \
