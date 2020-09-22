@@ -359,6 +359,12 @@ Whether to match the user ID and group ID for the container user to the user ID 
 
 Using this option ensures that any files created on shared mounts from within the container will be accessible to the host user. It is otherwise common to accidentally create root-owned files that Buildkite will be unable to remove, since containers by default run as the root user.
 
+### `mount-buildkite-agent` (optional, run-only, boolean)
+
+Whether to automatically mount the `buildkite-agent` binary and associated environment variables from the host agent machine into the container.
+
+Default: `false`
+
 ### `pull-retries` (optional)
 
 A number of times to retry failed docker pull. Defaults to 0.

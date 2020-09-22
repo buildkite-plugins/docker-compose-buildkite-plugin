@@ -156,6 +156,28 @@ if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
   run_params+=("$(plugin_read_config ENTRYPOINT)")
 fi
 
+# Optionally handle the mount-buildkite-agent option
+if [[ "$(plugin_read_config MOUNT_BUILDKITE_AGENT "false")" == "true" ]]; then
+  if [[ -z "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+    if ! command -v buildkite-agent >/dev/null 2>&1 ; then
+      echo -n "+++ 🚨 Failed to find buildkite-agent in PATH to mount into container, "
+      echo "you can disable this behaviour with 'mount-buildkite-agent:false'"
+    else
+      BUILDKITE_AGENT_BINARY_PATH=$(command -v buildkite-agent)
+    fi
+  fi
+fi
+
+# Mount buildkite-agent if we have a path for it
+if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+  run_params+=(
+    "-e" "BUILDKITE_JOB_ID"
+    "-e" "BUILDKITE_BUILD_ID"
+    "-e" "BUILDKITE_AGENT_ACCESS_TOKEN"
+    "-v" "$BUILDKITE_AGENT_BINARY_PATH:/usr/bin/buildkite-agent"
+  )
+fi
+
 run_params+=("$run_service")
 
 build_params=(--pull)
@@ -299,7 +321,8 @@ set -e
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
-  echo "+++ :warning: Failed to run command, exited with $exitcode"
+  echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
+  echo "${run_params[@]}"
 fi
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
