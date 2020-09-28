@@ -103,6 +103,11 @@ for vol in "${default_volumes[@]:-}" ; do
   [[ -n "$trimmed_vol" ]] && run_params+=("-v" "$(expand_relative_volume_path "$trimmed_vol")")
 done
 
+# If there's a git mirror, mount it so that git references can be followed.
+if [[ -n "${BUILDKITE_REPO_MIRROR:-}" ]]; then
+  run_params+=("-v" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro")
+fi
+
 tty_default='true'
 
 # Set operating system specific defaults
