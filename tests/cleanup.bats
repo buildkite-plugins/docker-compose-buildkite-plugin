@@ -21,7 +21,7 @@ load '../lib/run'
     "-f docker-compose.yml -p buildkite1111 rm --force -v : echo removing stopped containers" \
     "-f docker-compose.yml -p buildkite1111 down --volumes : echo removing everything"
 
-  run $PWD/hooks/pre-exit
+  run $PWD/hooks/pre-artifact
 
   assert_success
   assert_output --partial "Cleaning up after docker-compose"
