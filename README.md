@@ -262,7 +262,7 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 
 ```yaml
 steps:
-  - label: ":docker Build an image"
+  - label: ":docker: Build an image"
     plugins:
       - docker-compose#v3.7.0:
           build: app
