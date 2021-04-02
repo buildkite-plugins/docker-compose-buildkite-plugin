@@ -74,6 +74,8 @@ configuration:
       type: boolean
     mount-buildkite-agent:
       type: boolean
+    entrypoint:
+      type: [ string, array ]
   oneOf:
     - required:
       - run
