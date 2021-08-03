@@ -54,7 +54,7 @@ load '../lib/shared'
 
 @test "Whether docker-compose supports cache_from directive" {
   run docker_compose_supports_cache_from ""
-  assert_failure
+  assert_success
 
   run docker_compose_supports_cache_from "1.0"
   assert_failure
