@@ -46,6 +46,18 @@ steps:
             - docker-compose.test.yml
 ```
 
+You can also specify the Docker Compose config file with [`$COMPOSE_FILE`](https://docs.docker.com/compose/reference/envvars/#compose_file):
+
+```yml
+env:
+  COMPOSE_FILE: docker-compose.yml
+steps:
+  - command: test.sh
+    plugins:
+      - docker-compose#v3.8.0:
+          run: app
+```
+
 You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry. For example, the following will build and push an image to a private repo, and pull from that private repo in subsequent run commands:
 
 ```yml
@@ -299,7 +311,7 @@ Pull down multiple pre-built images. By default only the service that is being r
 
 ### `config` (optional)
 
-The file name of the Docker Compose configuration file to use. Can also be a list of filenames.
+The file name of the Docker Compose configuration file to use. Can also be a list of filenames. If `$COMPOSE_FILE` is set, it will be used if `config` is not specified.
 
 Default: `docker-compose.yml`
 
