@@ -319,26 +319,37 @@ This way, not all of the images need to be downloaded and used as cache, and als
 
 ```yaml
 steps:
-  - label: ":docker Build an image"
+  - label: ":docker: Build Intermediate Image"
     plugins:
       - docker-compose#v3.2.0:
-          build: app
+          build:
+            - myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
+          image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
+          image-repository: index.docker.io/myorg/myrepo/myservice_intermediate
+          cache-from:
+            - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:${BUILDKITE_BRANCH}
+            - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:latest
+          push:
+            - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:${BUILDKITE_BRANCH}
+  - wait
+
+  - label: ":docker: Build Final Image"
+    plugins:
+      - docker-compose#v3.2.0:
+          build:
+            - myservice
+          image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo
           cache-from:
-            - app:index.docker.io/myorg/myrepo/myapp-intermediate-target:this-build-number:intermediate
-            - app:index.docker.io/myorg/myrepo/myapp:my-branch
-            - app:index.docker.io/myorg/myrepo/myapp:latest
-  - wait
-  - label: ":docker: Push to final repository"
-    plugins:
-      - docker-compose#v3.2.0:
+            - myservice:index.docker.io/myorg/myrepo/myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}:intermediate  # built in step above
+            - myservice:index.docker.io/myorg/myrepo/myservice:${BUILDKITE_BRANCH}
+            - myservice:index.docker.io/myorg/myrepo/myservice:latest
           push:
-            - app:index.docker.io/myorg/myrepo/myapp
-            - app:index.docker.io/myorg/myrepo/myapp:my-branch
-            - app:index.docker.io/myorg/myrepo/myapp:latest
+            - myservice:index.docker.io/myorg/myrepo/myservice:${BUILDKITE_BRANCH}
+            - myservice:index.docker.io/myorg/myrepo/myservice:latest
 ```
 
-In the example above, the `myapp-intermediate-target:this-build-number` is one group named "intermediate", and `myapp:my-branch` and `myapp:latest`
+In the example above, the `myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}` is one group named "intermediate", and `myservice:${BUILDKITE_BRANCH}` and `myservice:latest`
 are another (with a default name). The first successfully downloaded image in each group will be used as a cache.
 
 ## Configuration
