@@ -297,7 +297,7 @@ This plugin allows for the value of `cache-from` to be a string or a list. If it
 steps:
   - label: ":docker Build an image"
     plugins:
-      - docker-compose#v3.2.0:
+      - docker-compose#v3.9.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from:
@@ -306,7 +306,7 @@ steps:
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v3.2.0:
+      - docker-compose#v3.9.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:my-branch
@@ -321,7 +321,7 @@ This way, not all of the images need to be downloaded and used as cache, and als
 steps:
   - label: ":docker: Build Intermediate Image"
     plugins:
-      - docker-compose#v3.2.0:
+      - docker-compose#v3.9.0:
           build:
             - myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
@@ -335,7 +335,7 @@ steps:
 
   - label: ":docker: Build Final Image"
     plugins:
-      - docker-compose#v3.2.0:
+      - docker-compose#v3.9.0:
           build:
             - myservice
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
