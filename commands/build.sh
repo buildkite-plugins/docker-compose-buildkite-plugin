@@ -50,7 +50,7 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
     cache_image_name="$(service_name_cache_from_var "$service_name")"
 
     if [[ -n ${!cache_image_name+x} ]]; then
-      if [[ "$(named_array_values ${cache_image_name})" =~ "${cache_from_group_name}" ]]; then
+      if [[ "$(named_array_values ${cache_image_name})" =~ ${cache_from_group_name} ]]; then
         continue # skipping since there's already a pulled cache image for this service+group
       fi
     fi
