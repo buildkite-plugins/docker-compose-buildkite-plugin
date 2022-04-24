@@ -322,8 +322,7 @@ steps:
   - label: ":docker: Build Intermediate Image"
     plugins:
       - docker-compose#v3.9.0:
-          build:
-            - myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
+          build: myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo/myservice_intermediate
           cache-from:
@@ -336,8 +335,7 @@ steps:
   - label: ":docker: Build Final Image"
     plugins:
       - docker-compose#v3.9.0:
-          build:
-            - myservice
+          build: myservice
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo
           cache-from:
