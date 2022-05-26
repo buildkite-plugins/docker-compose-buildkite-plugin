@@ -9,7 +9,7 @@ A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) that lets you 
 
 ## Example
 
-The following pipeline will run `test.sh` inside a `app` service container using Docker Compose, the equivalent to running `docker-compose run app test.sh`:
+The following pipeline will run `test.sh` inside an `app` service container using Docker Compose, the equivalent to running `docker-compose run app test.sh`:
 
 ```yml
 steps:
