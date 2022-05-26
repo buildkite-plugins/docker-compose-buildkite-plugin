@@ -130,7 +130,7 @@ interpolation of docker-compose.yml, but it doesn't pass them in to your contain
 You can use the [environment key in docker-compose.yml](https://docs.docker.com/compose/environment-variables/) to either set specific environment vars or "pass through" environment variables from outside docker-compose.
 
 If you want to add extra environment above what is declared in your `docker-compose.yml`,
-this plugin offers a `environment` block of it's own:
+this plugin offers an `environment` block of it's own:
 
 ```yml
 steps:
