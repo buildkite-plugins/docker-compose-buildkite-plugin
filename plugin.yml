@@ -72,6 +72,8 @@ configuration:
       type: string
     propagate-uid-gid:
       type: boolean
+    mount-ssh-agent:
+      type: boolean
     mount-buildkite-agent:
       type: boolean
     entrypoint:
