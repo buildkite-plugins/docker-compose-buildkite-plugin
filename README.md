@@ -328,11 +328,7 @@ steps:
           cache-from:
             - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:${BUILDKITE_BRANCH}
             - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:latest
-          run: test
-          push:
-            - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:${BUILDKITE_BRANCH}
   - wait
-
   - label: ":docker: Build Final Image"
     plugins:
       - docker-compose#v3.9.0:
