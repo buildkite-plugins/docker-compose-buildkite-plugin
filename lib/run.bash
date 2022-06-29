@@ -88,3 +88,42 @@ expand_relative_volume_path() {
 
   echo "${path/.\//$pwd/}"
 }
+
+# Prints information about the failed containers.
+function print_failed_container_information() {
+  # Get list of failed containers
+  containers=()
+  while read -r container ; do
+    [[ -n "$container" ]] && containers+=("$container")
+  done <<< "$(docker_ps_by_project -q)"
+
+  failed_containers=()
+  if [[ 0 != "${#containers[@]}" ]] ; then
+    while read -r container ; do
+      [[ -n "$container" ]] && failed_containers+=("$container")
+    done <<< "$(docker inspect -f '{{if ne 0 .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{ end }}' \
+      "${containers[@]}")"
+  fi
+
+  if [[ 0 != "${#failed_containers[@]}" ]] ; then
+    echo "+++ :warning: Some containers had non-zero exit codes"
+    docker_ps_by_project \
+      --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
+  fi
+}
+
+# Uploads the container's logs, respecting the `UPLOAD_CONTAINER_LOGS` option
+function upload_container_logs() {
+  run_service="$1"
+
+  if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
+    check_linked_containers_and_save_logs \
+      "$run_service" "docker-compose-logs" \
+      "$(plugin_read_config UPLOAD_CONTAINER_LOGS "on-error")"
+
+    if [[ -d "docker-compose-logs" ]] && test -n "$(find docker-compose-logs/ -maxdepth 1 -name '*.log' -print)"; then
+      echo "~~~ Uploading linked container logs"
+      buildkite-agent artifact upload "docker-compose-logs/*.log"
+    fi
+  fi
+}
