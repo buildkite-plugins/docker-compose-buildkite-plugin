@@ -253,8 +253,13 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
 fi
 
 # TODO: Customize which files are copied to the container
-echo "--- Copying . into ${run_service}:/vydia/"
-docker cp . "${run_service}:/vydia/"
+echo "--- :docker: Copying . into ${run_service}:/vydia/"
+echo "docker ps"
+docker ps
+container_id="$(run_docker_compose ps -q "${run_service}")"
+echo "docker container_id: ${container_id}"
+echo "docker cp"
+docker cp . "${container_id}:/vydia/"
 echo "Done cp"
 
 shell=()
