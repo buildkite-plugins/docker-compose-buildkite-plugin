@@ -252,6 +252,11 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
   echo
 fi
 
+# TODO: Customize which files are copied to the container
+echo "--- Copying . into ${run_service}:/vydia/"
+run_docker_compose cp . "${run_service}:/vydia/"
+echo "Done cp"
+
 shell=()
 shell_disabled=1
 result=()
