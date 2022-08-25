@@ -252,16 +252,6 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
   echo
 fi
 
-# TODO: Customize which files are copied to the container
-echo "--- :docker: Copying . into ${run_service}:/vydia/"
-echo "docker ps"
-docker ps
-container_id="$(run_docker_compose ps -q "${run_service}")"
-echo "docker container_id: ${container_id}"
-echo "docker cp"
-docker cp . "${container_id}:/vydia/"
-echo "Done cp"
-
 shell=()
 shell_disabled=1
 result=()
@@ -341,6 +331,8 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
     display_command+=("${command_arg}")
   done
 fi
+
+. "$DIR/../commands/run_on_host_when_container_ready.sh" &
 
 # Disable -e outside of the subshell; since the subshell returning a failure
 # would exit the parent shell (here) early.
