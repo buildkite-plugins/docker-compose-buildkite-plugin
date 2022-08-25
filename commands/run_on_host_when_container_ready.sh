@@ -5,7 +5,7 @@ set -ueo pipefail
 echo "--- :docker: Waiting for the container to start before copying . into ${run_service}:/vydia/"
 
 # Wait until the container is ready
-while [ -z "$(docker-compose ps -q ${run_service})" ]; do
+while [ -z "$(run_docker_compose ps -q ${run_service})" ]; do
   printf "."
   sleep 1
 done
