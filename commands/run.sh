@@ -254,7 +254,7 @@ fi
 
 # TODO: Customize which files are copied to the container
 echo "--- Copying . into ${run_service}:/vydia/"
-run_docker_compose cp . "${run_service}:/vydia/"
+docker cp . "${run_service}:/vydia/"
 echo "Done cp"
 
 shell=()
