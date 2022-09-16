@@ -8,6 +8,7 @@ run_service="$(plugin_read_config RUN)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
+mount_ssh_agent=''
 
 expand_headers_on_error() {
   echo "^^^ +++"
@@ -76,6 +77,11 @@ if [[ ${#pull_services[@]} -gt 0 ]] ; then
   echo
 fi
 
+# Optionally disable ansi output
+if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
+  run_params+=(--no-ansi)
+fi
+
 # We set a predictable container name so we can find it and inspect it later on
 run_params+=("run" "--name" "$container_name")
 
@@ -98,6 +104,11 @@ for vol in "${default_volumes[@]:-}" ; do
   [[ -n "$trimmed_vol" ]] && run_params+=("-v" "$(expand_relative_volume_path "$trimmed_vol")")
 done
 
+# If there's a git mirror, mount it so that git references can be followed.
+if [[ -n "${BUILDKITE_REPO_MIRROR:-}" ]]; then
+  run_params+=("-v" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro")
+fi
+
 tty_default='true'
 
 # Set operating system specific defaults
@@ -119,14 +130,20 @@ if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
   run_params+=("--workdir=$(plugin_read_config WORKDIR)")
 fi
 
+# Can't set both user and propagate-uid-gid
+if [[ -n "$(plugin_read_config USER)" ]] && [[ -n "$(plugin_read_config PROPAGATE_UID_GID)" ]]; then
+  echo "+++ Error: Can't set both user and propagate-uid-gid"
+  exit 1
+fi
+
 # Optionally run as specified username or uid
 if [[ -n "$(plugin_read_config USER)" ]] ; then
   run_params+=("--user=$(plugin_read_config USER)")
 fi
 
-# Optionally disable ansi output
-if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
-  run_params+=(--no-ansi)
+# Optionally run as specified username or uid
+if [[ "$(plugin_read_config PROPAGATE_UID_GID "false")" == "true" ]] ; then
+  run_params+=("--user=$(id -u):$(id -g)")
 fi
 
 # Enable alias support for networks
@@ -139,7 +156,70 @@ if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
   run_params+=(--rm)
 fi
 
+# Optionally sets --entrypoint
+if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
+  run_params+=(--entrypoint)
+  run_params+=("$(plugin_read_config ENTRYPOINT)")
+fi
+
+# Mount ssh-agent socket and known_hosts
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-$mount_ssh_agent}" =~ ^(true|on|1)$ ]] ; then
+  if [[ -z "${SSH_AUTH_SOCK:-}" ]] ; then
+    echo "+++ 🚨 \$SSH_AUTH_SOCK isn't set, has ssh-agent started?"
+    exit 1
+  fi
+  if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
+    echo "+++ 🚨 There isn't any file at ${SSH_AUTH_SOCK}, has ssh-agent started?"
+    exit 1
+  fi
+  if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
+    echo "+++ 🚨 The file at ${SSH_AUTH_SOCK} isn't a socket, has ssh-agent started?"
+    exit 1
+  fi
+  run_params+=(
+    "-e" "SSH_AUTH_SOCK=/ssh-agent"
+    "-v" "${SSH_AUTH_SOCK}:/ssh-agent"
+    "-v" "${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts"
+  )
+fi
+
+# Optionally handle the mount-buildkite-agent option
+if [[ "$(plugin_read_config MOUNT_BUILDKITE_AGENT "false")" == "true" ]]; then
+  if [[ -z "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+    if ! command -v buildkite-agent >/dev/null 2>&1 ; then
+      echo -n "+++ 🚨 Failed to find buildkite-agent in PATH to mount into container, "
+      echo "you can disable this behaviour with 'mount-buildkite-agent:false'"
+    else
+      BUILDKITE_AGENT_BINARY_PATH=$(command -v buildkite-agent)
+    fi
+  fi
+fi
+
+# Mount buildkite-agent if we have a path for it
+if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+  run_params+=(
+    "-e" "BUILDKITE_JOB_ID"
+    "-e" "BUILDKITE_BUILD_ID"
+    "-e" "BUILDKITE_AGENT_ACCESS_TOKEN"
+    "-v" "$BUILDKITE_AGENT_BINARY_PATH:/usr/bin/buildkite-agent"
+  )
+fi
+
 run_params+=("$run_service")
+
+build_params=(--pull)
+
+if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
+  build_params+=(--no-cache)
+fi
+
+if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
+  build_params+=(--parallel)
+fi
+
+while read -r arg ; do
+  [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
+done <<< "$(plugin_read_list ARGS)"
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
   echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
@@ -153,7 +233,7 @@ elif [[ ! -f "$override_file" ]]; then
   # Ideally we'd do a pull with a retry first here, but we need the conditional pull behaviour here
   # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
   # pull an image that doesn't exist
-  run_docker_compose build --pull "$run_service"
+  run_docker_compose build "${build_params[@]}" "$run_service"
 
   # Sometimes docker-compose pull leaves unfinished ansi codes
   echo
@@ -268,7 +348,8 @@ set -e
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
-  echo "+++ :warning: Failed to run command, exited with $exitcode"
+  echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
+  echo "${run_params[@]}"
 fi
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
@@ -305,4 +386,4 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   fi
 fi
 
-exit $exitcode
+return $exitcode

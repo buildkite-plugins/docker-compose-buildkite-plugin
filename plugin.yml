@@ -70,6 +70,14 @@ configuration:
       type: boolean
     upload-container-logs:
       type: string
+    propagate-uid-gid:
+      type: boolean
+    mount-ssh-agent:
+      type: boolean
+    mount-buildkite-agent:
+      type: boolean
+    entrypoint:
+      type: string
   oneOf:
     - required:
       - run
@@ -84,15 +92,15 @@ configuration:
     image-name: [ build ]
     env: [ run ]
     environment: [ run ]
-    pull-retries: [ build, run ]
     push-retries: [ push ]
     cache-from: [ build ]
     volumes: [ run ]
     leave-volumes: [ run ]
-    no-cache: [ build ]
     use-aliases: [ run ]
     dependencies: [ run ]
     ansi: [ run ]
     tty: [ run ]
     workdir: [ run ]
     user: [ run ]
+    propagate-uid-gid: [ run ]
+    mount-buildkite-agent: [ run ]

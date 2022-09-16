@@ -18,23 +18,26 @@ if [[ -z "$image_repository" ]] ; then
 fi
 
 # Read any cache-from parameters provided and pull down those images first
-for line in $(plugin_read_list CACHE_FROM) ; do
-  IFS=':' read -r -a tokens <<< "$line"
-  service_name=${tokens[0]}
-  service_image=$(IFS=':'; echo "${tokens[*]:1}")
-  cache_image_name="$(service_name_cache_from_var "$service_name")"
+# If no-cache is set skip pulling the cache-from images
+if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
+  for line in $(plugin_read_list CACHE_FROM) ; do
+    IFS=':' read -r -a tokens <<< "$line"
+    service_name=${tokens[0]}
+    service_image=$(IFS=':'; echo "${tokens[*]:1}")
+    cache_image_name="$(service_name_cache_from_var "$service_name")"
 
-  if [[ -n ${!cache_image_name+x} ]]; then
-    continue # skipping since there's already a pulled cache image for this service
-  fi
+    if [[ -n ${!cache_image_name+x} ]]; then
+      continue # skipping since there's already a pulled cache image for this service
+    fi
 
-  echo "~~~ :docker: Pulling cache image for $service_name"
-  if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
-    printf -v "$cache_image_name" "%s" "$service_image"
-  else
-    echo "!!! :docker: Pull failed. $service_image will not be used as a cache for $service_name"
-  fi
-done
+    echo "~~~ :docker: Pulling cache image for $service_name"
+    if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
+      printf -v "$cache_image_name" "%s" "$service_image"
+    else
+      echo "!!! :docker: Pull failed. $service_image will not be used as a cache for $service_name"
+    fi
+  done
+fi
 
 # Run through all images in the build property, either a single item or a list
 # and build up a list of service name, image name and optional cache-froms to
