@@ -479,6 +479,10 @@ Select when to upload container logs.
 
 The default is `on-error`.
 
+### `cli-version` (optional)
+
+If set to `1`, plugin will use `docker-compose` executable, else `docker compose` will be used.
+
 ## Developing
 
 To run the tests:
