@@ -339,9 +339,7 @@ steps:
             - myservice:index.docker.io/myorg/myrepo/myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}:intermediate  # built in step above
             - myservice:index.docker.io/myorg/myrepo/myservice:${BUILDKITE_BRANCH}
             - myservice:index.docker.io/myorg/myrepo/myservice:latest
-          push:
-            - myservice:index.docker.io/myorg/myrepo/myservice:${BUILDKITE_BRANCH}
-            - myservice:index.docker.io/myorg/myrepo/myservice:latest
+
 ```
 
 In the example above, the `myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}` is one group named "intermediate", and `myservice:${BUILDKITE_BRANCH}` and `myservice:latest`
