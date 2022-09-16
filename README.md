@@ -314,8 +314,7 @@ steps:
 ```
 
 You may actually want to build your image with multiple cache-from values, for instance, with the cached images of multiple stages in a multi-stage build.
-Adding a grouping tag to the end of a cache-from list item allows this plugin to differentiate between groups within which only the first successfully downloaded image should be used.
-This way, not all images need to be downloaded and used as cache, not just the first.
+Adding a grouping tag to the end of a cache-from list item allows this plugin to differentiate between groups within which only the first successfully downloaded image should be used (those elements that don't have a group specified will make a separate `:default:` group of its own). This way, not all images need to be downloaded and used as cache, not just the first.
 
 ```yaml
 steps:

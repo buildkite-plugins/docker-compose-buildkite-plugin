@@ -55,7 +55,7 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
       fi
     fi
 
-    echo "~~~ :docker: Pulling cache image for $service_name"
+    echo "~~~ :docker: Pulling cache image for $service_name (group ${cache_from_group_name})"
     if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
       if [[ -z "${!cache_image_name+x}" ]]; then
         declare -a "$cache_image_name"
