@@ -774,6 +774,29 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
+@test "Fail with custom user and propagate UIDs" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="sh -c 'whoami'"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER="1000:1001"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROPAGATE_UID_GID="true"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run $PWD/hooks/command
+
+  assert_failure
+  assert_output --partial "Error"
+  assert_output --partial "Can't set both user and propagate-uid-gid"
+  unstub buildkite-agent
+}
+
+
 @test "Run without --rm" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
