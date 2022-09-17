@@ -79,10 +79,11 @@ configuration:
     entrypoint:
       type: string
   oneOf:
-    - required:
-      - run
-    - required:
-      - build
+    - anyOf:
+      - required:
+        - run
+      - required:
+        - build
     - required:
       - push
   additionalProperties: false
