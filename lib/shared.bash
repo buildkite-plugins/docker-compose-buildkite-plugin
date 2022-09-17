@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BATS_MOCK_FILE='/usr/local/lib/bats/bats-mock/binstub'
-if ! grep -q '#BUG-CORRECTED' $BATS_MOCK_FILE; then
+if [[ -e $BATS_MOCK_FILE ]] && ! grep -q '#BUG-CORRECTED' $BATS_MOCK_FILE; then
   echo 'Applied fix to bats-mock' >&3
   sed -i "$(sed -n '/\${!_STUB_RESULT}/ =' $BATS_MOCK_FILE | tail -n 1)"' s/${!_STUB_RESULT}/$status/' $BATS_MOCK_FILE
   echo '#BUG-CORRECTED' >> $BATS_MOCK_FILE
