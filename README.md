@@ -77,6 +77,19 @@ steps:
           run: app
 ```
 
+Alternatively, you can do everything in a single step:
+```yml
+steps:
+  - command: test.sh
+    plugins:
+      - docker-login#v2.0.1:
+          username: xyz
+      - docker-compose#v3.11.0:
+          build: app
+          image-repository: index.docker.io/myorg/myrepo
+          run: app
+```
+
 If you want to control how your command is passed to docker-compose, you can use the command parameter on the plugin directly:
 
 ```yml
