@@ -78,6 +78,8 @@ configuration:
       type: boolean
     entrypoint:
       type: string
+    cli-version:
+      type: string
   oneOf:
     - required:
       - run
