@@ -15,7 +15,7 @@ steps:
 
   - label: ":sparkles: Lint"
     plugins:
-      plugin-linter#v2.0.0:
+      plugin-linter#v3.0.0:
         id: docker-compose
 
   - label: ":bash: Tests"
@@ -113,6 +113,8 @@ steps:
         require-prebuild: true
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
+
+  - wait: ~
 
   - label: prebuild with custom image-name
     key: prebuild-custom-image-name
