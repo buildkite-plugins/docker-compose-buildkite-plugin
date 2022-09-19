@@ -173,10 +173,8 @@ function build_image_override_file_with_version() {
 
 # Runs the docker-compose command, scoped to the project, with the given arguments
 function run_docker_compose() {
-  local command
-  if [[ "$(plugin_read_config CLI_VERSION "1")" == "1" ]] ; then
-    command=(docker-compose)
-  else
+  local command=(docker-compose)
+  if [[ "$(plugin_read_config CLI_VERSION "1")" == "2" ]] ; then
     command=(docker compose)
   fi
 
