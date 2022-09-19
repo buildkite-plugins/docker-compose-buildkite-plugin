@@ -89,7 +89,7 @@ load '../lib/shared'
 
   assert_success
   assert_output --partial "built myservice"
-  unstub docker
+  unstub docker-compose
 }
 
 @test "Build with docker-compose v2" {
