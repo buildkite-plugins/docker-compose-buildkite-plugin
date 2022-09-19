@@ -80,6 +80,9 @@ configuration:
       type: string
     cli-version:
       type: string
+      enum:
+        - 1
+        - 2
   oneOf:
     - required:
       - run
