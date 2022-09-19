@@ -52,6 +52,13 @@ load '../lib/shared'
   assert_output "2.1"
 }
 
+@test "Read version from docker-compose file with empty version" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.no-version.yml"
+  run docker_compose_config_version
+  assert_success
+  assert_output ""
+}
+
 @test "Whether docker-compose supports cache_from directive" {
   run docker_compose_supports_cache_from ""
   assert_success
