@@ -34,9 +34,9 @@ load '../lib/run'
 
   stub docker \
     "ps -a --filter label=com.docker.compose.project=buildkite1111 -q : cat tests/fixtures/id-multiple-services.txt" \
-    "inspect -f {{if\ ne\ 0\ .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{\ end\ }} 456456 : echo 456456.1" \
-    "ps -a --filter label=com.docker.compose.project=buildkite1111 --format : cat tests/fixtures/service-id-exit-multiple-services-failed.txt" \
-    "ps -a --filter label=com.docker.compose.project=buildkite1111 --format : cat tests/fixtures/id-service-multiple-services.txt" \
+    "inspect -f {{if\ ne\ 0\ .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{\ end\ }} 456456 789789 : echo 456456.1" \
+    "ps -a --filter label=com.docker.compose.project=buildkite1111 --format \* : cat tests/fixtures/service-id-exit-multiple-services-failed.txt" \
+    "ps -a --filter label=com.docker.compose.project=buildkite1111 --format \* : cat tests/fixtures/id-service-multiple-services.txt" \
     "inspect --format={{.State.ExitCode}} 456456 : echo 1" \
     "logs --timestamps --tail 5 456456 : exit 0" \
     "logs -t 456456 : exit 0" \
@@ -71,13 +71,13 @@ load '../lib/run'
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice"
 
   stub docker \
     "ps -a --filter label=com.docker.compose.project=buildkite1111 -q : cat tests/fixtures/id-multiple-services.txt" \
     "inspect -f {{if\ ne\ 0\ .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{\ end\ }} 456456 789789 : echo" \
-    "ps -a --filter : cat tests/fixtures/id-service-multiple-services.txt" \
+    "ps -a --filter label=com.docker.compose.project=buildkite1111 --format \* : cat tests/fixtures/id-service-multiple-services.txt" \
     "inspect --format={{.State.ExitCode}} 456456 : echo 0" \
     "inspect --format={{.State.ExitCode}} 789789 : echo 0"
 
