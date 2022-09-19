@@ -115,7 +115,7 @@ function docker_compose_config_files() {
 # Returns the version from the output of docker_compose_config
 function docker_compose_config_version() {
   IFS=$'\n' read -r -a config <<< "$(docker_compose_config_files)"
-  awk '/^\s*version:/ { print $2; exit; }' < "${config[0]}" | sed "s/[\"']//g"
+  grep 'version' < "${config[0]}" | sort -r | awk '/^\s*version:/ { print $2; exit; }'  | sed "s/[\"']//g"
 }
 
 # Build an docker-compose file that overrides the image for a set of

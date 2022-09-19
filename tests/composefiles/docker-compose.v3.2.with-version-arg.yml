@@ -1,8 +1,8 @@
-version: "3.2"
-
 services:
   helloworld:
     build:
       context: .
       args:
         version: 73.976.3
+
+version: "3.2"
