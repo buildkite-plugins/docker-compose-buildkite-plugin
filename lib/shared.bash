@@ -102,7 +102,7 @@ function docker_compose_config_files() {
 
   # Use a default if there are no config files specified
   if [[ -z "${config_files[*]:-}" ]]  ; then
-    echo "docker-compose.yml"
+    echo "${COMPOSE_FILE:-docker-compose.yml}"
     return
   fi
 
