@@ -25,7 +25,7 @@ load '../lib/run'
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
-    "artifact upload : exit 0"
+    "artifact upload docker-compose-logs/\*.log : exit 0"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
@@ -70,7 +70,7 @@ load '../lib/run'
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
-    "artifact upload : exit 0"
+    "artifact upload docker-compose-logs/\*.log : exit 0"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
@@ -163,7 +163,7 @@ load '../lib/run'
 
   stub docker \
     "ps -a --filter label=com.docker.compose.project=buildkite1111 -q : echo" \
-    "ps -a --filter : cat tests/fixtures/id-service-no-services.txt"
+    "ps -a --filter label=com.docker.compose.project=buildkite1111 --format '{{.ID}}\\t{{.Label \"com.docker.compose.service\"}}' : cat tests/fixtures/id-service-no-services.txt"
 
   run $PWD/hooks/command
 

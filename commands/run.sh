@@ -239,37 +239,33 @@ elif [[ ! -f "$override_file" ]]; then
   echo
 fi
 
-# Start up service dependencies in a different header to keep the main run with less noise
+dependency_exitcode=0
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
-  exitcode=0
 
+  # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
   if [[ ${#up_params[@]} -gt 0 ]] ; then
-    if ! run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"; then
-      exitcode=1
-    fi
+    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
   else
-    if ! run_docker_compose up -d --scale "${run_service}=0" "${run_service}"; then
-      exitcode=1
-    fi
+    run_docker_compose up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
   fi
 
   # Sometimes docker-compose leaves unfinished ansi codes
   echo
+fi
 
-  if [[ $exitcode -ne 0 ]] ; then
-    # Dependent services failed to start.
-    echo "^^^ +++"
-    echo "+++ 🚨 Failed to start dependencies"
+if [[ $dependency_exitcode -ne 0 ]] ; then
+  # Dependent services failed to start.
+  echo "^^^ +++"
+  echo "+++ 🚨 Failed to start dependencies"
 
-    if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
-      print_failed_container_information
+  if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
+    print_failed_container_information
 
-      upload_container_logs "$run_service"
-    fi
-
-    return $exitcode
+    upload_container_logs "$run_service"
   fi
+
+  return $exitcode
 fi
 
 shell=()
