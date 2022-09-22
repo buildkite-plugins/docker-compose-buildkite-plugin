@@ -265,7 +265,7 @@ if [[ $dependency_exitcode -ne 0 ]] ; then
     upload_container_logs "$run_service"
   fi
 
-  return $exitcode
+  return $dependency_exitcode
 fi
 
 shell=()
