@@ -339,6 +339,12 @@ if [[ ${#shell[@]} -gt 0 ]] ; then
 fi
 
 if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+  if [[ $(echo "$BUILDKITE_COMMAND" | wc -l) -gt 1 ]]; then
+    # An array of commands in the step will be a single string with multiple lines
+    # This breaks a lot of things here so we will print a warning for user to be aware
+    echo "⚠️  Warning: The command received has multiple lines."
+    echo "⚠️           The Docker Compose Plugin does not correctly support step-level array commands."
+  fi
   run_params+=("${BUILDKITE_COMMAND}")
   display_command+=("'${BUILDKITE_COMMAND}'")
 elif [[ ${#command[@]} -gt 0 ]] ; then
