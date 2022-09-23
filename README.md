@@ -19,6 +19,8 @@ steps:
           run: app
 ```
 
+:warning: Warning: you should not use this plugin with an array of commands at the step level. Execute a script in your repository, a single command separated by `;` or the plugin's [`command` option](#command-optional-run-only-array) instead.
+
 You can also specify a custom Docker Compose config file and what environment to pass
 through if you need:
 
