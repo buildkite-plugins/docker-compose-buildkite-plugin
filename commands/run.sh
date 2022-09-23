@@ -239,17 +239,33 @@ elif [[ ! -f "$override_file" ]]; then
   echo
 fi
 
-# Start up service dependencies in a different header to keep the main run with less noise
+dependency_exitcode=0
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
+
+  # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
   if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
+    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
   else
-    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
+    run_docker_compose up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
   fi
 
   # Sometimes docker-compose leaves unfinished ansi codes
   echo
+fi
+
+if [[ $dependency_exitcode -ne 0 ]] ; then
+  # Dependent services failed to start.
+  echo "^^^ +++"
+  echo "+++ 🚨 Failed to start dependencies"
+
+  if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
+    print_failed_container_information
+
+    upload_container_logs "$run_service"
+  fi
+
+  return $dependency_exitcode
 fi
 
 shell=()
@@ -354,35 +370,9 @@ fi
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" != "false" ]] ; then
+    print_failed_container_information
 
-    # Get list of failed containers
-    containers=()
-    while read -r container ; do
-      [[ -n "$container" ]] && containers+=("$container")
-    done <<< "$(docker_ps_by_project -q)"
-
-    failed_containers=()
-    if [[ 0 != "${#containers[@]}" ]] ; then
-      while read -r container ; do
-        [[ -n "$container" ]] && failed_containers+=("$container")
-      done <<< "$(docker inspect -f '{{if ne 0 .State.ExitCode}}{{.Name}}.{{.State.ExitCode}}{{ end }}' \
-        "${containers[@]}")"
-    fi
-
-    if [[ 0 != "${#failed_containers[@]}" ]] ; then
-      echo "+++ :warning: Some containers had non-zero exit codes"
-      docker_ps_by_project \
-        --format 'table {{.Label "com.docker.compose.service"}}\t{{ .ID }}\t{{ .Status }}'
-    fi
-
-    check_linked_containers_and_save_logs \
-      "$run_service" "docker-compose-logs" \
-      "$(plugin_read_config UPLOAD_CONTAINER_LOGS "on-error")"
-
-    if [[ -d "docker-compose-logs" ]] && test -n "$(find docker-compose-logs/ -maxdepth 1 -name '*.log' -print)"; then
-      echo "~~~ Uploading linked container logs"
-      buildkite-agent artifact upload "docker-compose-logs/*.log"
-    fi
+    upload_container_logs "$run_service"
   fi
 fi
 
