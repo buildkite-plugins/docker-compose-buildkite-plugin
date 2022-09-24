@@ -46,6 +46,8 @@ configuration:
     volumes:
       type: [ string, array ]
       minimum: 1
+    expand-volume-vars:
+      type: boolean
     command:
       type: array
     skip-checkout:
@@ -95,6 +97,7 @@ configuration:
     push-retries: [ push ]
     cache-from: [ build ]
     volumes: [ run ]
+    expand-volume-vars: [ volumes ]
     leave-volumes: [ run ]
     use-aliases: [ run ]
     dependencies: [ run ]

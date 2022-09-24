@@ -76,7 +76,14 @@ check_linked_containers_and_save_logs() {
 #
 # "./foo:/foo" => "/buildkite/builds/.../foo:/foo"
 expand_relative_volume_path() {
-  local path="$1"
+  local path
+
+  if [[ "$(plugin_read_config EXPAND_VOLUME_VARS 'false')" == "true" ]]; then
+    path=$(eval echo "$1")
+  else
+    path="$1"
+  fi
+
   local pwd="$PWD"
 
   # docker-compose's -v expects native paths on windows, so convert back.
@@ -85,6 +92,8 @@ expand_relative_volume_path() {
   if is_windows ; then
     pwd="$(cygpath -w "$PWD")"
   fi
+
+
 
   echo "${path/.\//$pwd/}"
 }
