@@ -114,6 +114,8 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
 
+  - wait: ~
+
   - label: prebuild with custom image-name
     key: prebuild-custom-image-name
     env:
