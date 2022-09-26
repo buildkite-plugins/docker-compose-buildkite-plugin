@@ -83,7 +83,7 @@ configuration:
       enum:
         - 1
         - 2
-  oneOf:
+  anyOf:
     - required:
       - run
     - required:

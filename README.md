@@ -15,7 +15,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
@@ -28,7 +28,7 @@ through if you need:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
           config: docker-compose.tests.yml
           env:
@@ -41,7 +41,7 @@ or multiple config files:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
           config:
             - docker-compose.yml
@@ -56,26 +56,7 @@ env:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v3.11.2:
-          run: app
-```
-
-You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry. For example, the following will build and push an image to a private repo, and pull from that private repo in subsequent run commands:
-
-```yml
-steps:
-  - plugins:
-      - docker-login#v2.0.1:
-          username: xyz
-      - docker-compose#v3.11.2:
-          build: app
-          image-repository: index.docker.io/myorg/myrepo
-  - wait
-  - command: test.sh
-    plugins:
-      - docker-login#v2.0.1:
-          username: xyz
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
@@ -84,10 +65,33 @@ If you want to control how your command is passed to docker-compose, you can use
 ```yml
 steps:
   - plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
           command: ["custom", "command", "values"]
 ```
+
+## Authenticated registries
+
+You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry. For example, the following will build and push an image to a private repo, and pull from that private repo in subsequent run commands:
+
+```yml
+steps:
+  - plugins:
+      - docker-login#v2.0.1:
+          username: xyz
+      - docker-compose#v3.12.0:
+          build: app
+          image-repository: index.docker.io/myorg/myrepo
+  - wait
+  - command: test.sh
+    plugins:
+      - docker-login#v2.0.1:
+          username: xyz
+      - docker-compose#v3.12.0:
+          run: app
+```
+
+Note, you will need to add the configuration to all steps in which you use this plugin.
 
 ## Artifacts
 
@@ -100,7 +104,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
@@ -118,7 +122,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
           volumes:
             - "./dist:/app/dist"
@@ -139,7 +143,7 @@ this plugin offers a `environment` block of its own:
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
           env:
             - BUILDKITE_BUILD_NUMBER
@@ -159,24 +163,24 @@ Alternatively, if you want to set build arguments when pre-building an image, th
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           args:
             - MY_CUSTOM_ARG=panda
 ```
 
-Note that the values in the list must be a KEY=VALUE pair.
+Note that the values in the list must be a `KEY=VALUE` pair.
 
 ## Pre-building the image
 
-To speed up run steps that use the same service/image (such as steps that run in parallel), you can add a pre-build step to your pipeline:
+If you have multiple steps that use the same service/image (such as steps that run in parallel), you can use this plugin in a specific `build` step to your pipeline. That will set specific metadata in the pipeline for this plugin to use in `run` steps afterwards:
 
 ```yml
 steps:
   - label: ":docker: Build"
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
 
@@ -186,11 +190,11 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
-All `run` steps for the service `app` will automatically pull and use the pre-built image.
+All `run` steps for the service `app` will automatically pull and use the pre-built image. Without this, each `Test %n` job would build its own instead.
 
 ## Building multiple images
 
@@ -202,7 +206,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           build:
             - app
             - tests
@@ -214,7 +218,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           run: tests
 ```
 
@@ -226,19 +230,7 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v3.11.2:
-          push: app
-```
-
-If you need to authenticate to the repository to push (e.g. when pushing to Docker Hub), use the Docker Login plugin:
-
-```yml
-steps:
-  - label: ":docker: Push"
-    plugins:
-      - docker-login#v2.0.1:
-          username: xyz
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           push: app
 ```
 
@@ -248,9 +240,7 @@ To push multiple images, you can use a list:
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-login#v2.0.1:
-          username: xyz
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           push:
             - first-service
             - second-service
@@ -262,9 +252,7 @@ If you want to push to a specific location (that's not defined as the `image` in
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-login#v2.0.1:
-          username: xyz
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -278,14 +266,14 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 steps:
   - label: ":docker: Build an image"
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v3.11.2:
+      - docker-compose#v3.12.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -299,7 +287,7 @@ This plugin allows for the value of `cache-from` to be a string or a list. If it
 steps:
   - label: ":docker Build an image"
     plugins:
-      - docker-compose#v3.9.0:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from:
@@ -308,7 +296,7 @@ steps:
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v3.9.0:
+      - docker-compose#v3.12.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:my-branch
@@ -322,7 +310,7 @@ Adding a grouping tag to the end of a cache-from list item allows this plugin to
 steps:
   - label: ":docker: Build Intermediate Image"
     plugins:
-      - docker-compose#v3.9.0:
+      - docker-compose#v3.12.0:
           build: myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo/myservice_intermediate
@@ -332,7 +320,7 @@ steps:
   - wait
   - label: ":docker: Build Final Image"
     plugins:
-      - docker-compose#v3.9.0:
+      - docker-compose#v3.12.0:
           build: myservice
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo
@@ -348,19 +336,55 @@ are another (with a default name). The first successfully downloaded image in ea
 
 ## Configuration
 
-### `build`
+### Main Commands
 
-The name of a service to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step’s `command` will be ignored and does not need to be specified.
+You will need to specify at least one of the following to use this extension.
+
+#### `build`
+
+The name of a service to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step's `command` will be ignored and does not need to be specified.
 
 Either a single service or multiple services can be provided as an array.
 
-### `run`
+#### `run`
 
 The name of the service the command should be run within. If the docker-compose command would usually be `docker-compose run app test.sh` then the value would be `app`.
 
-### `push`
+#### `push`
 
-A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built in push operation will be used.
+A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built-in push operation will be used.
+
+#### Known issues
+
+##### Run & Push
+
+A basic pipeline similar to the following:
+
+```yaml
+steps:
+  - label: ":docker: Run & Push"
+    plugins:
+      - docker-compose#v3.12.0:
+          run: myservice
+          push: myservice
+```
+
+Will cause the image to be built twice (once before running and once before pushing) unless there was a previous `build` step that set the appropriate metadata.
+
+##### Run & Push
+
+A basic pipeline similar to the following:
+
+```yaml
+steps:
+  - label: ":docker: Build & Push"
+    plugins:
+      - docker-compose#v3.12.0:
+          build: myservice
+          push: myservice
+```
+
+Will cause the image to be pushed twice (once by the build step and another by the push step)
 
 ### `pull` (optional, run only)
 
