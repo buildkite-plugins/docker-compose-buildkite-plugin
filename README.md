@@ -336,19 +336,55 @@ are another (with a default name). The first successfully downloaded image in ea
 
 ## Configuration
 
-### `build`
+### Main Commands
+
+You will need to specify at least one of the following to use this extension.
+
+#### `build`
 
 The name of a service to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step's `command` will be ignored and does not need to be specified.
 
 Either a single service or multiple services can be provided as an array.
 
-### `run`
+#### `run`
 
 The name of the service the command should be run within. If the docker-compose command would usually be `docker-compose run app test.sh` then the value would be `app`.
 
-### `push`
+#### `push`
 
 A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built-in push operation will be used.
+
+#### Known issues
+
+##### Run & Push
+
+A basic pipeline similar to the following:
+
+```yaml
+steps:
+  - label: ":docker: Run & Push"
+    plugins:
+      - docker-compose#v3.12.0:
+          run: myservice
+          push: myservice
+```
+
+Will cause the image to be built twice (once before running and once before pushing) unless there was a previous `build` step that set the appropriate metadata.
+
+##### Run & Push
+
+A basic pipeline similar to the following:
+
+```yaml
+steps:
+  - label: ":docker: Build & Push"
+    plugins:
+      - docker-compose#v3.12.0:
+          build: myservice
+          push: myservice
+```
+
+Will cause the image to be pushed twice (once by the build step and another by the push step)
 
 ### `pull` (optional, run only)
 
