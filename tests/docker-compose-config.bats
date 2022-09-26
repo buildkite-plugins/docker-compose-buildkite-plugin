@@ -52,6 +52,28 @@ load '../lib/shared'
   assert_output "2.1"
 }
 
+@test "Read version from first of two docker-compose files configured" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0="tests/composefiles/docker-compose.v2.1.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_1="tests/composefiles/docker-compose.v3.2.yml"
+  run docker_compose_config_version
+  assert_success
+  assert_output "2.1"
+}
+
+@test "Read version given docker-compose file with argument named version" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0="tests/composefiles/docker-compose.v3.2.with-version-arg.yml"
+  run docker_compose_config_version
+  assert_success
+  assert_output "3.2"
+}
+
+@test "Read version given docker-compose file with argument named version and whitespace" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0="tests/composefiles/docker-compose.v2.0.with-version-arg-and-whitespace.yml"
+  run docker_compose_config_version
+  assert_success
+  assert_output "2.0"
+}
+
 @test "Whether docker-compose supports cache_from directive" {
   run docker_compose_supports_cache_from ""
   assert_failure

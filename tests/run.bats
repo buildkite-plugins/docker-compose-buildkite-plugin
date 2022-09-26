@@ -54,6 +54,7 @@ load '../lib/run'
   run $PWD/hooks/command
 
   assert_success
+  refute_output --partial "The Docker Compose Plugin does not correctly support step-level array commands"
   assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
   unstub docker-compose
@@ -135,6 +136,7 @@ cmd3"
   run $PWD/hooks/command
 
   assert_success
+  assert_output --partial "The Docker Compose Plugin does not correctly support step-level array commands"
   assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
   unstub docker-compose
@@ -163,6 +165,7 @@ cmd3"
   run $PWD/hooks/command
 
   assert_success
+  refute_output --partial "The Docker Compose Plugin does not correctly support step-level array commands"
   assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
   unstub docker-compose

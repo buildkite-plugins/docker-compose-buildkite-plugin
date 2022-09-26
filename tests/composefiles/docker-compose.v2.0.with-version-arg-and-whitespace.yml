@@ -1,0 +1,7 @@
+    services:
+      helloworld:
+        build:
+          context: .
+          args:
+            version: 73.976.3
+    version:      '2.0'
