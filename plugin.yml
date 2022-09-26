@@ -78,7 +78,7 @@ configuration:
       type: boolean
     entrypoint:
       type: string
-  oneOf:
+  anyOf:
     - required:
       - run
     - required:
