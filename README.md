@@ -545,7 +545,7 @@ If set to `2`, plugin will use `docker compose` to execute commands; otherwise i
 To run the tests:
 
 ```bash
-docker-compose run --rm tests bats -r tests
+docker-compose run --rm tests bats tests tests/v2
 ```
 
 ## License
