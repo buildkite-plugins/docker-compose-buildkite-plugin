@@ -60,6 +60,18 @@ steps:
           run: app
 ```
 
+If you want to control how your command is passed to docker-compose, you can use the command parameter on the plugin directly:
+
+```yml
+steps:
+  - plugins:
+      - docker-compose#v3.11.2:
+          run: app
+          command: ["custom", "command", "values"]
+```
+
+## Authenticated registries
+
 You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry. For example, the following will build and push an image to a private repo, and pull from that private repo in subsequent run commands:
 
 ```yml
@@ -79,15 +91,7 @@ steps:
           run: app
 ```
 
-If you want to control how your command is passed to docker-compose, you can use the command parameter on the plugin directly:
-
-```yml
-steps:
-  - plugins:
-      - docker-compose#v3.11.1:
-          run: app
-          command: ["custom", "command", "values"]
-```
+Note, you will need to add the configuration to all steps in which you use this plugin.
 
 ## Artifacts
 
@@ -166,11 +170,11 @@ steps:
             - MY_CUSTOM_ARG=panda
 ```
 
-Note that the values in the list must be a KEY=VALUE pair.
+Note that the values in the list must be a `KEY=VALUE` pair.
 
 ## Pre-building the image
 
-To speed up run steps that use the same service/image (such as steps that run in parallel), you can add a pre-build step to your pipeline:
+If you have multiple steps that use the same service/image (such as steps that run in parallel), you can use this plugin in a specific `build` step to your pipeline. That will set specific metadata in the pipeline for this plugin to use in `run` steps afterwards:
 
 ```yml
 steps:
@@ -190,7 +194,7 @@ steps:
           run: app
 ```
 
-All `run` steps for the service `app` will automatically pull and use the pre-built image.
+All `run` steps for the service `app` will automatically pull and use the pre-built image. Without this, each `Test %n` job would build its own instead.
 
 ## Building multiple images
 
@@ -226,19 +230,7 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v3.11.1:
-          push: app
-```
-
-If you need to authenticate to the repository to push (e.g. when pushing to Docker Hub), use the Docker Login plugin:
-
-```yml
-steps:
-  - label: ":docker: Push"
-    plugins:
-      - docker-login#v2.0.1:
-          username: xyz
-      - docker-compose#v3.11.1:
+      - docker-compose#v3.11.2:
           push: app
 ```
 
@@ -248,9 +240,7 @@ To push multiple images, you can use a list:
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-login#v2.0.1:
-          username: xyz
-      - docker-compose#v3.11.1:
+      - docker-compose#v3.11.2:
           push:
             - first-service
             - second-service
@@ -262,9 +252,7 @@ If you want to push to a specific location (that's not defined as the `image` in
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-login#v2.0.1:
-          username: xyz
-      - docker-compose#v3.11.1:
+      - docker-compose#v3.11.2:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -350,7 +338,7 @@ are another (with a default name). The first successfully downloaded image in ea
 
 ### `build`
 
-The name of a service to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step’s `command` will be ignored and does not need to be specified.
+The name of a service to build and store, allowing following pipeline steps to run faster as they won't need to build the image. The step's `command` will be ignored and does not need to be specified.
 
 Either a single service or multiple services can be provided as an array.
 
@@ -360,7 +348,7 @@ The name of the service the command should be run within. If the docker-compose 
 
 ### `push`
 
-A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built in push operation will be used.
+A list of services to push in the format `service:image:tag`. If an image has been pre-built with the build step, that image will be re-tagged, otherwise docker-compose's built-in push operation will be used.
 
 ### `pull` (optional, run only)
 
