@@ -15,7 +15,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
@@ -28,7 +28,7 @@ through if you need:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
           config: docker-compose.tests.yml
           env:
@@ -41,7 +41,7 @@ or multiple config files:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
           config:
             - docker-compose.yml
@@ -56,7 +56,7 @@ env:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
@@ -65,7 +65,7 @@ If you want to control how your command is passed to docker-compose, you can use
 ```yml
 steps:
   - plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
           command: ["custom", "command", "values"]
 ```
@@ -79,7 +79,7 @@ steps:
   - plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
   - wait
@@ -87,7 +87,7 @@ steps:
     plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
@@ -104,7 +104,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
@@ -122,7 +122,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
           volumes:
             - "./dist:/app/dist"
@@ -143,7 +143,7 @@ this plugin offers a `environment` block of its own:
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
           env:
             - BUILDKITE_BUILD_NUMBER
@@ -163,7 +163,7 @@ Alternatively, if you want to set build arguments when pre-building an image, th
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           args:
@@ -180,7 +180,7 @@ If you have multiple steps that use the same service/image (such as steps that r
 steps:
   - label: ":docker: Build"
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
 
@@ -190,7 +190,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: app
 ```
 
@@ -206,7 +206,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           build:
             - app
             - tests
@@ -218,7 +218,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           run: tests
 ```
 
@@ -230,7 +230,7 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           push: app
 ```
 
@@ -240,7 +240,7 @@ To push multiple images, you can use a list:
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           push:
             - first-service
             - second-service
@@ -252,7 +252,7 @@ If you want to push to a specific location (that's not defined as the `image` in
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -266,14 +266,14 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 steps:
   - label: ":docker: Build an image"
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v3.11.3:
+      - docker-compose#v3.12.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -287,7 +287,7 @@ This plugin allows for the value of `cache-from` to be a string or a list. If it
 steps:
   - label: ":docker Build an image"
     plugins:
-      - docker-compose#v3.9.0:
+      - docker-compose#v3.12.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from:
@@ -296,7 +296,7 @@ steps:
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v3.9.0:
+      - docker-compose#v3.12.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:my-branch
@@ -310,7 +310,7 @@ Adding a grouping tag to the end of a cache-from list item allows this plugin to
 steps:
   - label: ":docker: Build Intermediate Image"
     plugins:
-      - docker-compose#v3.9.0:
+      - docker-compose#v3.12.0:
           build: myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo/myservice_intermediate
@@ -320,7 +320,7 @@ steps:
   - wait
   - label: ":docker: Build Final Image"
     plugins:
-      - docker-compose#v3.9.0:
+      - docker-compose#v3.12.0:
           build: myservice
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo
