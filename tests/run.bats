@@ -610,6 +610,110 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
+@test "Run with volumes with variables" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_0="\$SUPER_VARIABLE:/mnt"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_1="/:\$OTHER_VARIABLE"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_2="\$RELATIVE_VARIABLE:/srv"
+
+  export SUPER_VARIABLE='/test/path'
+  export OTHER_VARIABLE='/path/tested'
+  export RELATIVE_VARIABLE='./path'
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v \\\$SUPER_VARIABLE:/mnt -v /:\\\$OTHER_VARIABLE -v \\\$RELATIVE_VARIABLE:/srv --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with volumes"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with volumes"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+
+@test "Run with volumes with variables but option turned off" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXPAND_VOLUME_VARS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_0="\$SUPER_VARIABLE:/mnt"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_1="/:\$OTHER_VARIABLE"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_2="\$RELATIVE_VARIABLE:/srv"
+
+
+  export SUPER_VARIABLE='/test/path'
+  export OTHER_VARIABLE='/path/tested'
+  export RELATIVE_VARIABLE='./path'
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v \\\$SUPER_VARIABLE:/mnt -v /:\\\$OTHER_VARIABLE -v \\\$RELATIVE_VARIABLE:/srv --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with volumes"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with volumes"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Run with volumes with variables and option turned on" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXPAND_VOLUME_VARS=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_0="\$SUPER_VARIABLE:/mnt"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_1="/:\$OTHER_VARIABLE"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_2="\$RELATIVE_VARIABLE:/srv"
+
+
+  export SUPER_VARIABLE='/test/path'
+  export OTHER_VARIABLE='/path/tested'
+  export RELATIVE_VARIABLE='./path'
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -v /test/path:/mnt -v /:/path/tested -v $PWD/path:/srv --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with volumes"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with volumes"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
 @test "Run with default volumes" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
