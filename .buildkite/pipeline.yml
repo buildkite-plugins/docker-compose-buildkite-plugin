@@ -22,6 +22,7 @@ steps:
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: tests
+        command: ["bats", "tests", "tests/v2"]
 
   # The rest of the steps are integration tests
 

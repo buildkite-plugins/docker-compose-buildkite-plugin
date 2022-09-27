@@ -78,6 +78,11 @@ configuration:
       type: boolean
     entrypoint:
       type: string
+    cli-version:
+      type: string
+      enum:
+        - 1
+        - 2
   anyOf:
     - required:
       - run

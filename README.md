@@ -560,12 +560,16 @@ Select when to upload container logs.
 
 The default is `on-error`.
 
+### `cli-version` (optional)
+
+If set to `2`, plugin will use `docker compose` to execute commands; otherwise it will default to version `1` using `docker-compose` instead.
+
 ## Developing
 
 To run the tests:
 
 ```bash
-docker-compose run --rm tests
+docker-compose run --rm tests bats tests tests/v2
 ```
 
 ## License
