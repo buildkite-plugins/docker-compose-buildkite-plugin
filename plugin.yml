@@ -78,6 +78,8 @@ configuration:
       type: boolean
     mount-buildkite-agent:
       type: boolean
+    use-prior-image:
+      type: boolean
     entrypoint:
       type: string
     cli-version:
@@ -112,3 +114,4 @@ configuration:
     user: [ run ]
     propagate-uid-gid: [ run ]
     mount-buildkite-agent: [ run ]
+    use-prior-image: [ build ]

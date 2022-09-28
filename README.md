@@ -336,6 +336,22 @@ steps:
 In the example above, the `myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}` is one group named "intermediate", and `myservice:${BUILDKITE_BRANCH}` and `myservice:latest`
 are another (with a default name). The first successfully downloaded image in each group will be used as a cache.
 
+## Reusing previously built images
+
+If an build image has already been built previously, you can skip it if it
+already exists on the repository.
+
+```yaml
+steps:
+  - label: ":docker: Build an image"
+    plugins:
+      - docker-compose#v3.8.0:
+          build: app
+          image-repository: index.docker.io/myorg/myrepo
+          cache-from: app:index.docker.io/myorg/myrepo/myapp:123
+          use-prior-image: true
+```
+
 ## Configuration
 
 ### Main Commands
@@ -481,6 +497,11 @@ This option can also be configured on the agent machine using the environment va
 ### `cache-from` (optional, build only)
 
 A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
+
+### `use-prior-image` (optional, build only)
+
+When true, the build step will be skipped if the `cache-from` image exists on
+the remote repository. The run will use the existing image in later steps.
 
 ### `volumes` (optional, run only)
 

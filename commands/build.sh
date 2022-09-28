@@ -55,6 +55,16 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
       fi
     fi
 
+    if [[ "$(plugin_read_config USE_PRIOR_IMAGE "false")" == "true" ]] ; then
+      if docker manifest inspect "$service_image" > /dev/null; then
+        echo "Found matching image $cache_image_name, marking and skipping build"
+
+        set_prebuilt_image "$service_name" "$service_image"
+
+        exit 0;
+      fi
+    fi
+
     echo "~~~ :docker: Pulling cache image for $service_name (group ${cache_from_group_name})"
     if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
       if [[ -z "${!cache_image_name+x}" ]]; then
