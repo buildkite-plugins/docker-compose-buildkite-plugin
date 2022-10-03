@@ -128,7 +128,7 @@ function build_image_override_file() {
 # Checks that a specific version of docker-compose supports cache_from
 function docker_compose_supports_cache_from() {
   local version="$1"
-  if [[ -z "$version" || "$version" == 1* || "$version" =~ ^(2|3)(\.[01])?$ ]] ; then
+  if [[ "$version" == 1* || "$version" =~ ^(2|3)(\.[01])?$ ]] ; then
     return 1
   fi
 }
@@ -138,14 +138,17 @@ function docker_compose_supports_cache_from() {
 function build_image_override_file_with_version() {
   local version="$1"
 
-  if [[ -z "$version" ]]; then
+  if [[ "$version" == 1* ]] ; then
     echo "The 'build' option can only be used with Compose file versions 2.0 and above."
     echo "For more information on Docker Compose configuration file versions, see:"
     echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
     exit 1
   fi
 
-  printf "version: '%s'\\n" "$version"
+  if [[ -n "$version" ]]; then
+    printf "version: '%s'\\n" "$version"
+  fi
+
   printf "services:\\n"
 
   shift
