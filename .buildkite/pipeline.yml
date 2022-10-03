@@ -7,7 +7,7 @@ env:
 steps:
   - label: ":shell: Shellcheck"
     plugins:
-      shellcheck#v1.2.0:
+      shellcheck#v1.3.0:
         files:
           - hooks/**
           - lib/**
@@ -22,6 +22,7 @@ steps:
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: tests
+        command: ["bats", "tests", "tests/v2"]
 
   # The rest of the steps are integration tests
 
