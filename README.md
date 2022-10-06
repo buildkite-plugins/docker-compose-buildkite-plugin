@@ -390,7 +390,7 @@ Will cause the image to be pushed twice (once by the build step and another by t
 
 ### `pull` (optional, run only)
 
-Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images.
+Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images. Note that pulling will be skipped if the `skip-pull` option is activated.
 
 ### `config` (optional)
 
@@ -439,6 +439,10 @@ Example: `[ "powershell", "-Command" ]`
 ### `skip-checkout` (optional, run only)
 
 Whether to skip the repository checkout phase. This is useful for steps that use a pre-built image. This will fail if there is no pre-built image.
+
+### `skip-pull` (optional, run only)
+
+Completely avoid running any `pull` command. Images being used will need to be present in the machine from before or have been built in the same step. Could be useful to avoid hitting rate limits when you can be sure the operation is unnecessary. Note that it is possible other commands run in the plugin's lifecycle will trigger a pull of necessary images. 
 
 ### `workdir` (optional, run only)
 
