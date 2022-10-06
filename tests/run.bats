@@ -25,7 +25,7 @@ load '../lib/run'
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -51,7 +51,7 @@ load '../lib/run'
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   refute_output --partial "The Docker Compose Plugin does not correctly support step-level array commands"
@@ -79,7 +79,7 @@ load '../lib/run'
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -105,7 +105,7 @@ load '../lib/run'
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -133,7 +133,7 @@ cmd3"
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "The Docker Compose Plugin does not correctly support step-level array commands"
@@ -162,7 +162,7 @@ cmd3"
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   refute_output --partial "The Docker Compose Plugin does not correctly support step-level array commands"
@@ -194,7 +194,7 @@ cmd3"
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -220,7 +220,7 @@ cmd3"
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -248,7 +248,7 @@ cmd3"
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -275,7 +275,7 @@ cmd3"
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -302,7 +302,7 @@ cmd3"
     "meta-data exists docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -330,7 +330,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml-tests/composefiles/docker-compose.v2.1.yml : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml-tests/composefiles/docker-compose.v2.1.yml : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -357,7 +357,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -381,7 +381,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "Exited with 2"
@@ -409,7 +409,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled myservice"
@@ -437,7 +437,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice without tty"
@@ -463,7 +463,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice without dependencies"
@@ -490,7 +490,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice without ansi output"
@@ -517,7 +517,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with use aliases output"
@@ -545,7 +545,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -572,7 +572,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -602,7 +602,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -635,7 +635,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -671,7 +671,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -706,7 +706,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -733,7 +733,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -761,7 +761,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice-llamas1.yml-llamas2.yml-llamas3.yml : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -787,7 +787,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "^^^ +++"
@@ -818,7 +818,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice2 : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice2 : echo myimage2"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled myservice1 and myservice2"
@@ -845,7 +845,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -872,7 +872,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -895,7 +895,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "Error"
@@ -923,7 +923,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : echo myimage" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice without tty"
@@ -941,8 +941,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENTRYPOINT="my custom entrypoint"
 
-  ENTRYPOINT='--entrypoint\ \"my\ custom\ entrypoint\"'
-
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
@@ -951,7 +949,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -978,7 +976,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -1006,7 +1004,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -1033,7 +1031,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -1064,7 +1062,7 @@ export BUILDKITE_JOB_ID=1111
   apk add netcat-openbsd
   nc -lkvU $SSH_AUTH_SOCK &
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   kill %1
 
