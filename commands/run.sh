@@ -69,7 +69,7 @@ elif [[ ${#pull_services[@]} -eq 1 ]] ; then
 fi
 
 # Pull down specified services
-if [[ ${#pull_services[@]} -gt 0 ]] && [[ "$(plugin_read_config SKIP_PULL "false")" == "false" ]]; then
+if [[ ${#pull_services[@]} -gt 0 ]] && [[ "$(plugin_read_config SKIP_PULL "false")" != "true" ]]; then
   echo "~~~ :docker: Pulling services ${pull_services[0]}"
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
 
