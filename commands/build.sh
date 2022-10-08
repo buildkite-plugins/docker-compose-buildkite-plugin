@@ -7,15 +7,24 @@ push_retries="$(plugin_read_config PUSH_RETRIES "0")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 
+normalize_var_name() {
+  local orig_value="$1"
+  # POSIX variable names should match [a-zA-Z_][a-zA-Z0-9_]*
+  # service names and the like also allow periods and dashes
+  no_periods="${orig_value//./_}"
+  no_dashes="${no_periods//-/_}"
+  echo "${no_dashes}"
+}
+
 service_name_cache_from_var() {
   local service_name="$1"
-  echo "cache_from__${service_name//-/_}"
+  echo "cache_from__$(normalize_var_name ${service_name})"
 }
 
 service_name_group_name_cache_from_var() {
   local service_name="$1"
   local group_index="$2"
-  echo "group_cache_from__${service_name//-/_}__${group_index//-/_}"
+  echo "group_cache_from__$(normalize_var_name ${service_name})__$(normalize_var_name ${group_index})"
 }
 
 count_of_named_array() {
