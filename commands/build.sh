@@ -18,13 +18,13 @@ normalize_var_name() {
 
 service_name_cache_from_var() {
   local service_name="$1"
-  echo "cache_from__$(normalize_var_name ${service_name})"
+  echo "cache_from__$(normalize_var_name "${service_name}")"
 }
 
 service_name_group_name_cache_from_var() {
   local service_name="$1"
   local group_index="$2"
-  echo "group_cache_from__$(normalize_var_name ${service_name})__$(normalize_var_name ${group_index})"
+  echo "group_cache_from__$(normalize_var_name "${service_name}")__$(normalize_var_name "${group_index}")"
 }
 
 count_of_named_array() {
