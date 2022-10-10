@@ -135,8 +135,9 @@ If you want to use environment variables in the `volumes` element, you will need
 By default, docker-compose makes whatever environment variables it gets available for
 interpolation of docker-compose.yml, but it doesn't pass them in to your containers.
 
-You can use the [environment key in docker-compose.yml](https://docs.docker.com/compose/environment-variables/) to either set specific environment vars or "pass through" environment
-variables from outside docker-compose.
+You can use the [environment key in docker-compose.yml](https://docs.docker.com/compose/environment-variables/) to either set specific environment vars or "pass through" environment variables from outside docker-compose.
+
+### Specific values
 
 If you want to add extra environment above what is declared in your `docker-compose.yml`,
 this plugin offers a `environment` block of its own:
@@ -154,6 +155,19 @@ steps:
 ```
 
 Note how the values in the list can either be just a key (so the value is sourced from the environment) or a KEY=VALUE pair.
+
+### Pipeline variables
+
+Alternatively, you can have the plugin add all environment variables defined for the job by the agent as defined in [`BUILDKITE_ENV_FILE`](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_ENV_FILE) activating the `propagate-environment` option:
+
+```yml
+steps:
+  - command: use-vars.sh
+    plugins:
+      - docker-compose#v4.0.0:
+          run: app
+          propagate-environment: true
+```
 
 ## Build Arguments
 
@@ -421,6 +435,12 @@ A list of KEY=VALUE that are passed through as build arguments when image is bei
 ### `env` or `environment` (optional, run only)
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
+
+### `propagate-environment` (optional, boolean)
+
+Whether or not to automatically propagate all pipeline environment variables into the run container. Avoiding the need to be specified with environment.
+
+**Important**: only pipeline variables will automatically be propagated (what you see in the Buildkite UI). Variables set in proceeding hook scripts will not be propagated to the container.
 
 ### `command` (optional, run only, array)
 
