@@ -257,6 +257,66 @@ cmd3"
   unstub buildkite-agent
 }
 
+@test "Run with a prebuilt image and propagate environment but no BUILDKITE_ENV_FILE" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROPAGATE_ENVIRONMENT=true
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Running /bin/sh -e -c 'pwd' in service myservice"
+  assert_output --partial "Not propagating environment variables to container"
+
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Run with a prebuilt image and propagate environment" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_ENV_FILE=/tmp/test_env
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROPAGATE_ENVIRONMENT=true
+
+  echo "VAR0=1" > "${BUILDKITE_ENV_FILE}"
+  echo "VAR2=lalala" >> "${BUILDKITE_ENV_FILE}"
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -e \* -e \* --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with vars \${11} and \${13}"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Running /bin/sh -e -c 'pwd' in service myservice"
+  assert_output --partial "ran myservice with vars VAR0 and VAR2"
+
+  unstub docker-compose
+  unstub buildkite-agent
+
+  rm "${BUILDKITE_ENV_FILE}"
+}
+
 @test "Run with a prebuilt image" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
