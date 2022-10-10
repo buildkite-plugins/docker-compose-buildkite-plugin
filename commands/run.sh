@@ -72,14 +72,6 @@ fi
 if [[ ${#pull_services[@]} -gt 0 ]] ; then
   echo "~~~ :docker: Pulling services ${pull_services[0]}"
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
-
-  # Sometimes docker-compose pull leaves unfinished ansi codes
-  echo
-fi
-
-# Optionally disable ansi output
-if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
-  run_params+=(--no-ansi)
 fi
 
 # We set a predictable container name so we can find it and inspect it later on
@@ -247,9 +239,6 @@ elif [[ ! -f "$override_file" ]]; then
   # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
   # pull an image that doesn't exist
   run_docker_compose build "${build_params[@]}" "$run_service"
-
-  # Sometimes docker-compose pull leaves unfinished ansi codes
-  echo
 fi
 
 dependency_exitcode=0
@@ -262,9 +251,6 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
   else
     run_docker_compose up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
   fi
-
-  # Sometimes docker-compose leaves unfinished ansi codes
-  echo
 fi
 
 if [[ $dependency_exitcode -ne 0 ]] ; then

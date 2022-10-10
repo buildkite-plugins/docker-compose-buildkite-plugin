@@ -17,8 +17,16 @@ function plugin_prompt() {
 
 # Shows the command being run, and runs it
 function plugin_prompt_and_run() {
+  local exit_code
+
   plugin_prompt "$@"
   "$@"
+  exit_code=$?
+
+  # Sometimes docker-compose pull leaves unfinished ansi codes
+  echo
+
+  return $exit_code
 }
 
 # Shows the command about to be run, and exits if it fails
@@ -186,6 +194,10 @@ function run_docker_compose() {
 
   if [[ "$(plugin_read_config VERBOSE "false")" == "true" ]] ; then
     command+=(--verbose)
+  fi
+
+  if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
+    command+=(--no-ansi)
   fi
 
   for file in $(docker_compose_config_files) ; do
