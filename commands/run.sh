@@ -98,8 +98,8 @@ if [[ "$(plugin_read_config PROPAGATE_ENVIRONMENT "false")" =~ ^(true|on|1)$ ]] 
     # Read in the env file and convert to --env params for docker
     # This is because --env-file doesn't support newlines or quotes per https://docs.docker.com/compose/env-file/#syntax-rules
     while read -r var; do
-      args+=( --env "${var%%=*}" )
-    done < "$BUILDKITE_ENV_FILE"
+      run_params+=("-e" "${var%%=*}")
+    done < "${BUILDKITE_ENV_FILE}"
   else
     echo -n "🚨 Not propagating environment variables to container as \$BUILDKITE_ENV_FILE is not set"
   fi
