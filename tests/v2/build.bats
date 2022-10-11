@@ -272,6 +272,27 @@ setup_file() {
   unstub docker
 }
 
+@test "Build with an invalid cache-from tag" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:-latest
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  refute_output --partial "pulled cache image"
+  refute_output --partial "- my.repository/myservice_cache:-latest"
+  assert_output --partial "invalid tag so it will be ignored"
+  assert_output --partial "built helloworld"
+  unstub docker
+}
+
 @test "Build with a cache-from image with no-cache also set" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
