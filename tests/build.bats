@@ -16,7 +16,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   unstub docker-compose
   assert_success
@@ -33,7 +33,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --no-cache myservice : echo built myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -50,7 +50,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --parallel myservice : echo built myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -68,7 +68,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -85,7 +85,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -106,7 +106,7 @@ load '../lib/shared'
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -134,7 +134,7 @@ load '../lib/shared'
     "meta-data set docker-compose-plugin-built-image-tag-myservice-1 my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice-1" \
     "meta-data set docker-compose-plugin-built-image-tag-myservice-2 my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice-2"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -163,7 +163,7 @@ load '../lib/shared'
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -188,7 +188,7 @@ load '../lib/shared'
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -214,7 +214,7 @@ load '../lib/shared'
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml-tests/composefiles/docker-compose.v2.1.yml my.repository/llamas:test-myservice-build-1 : echo set image metadata for myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -240,7 +240,7 @@ load '../lib/shared'
     "meta-data set docker-compose-plugin-built-image-tag-myservice1 my.repository/llamas:test-myservice1-build-1 : echo set image metadata for myservice1" \
     "meta-data set docker-compose-plugin-built-image-tag-myservice2 my.repository/llamas:test-myservice2-build-1 : echo set image metadata for myservice2"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built all services"
@@ -258,7 +258,7 @@ load '../lib/shared'
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "Compose file versions 2.0 and above"
@@ -278,7 +278,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled cache image"
@@ -300,7 +300,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --no-cache helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   refute_output --partial "pulled cache image"
@@ -324,7 +324,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled cache image"
@@ -355,7 +355,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled cache image build-target"
@@ -392,7 +392,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled cache image build-target-latest"
@@ -431,7 +431,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled cache image build-target-latest"
@@ -463,7 +463,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled cache image"
@@ -488,7 +488,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "my.repository/myservice_cache:latest will not be used as a cache for helloworld"
@@ -512,7 +512,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull hello-world : echo built hello-world"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled cache image"
@@ -564,7 +564,7 @@ load '../lib/shared'
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled cache image"
@@ -589,7 +589,7 @@ load '../lib/shared'
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/llamas:my-llamas-image : echo set image metadata for myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -615,7 +615,7 @@ load '../lib/shared'
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v3.2.yml my.repository/llamas:my-llamas-image : echo set image metadata for myservice"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -643,7 +643,7 @@ load '../lib/shared'
     "meta-data set docker-compose-plugin-built-image-tag-myservice1 my.repository/llamas:my-llamas-image-1 : echo set image metadata for myservice1" \
     "meta-data set docker-compose-plugin-built-image-tag-myservice2 my.repository/llamas:my-llamas-image-2 : echo set image metadata for myservice2"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built all services"
