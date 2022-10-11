@@ -90,6 +90,12 @@ fi
 service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}" "${service_idx}")
+
+  if ! [[ "$image_name" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+    echo "🚨 ${image_name} is not a valid tag name"
+    exit 1
+  fi
+
   service_idx=$((service_idx+1))
 
   if [[ -n "$image_repository" ]] ; then
