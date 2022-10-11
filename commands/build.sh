@@ -53,7 +53,7 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
     service_image=$(IFS=':'; echo "${tokens[*]:1:2}")
     service_tag=${tokens[2]}
 
-    if ! [[ "$service_tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+    if ! validate_tag "$service_tag"; then
       echo "🚨 cache-from ${service_image} has an invalid tag so it will be ignored"
       continue
     fi
@@ -98,7 +98,7 @@ service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}" "${service_idx}")
 
-  if ! [[ "$image_name" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+  if ! validate_tag "$image_name"; then
     echo "🚨 ${image_name} is not a valid tag name"
     exit 1
   fi
