@@ -96,6 +96,24 @@ setup_file() {
   unstub buildkite-agent
 }
 
+@test "Push a prebuilt image with an invalid tag" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:-llamas
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : echo blah"
+
+  run $PWD/hooks/command
+
+  assert_success
+  refute_output --partial "pulled prebuilt image"
+  refute_output --partial "tagged image"
+  assert_output --partial "invalid tag"
+  unstub docker
+}
+
 @test "Push a prebuilt image to multiple tags" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_0=myservice:my.repository/myservice:llamas
