@@ -51,6 +51,13 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
     IFS=':' read -r -a tokens <<< "$line"
     service_name=${tokens[0]}
     service_image=$(IFS=':'; echo "${tokens[*]:1:2}")
+    service_tag=${tokens[2]}
+
+    if ! [[ "$service_tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+      echo "🚨 cache-from ${service_image} has an invalid tag so it will be ignored"
+      continue
+    fi
+
     cache_from_group_name=$(IFS=':'; echo "${tokens[*]:3}")
     if [[ -z "$cache_from_group_name" ]]; then
       cache_from_group_name=":default:"
