@@ -452,6 +452,46 @@ setup_file() {
   unstub buildkite-agent
 }
 
+@test "Build with an invalid image-name (start with hyphen) " {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_NAME=-llamas-image
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
+  export BUILDKITE_BUILD_NUMBER=1
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "-llamas-image is not a valid tag name"
+}
+
+@test "Build with an invalid image-name (start with period) " {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_NAME=.llamas-image
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
+  export BUILDKITE_BUILD_NUMBER=1
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial ".llamas-image is not a valid tag name"
+}
+
+@test "Build with an invalid image-name (too long) " {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  # numbers from 1 to 69 result in 129 characters
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_NAME="$(seq 69 | tr -d "\n")"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
+  export BUILDKITE_BUILD_NUMBER=1
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "is not a valid tag name"
+}
+
 @test "Build with a custom image-name and a config" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
