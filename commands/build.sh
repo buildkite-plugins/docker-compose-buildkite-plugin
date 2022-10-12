@@ -51,6 +51,13 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
     IFS=':' read -r -a tokens <<< "$line"
     service_name=${tokens[0]}
     service_image=$(IFS=':'; echo "${tokens[*]:1:2}")
+    service_tag=${tokens[2]}
+
+    if ! validate_tag "$service_tag"; then
+      echo "🚨 cache-from ${service_image} has an invalid tag so it will be ignored"
+      continue
+    fi
+
     cache_from_group_name=$(IFS=':'; echo "${tokens[*]:3}")
     if [[ -z "$cache_from_group_name" ]]; then
       cache_from_group_name=":default:"
@@ -90,6 +97,12 @@ fi
 service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
   image_name=$(build_image_name "${service_name}" "${service_idx}")
+
+  if ! validate_tag "$image_name"; then
+    echo "🚨 ${image_name} is not a valid tag name"
+    exit 1
+  fi
+
   service_idx=$((service_idx+1))
 
   if [[ -n "$image_repository" ]] ; then

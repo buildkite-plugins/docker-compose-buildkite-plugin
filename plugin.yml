@@ -35,7 +35,7 @@ configuration:
     image-repository:
       type: string
     image-name:
-      type: string
+      type: [ string, array ]
     pull-retries:
       type: integer
     push-retries:

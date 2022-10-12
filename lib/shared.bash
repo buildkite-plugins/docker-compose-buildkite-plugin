@@ -258,3 +258,13 @@ function is_windows() {
 function is_macos() {
   [[ "$OSTYPE" =~ ^(darwin) ]]
 }
+
+function validate_tag {
+  local tag=$1
+
+  if [[ "$tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
