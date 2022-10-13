@@ -78,6 +78,8 @@ configuration:
       type: boolean
     skip-pull:
       type: boolean
+    ssh:
+      type: boolean
     target:
       type: string
     tty:
@@ -117,6 +119,7 @@ configuration:
     pull: [ run ]
     push-retries: [ push ]
     skip-pull: [ run ]
+    ssh: [ buildkit ]
     target: [ build ]
     tty: [ run ]
     use-aliases: [ run ]

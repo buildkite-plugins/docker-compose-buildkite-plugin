@@ -143,7 +143,7 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
-build_params=(--pull)
+build_params=(build --pull)
 
 if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
   build_params+=(--no-cache)
@@ -151,6 +151,14 @@ fi
 
 if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
   build_params+=(--parallel)
+fi
+
+if [[ "$(plugin_read_config SSH "false")" == "true" ]] ; then
+  if [[ "${DOCKER_BUILDKIT}" != "1" ]]; then
+    echo "🚨 You can not use the ssh option if you are not using buildkit"
+    exit 1
+  fi
+  build_params+=(--ssh)
 fi
 
 target="$(plugin_read_config TARGET "")"
@@ -163,7 +171,7 @@ while read -r arg ; do
 done <<< "$(plugin_read_list ARGS)"
 
 echo "+++ :docker: Building services ${services[*]}"
-run_docker_compose -f "$override_file" build "${build_params[@]}" "${services[@]}"
+run_docker_compose -f "$override_file" "${build_params[@]}" "${services[@]}"
 
 if [[ -n "$image_repository" ]] ; then
   echo "~~~ :docker: Pushing built images to $image_repository"

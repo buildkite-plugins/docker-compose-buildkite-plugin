@@ -614,9 +614,13 @@ docker-compose run --rm tests bats tests tests/v2
 
 ### `buildkit` (optional, build only, boolean)
 
-Assuming you have a compatible docker available in the agent, activating this option would setup the environment for the `docker-compose build` call to use BuildKit. Note that if you are using `cli-version` 2, you are already using buildkit by default.
+Assuming you have a compatible docker installation and configuration in the agent, activating this option would setup the environment for the `docker-compose build` call to use BuildKit. Note that if you are using `cli-version` 2, you are already using buildkit by default.
 
 You may want to also add `BUILDKIT_INLINE_CACHE=1` to your build arguments (`args` option in this plugin), but know that [there are known issues with it](https://github.com/moby/buildkit/issues/2274).
+
+### `ssh` (optional, build only, boolean)
+
+When enabled, it will add the `--ssh` option to the build command. Note that it assumes you have a compatible docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).
 
 ## License
 
