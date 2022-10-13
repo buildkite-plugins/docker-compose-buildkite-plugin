@@ -44,6 +44,12 @@ if [[ -z "$image_repository" ]] ; then
   echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
 fi
 
+if [[ "$(plugin_read_config BUILDKIT "false")" == "true" ]]; then
+  export DOCKER_BUILDKIT=1
+  export COMPOSE_DOCKER_CLI_BUILD=1
+  export BUILDKIT_PROGRESS=plain
+fi
+
 # Read any cache-from parameters provided and pull down those images first
 # If no-cache is set skip pulling the cache-from images
 if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
