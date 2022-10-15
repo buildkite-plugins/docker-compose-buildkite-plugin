@@ -154,7 +154,7 @@ if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
 fi
 
 if [[ "$(plugin_read_config SSH "false")" == "true" ]] ; then
-  if [[ "${DOCKER_BUILDKIT}" != "1" ]]; then
+  if [[ "${DOCKER_BUILDKIT:-}" != "1" && "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION:-}" != "2" ]]; then
     echo "🚨 You can not use the ssh option if you are not using buildkit"
     exit 1
   fi
