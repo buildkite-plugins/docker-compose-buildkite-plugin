@@ -464,7 +464,7 @@ Whether to skip the repository checkout phase. This is useful for steps that use
 
 ### `skip-pull` (optional, run only)
 
-Completely avoid running any `pull` command. Images being used will need to be present in the machine from before or have been built in the same step. Could be useful to avoid hitting rate limits when you can be sure the operation is unnecessary. Note that it is possible other commands run in the plugin's lifecycle will trigger a pull of necessary images. 
+Completely avoid running any `pull` command. Images being used will need to be present in the machine from before or have been built in the same step. Could be useful to avoid hitting rate limits when you can be sure the operation is unnecessary. Note that it is possible other commands run in the plugin's lifecycle will trigger a pull of necessary images.
 
 ### `workdir` (optional, run only)
 
@@ -507,6 +507,12 @@ This option can also be configured on the agent machine using the environment va
 ### `cache-from` (optional, build only)
 
 A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
+
+### `target` (optional, build only)
+
+Allow for intermediate builds with `--target VALUE` options.
+
+Note that there is a single build command run for all services so the target value will apply to all of them.
 
 ### `volumes` (optional, run only)
 

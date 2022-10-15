@@ -147,6 +147,11 @@ if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
   build_params+=(--parallel)
 fi
 
+target="$(plugin_read_config TARGET "")"
+if [[ -n "$target" ]] ; then
+  build_params+=(--target "$target")
+fi
+
 while read -r arg ; do
   [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
 done <<< "$(plugin_read_list ARGS)"

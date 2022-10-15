@@ -14,81 +14,83 @@ configuration:
     push:
       type: [ string, array ]
       minimum: 1
-    pull:
-      type: [ string, array ]
-      minimum: 1
-    config:
-      type: [ string, array ]
-      minimum: 1
-    env:
-      type: [ string, array ]
-      minimum: 1
-    environment:
-      type: [ string, array ]
-      minimum: 1
+    ansi:
+      type: boolean
     args:
       type: [ string, array ]
       minimum: 1
     build-alias:
       type: [ string, array ]
       minimum: 1
-    image-repository:
-      type: string
-    image-name:
-      type: [ string, array ]
-    pull-retries:
-      type: integer
-    push-retries:
-      type: integer
     cache-from:
       type: [ string, array ]
       minimum: 1
-    volumes:
-      type: [ string, array ]
-      minimum: 1
-    expand-volume-vars:
-      type: boolean
-    command:
-      type: array
-    skip-checkout:
-      type: boolean
-    leave-volumes:
-      type: boolean
-    no-cache:
-      type: boolean
-    use-aliases:
-      type: boolean
-    tty:
-      type: boolean
-    dependencies:
-      type: boolean
-    ansi:
-      type: boolean
-    verbose:
-      type: boolean
-    workdir:
-      type: string
-    rm:
-      type: boolean
-    skip-pull:
-      type: boolean
-    upload-container-logs:
-      type: string
-    propagate-uid-gid:
-      type: boolean
-    propagate-environment:
-      type: boolean
-    mount-ssh-agent:
-      type: boolean
-    mount-buildkite-agent:
-      type: boolean
-    entrypoint:
-      type: string
     cli-version:
       type: string
       enum:
         - 1
         - 2
+    command:
+      type: array
+    config:
+      type: [ string, array ]
+      minimum: 1
+    dependencies:
+      type: boolean
+    entrypoint:
+      type: string
+    env:
+      type: [ string, array ]
+      minimum: 1
+    environment:
+      type: [ string, array ]
+      minimum: 1
+    expand-volume-vars:
+      type: boolean
+    image-repository:
+      type: string
+    image-name:
+      type: [ string, array ]
+    leave-volumes:
+      type: boolean
+    mount-buildkite-agent:
+      type: boolean
+    mount-ssh-agent:
+      type: boolean
+    no-cache:
+      type: boolean
+    propagate-environment:
+      type: boolean
+    propagate-uid-gid:
+      type: boolean
+    pull:
+      type: [ string, array ]
+      minimum: 1
+    pull-retries:
+      type: integer
+    push-retries:
+      type: integer
+    rm:
+      type: boolean
+    skip-checkout:
+      type: boolean
+    skip-pull:
+      type: boolean
+    target:
+      type: string
+    tty:
+      type: boolean
+    upload-container-logs:
+      type: string
+    use-aliases:
+      type: boolean
+    verbose:
+      type: boolean
+    volumes:
+      type: [ string, array ]
+      minimum: 1
+    workdir:
+      type: string
   anyOf:
     - required:
       - run
@@ -112,6 +114,7 @@ configuration:
     pull: [ run ]
     push-retries: [ push ]
     skip-pull: [ run ]
+    target: [ build ]
     tty: [ run ]
     use-aliases: [ run ]
     user: [ run ]
