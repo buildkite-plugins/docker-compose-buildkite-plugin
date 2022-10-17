@@ -59,6 +59,8 @@ configuration:
       type: boolean
     mount-ssh-agent:
       type: boolean
+    mount-checkout:
+      type: boolean
     no-cache:
       type: boolean
     propagate-environment:

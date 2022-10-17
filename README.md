@@ -468,7 +468,9 @@ Completely avoid running any `pull` command. Images being used will need to be p
 
 ### `workdir` (optional, run only)
 
-Specify the container working directory via `docker-compose run --workdir`.
+Specify the container working directory via `docker-compose run --workdir`. The default is `/workdir`. This path is also used by `mount-checkout` to determine where to mount the checkout in the container.
+
+Example: `/app`
 
 ### `user` (optional, run only)
 
@@ -491,6 +493,12 @@ Default: `false`
 Whether to automatically mount the `buildkite-agent` binary and associated environment variables from the host agent machine into the container.
 
 Default: `false`
+
+### `mount-checkout` (optional, boolean)
+
+Whether to automatically mount the current working directory which contains your checked out codebase. Mounts onto `/workdir`, unless `workdir` is set, in which case that will be used.
+
+Default: `true`
 
 ### `pull-retries` (optional)
 
