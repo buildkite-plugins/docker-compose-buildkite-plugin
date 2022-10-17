@@ -9,7 +9,7 @@ container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 mount_ssh_agent=''
-mount_checkout="$(plugin_read_config MOUNT_CHECKOUT "true")"
+mount_checkout="$(plugin_read_config MOUNT_CHECKOUT "false")"
 
 expand_headers_on_error() {
   echo "^^^ +++"

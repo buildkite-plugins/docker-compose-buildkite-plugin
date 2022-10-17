@@ -117,6 +117,7 @@ configuration:
     image-name: [ build ]
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
+    mount-checkout: [ run ]
     propagate-uid-gid: [ run ]
     pull: [ run ]
     push-retries: [ push ]

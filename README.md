@@ -494,11 +494,11 @@ Whether to automatically mount the `buildkite-agent` binary and associated envir
 
 Default: `false`
 
-### `mount-checkout` (optional, boolean)
+### `mount-checkout` (optional, run-only, boolean)
 
 Whether to automatically mount the current working directory which contains your checked out codebase. Mounts onto `/workdir`, unless `workdir` is set, in which case that will be used.
 
-Default: `true`
+Default: `false`
 
 ### `pull-retries` (optional)
 
