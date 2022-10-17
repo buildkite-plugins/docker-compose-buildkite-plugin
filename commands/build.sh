@@ -51,7 +51,11 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
     IFS=':' read -r -a tokens <<< "$line"
     service_name=${tokens[0]}
     service_image=$(IFS=':'; echo "${tokens[*]:1:2}")
-    service_tag=${tokens[2]}
+    if [ ${#tokens[@]} -gt 2 ]; then
+      service_tag=${tokens[2]}
+    else
+      service_tag="latest"
+    fi
 
     if ! validate_tag "$service_tag"; then
       echo "🚨 cache-from ${service_image} has an invalid tag so it will be ignored"
