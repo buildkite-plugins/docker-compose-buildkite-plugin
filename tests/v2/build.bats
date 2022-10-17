@@ -587,3 +587,23 @@ setup_file() {
 
   unstub docker
 }
+
+@test "Build with ssh option" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh \* : echo built \${11} with ssh"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "with ssh"
+
+  unstub docker
+}

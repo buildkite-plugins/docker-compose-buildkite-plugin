@@ -44,6 +44,12 @@ if [[ -z "$image_repository" ]] ; then
   echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
 fi
 
+if [[ "$(plugin_read_config BUILDKIT "false")" == "true" ]]; then
+  export DOCKER_BUILDKIT=1
+  export COMPOSE_DOCKER_CLI_BUILD=1
+  export BUILDKIT_PROGRESS=plain
+fi
+
 # Read any cache-from parameters provided and pull down those images first
 # If no-cache is set skip pulling the cache-from images
 if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
@@ -137,7 +143,7 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
-build_params=(--pull)
+build_params=(build --pull)
 
 if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
   build_params+=(--no-cache)
@@ -145,6 +151,14 @@ fi
 
 if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
   build_params+=(--parallel)
+fi
+
+if [[ "$(plugin_read_config SSH "false")" == "true" ]] ; then
+  if [[ "${DOCKER_BUILDKIT:-}" != "1" && "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION:-}" != "2" ]]; then
+    echo "🚨 You can not use the ssh option if you are not using buildkit"
+    exit 1
+  fi
+  build_params+=(--ssh)
 fi
 
 target="$(plugin_read_config TARGET "")"
@@ -157,7 +171,7 @@ while read -r arg ; do
 done <<< "$(plugin_read_list ARGS)"
 
 echo "+++ :docker: Building services ${services[*]}"
-run_docker_compose -f "$override_file" build "${build_params[@]}" "${services[@]}"
+run_docker_compose -f "$override_file" "${build_params[@]}" "${services[@]}"
 
 if [[ -n "$image_repository" ]] ; then
   echo "~~~ :docker: Pushing built images to $image_repository"

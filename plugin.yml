@@ -22,6 +22,8 @@ configuration:
     build-alias:
       type: [ string, array ]
       minimum: 1
+    buildkit:
+      type: boolean
     cache-from:
       type: [ string, array ]
       minimum: 1
@@ -76,6 +78,8 @@ configuration:
       type: boolean
     skip-pull:
       type: boolean
+    ssh:
+      type: boolean
     target:
       type: string
     tty:
@@ -101,6 +105,7 @@ configuration:
   additionalProperties: false
   dependencies:
     ansi: [ run ]
+    buildkit: [ build ]
     cache-from: [ build ]
     dependencies: [ run ]
     env: [ run ]
@@ -114,6 +119,7 @@ configuration:
     pull: [ run ]
     push-retries: [ push ]
     skip-pull: [ run ]
+    ssh: [ buildkit ]
     target: [ build ]
     tty: [ run ]
     use-aliases: [ run ]
