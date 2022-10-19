@@ -1160,7 +1160,7 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
-@test "mount-checkout is not enabled by default" {
+@test "Run without mount-checkout doesn't set volume" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PIPELINE_SLUG=test
@@ -1168,6 +1168,7 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT=false
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
