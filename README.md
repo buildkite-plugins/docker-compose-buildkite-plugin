@@ -468,7 +468,7 @@ Completely avoid running any `pull` command. Images being used will need to be p
 
 ### `workdir` (optional, run only)
 
-Specify the container working directory via `docker-compose run --workdir`. The default is `/workdir`. This path is also used by `mount-checkout` to determine where to mount the checkout in the container.
+Specify the container working directory via `docker-compose run --workdir`. This option is also used by [`mount-checkout`](#mount-checkout-optional-run-only-boolean) to determine where to mount the checkout in the container.
 
 Example: `/app`
 
