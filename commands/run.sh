@@ -9,6 +9,7 @@ container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 mount_ssh_agent=''
+mount_checkout="$(plugin_read_config MOUNT_CHECKOUT "false")"
 
 expand_headers_on_error() {
   echo "^^^ +++"
@@ -115,10 +116,16 @@ if [[ -n "${BUILDKITE_REPO_MIRROR:-}" ]]; then
 fi
 
 tty_default='true'
+workdir_default="/workdir"
+pwd_default="$PWD"
 
 # Set operating system specific defaults
 if is_windows ; then
   tty_default='false'
+  workdir_default="C:\\workdir"
+  # escaping /C is a necessary workaround for an issue with Git for Windows 2.24.1.2
+  # https://github.com/git-for-windows/git/issues/2442
+  pwd_default="$(cmd.exe //C "echo %CD%")"
 fi
 
 # Optionally disable allocating a TTY
@@ -131,8 +138,19 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
   run_params+=(--no-deps)
 fi
 
-if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
-  run_params+=("--workdir=$(plugin_read_config WORKDIR)")
+workdir=''
+
+if [[ -n "$(plugin_read_config WORKDIR)" ]] || [[ "${mount_checkout}" == "true" ]]; then
+  workdir="$(plugin_read_config WORKDIR "$workdir_default")"
+fi
+
+if [[ -n "${workdir}" ]] ; then
+  run_params+=("--workdir=${workdir}")
+fi
+
+# By default, mount $PWD onto $WORKDIR
+if [[ "${mount_checkout}" == "true" ]] ; then
+  run_params+=("-v" "${pwd_default}:${workdir}")
 fi
 
 # Can't set both user and propagate-uid-gid

@@ -59,6 +59,8 @@ configuration:
       type: boolean
     mount-ssh-agent:
       type: boolean
+    mount-checkout:
+      type: boolean
     no-cache:
       type: boolean
     propagate-environment:
@@ -115,6 +117,7 @@ configuration:
     image-name: [ build ]
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
+    mount-checkout: [ run ]
     propagate-uid-gid: [ run ]
     pull: [ run ]
     push-retries: [ push ]
