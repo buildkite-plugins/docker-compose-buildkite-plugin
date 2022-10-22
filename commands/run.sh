@@ -143,6 +143,10 @@ if [[ -n "$(plugin_read_config WORKDIR)" ]] || [[ "${mount_checkout}" == "true" 
   workdir="$(plugin_read_config WORKDIR "$workdir_default")"
 fi
 
+if [[ -n "${workdir}" ]] ; then
+  run_params+=("--workdir=${workdir}")
+fi
+
 if [[ "${mount_checkout}" == "true" ]]; then
   run_params+=("-v" "${pwd_default}:${workdir}")
 elif [[ "${mount_checkout}" =~ ^/.*$ ]]; then
@@ -151,11 +155,6 @@ elif [[ "${mount_checkout}" != "false" ]]; then
   echo -n "🚨 mount-checkout should be either true or an absolute path to use as a mountpoint"
   exit 1
 fi
-
-if [[ -n "${workdir}" ]] ; then
-  run_params+=("--workdir=${workdir}")
-fi
-
 
 # Can't set both user and propagate-uid-gid
 if [[ -n "$(plugin_read_config USER)" ]] && [[ -n "$(plugin_read_config PROPAGATE_UID_GID)" ]]; then
