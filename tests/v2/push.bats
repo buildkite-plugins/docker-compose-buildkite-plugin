@@ -44,14 +44,14 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah " \
-    "image inspect buildkite1111_myservice1 : exit 1" \
+    "image inspect buildkite1111-myservice1 : exit 1" \
     "compose -f docker-compose.yml -p buildkite1111 build myservice1 : echo blah " \
-    "tag buildkite1111_myservice1 my.repository/myservice1 : echo tagging image1" \
+    "tag buildkite1111-myservice1 my.repository/myservice1 : echo tagging image1" \
     "push my.repository/myservice1 : echo pushing myservice1 image" \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah " \
-    "image inspect buildkite1111_myservice2 : exit 1" \
+    "image inspect buildkite1111-myservice2 : exit 1" \
     "compose -f docker-compose.yml -p buildkite1111 build myservice2 : echo blah " \
-    "tag buildkite1111_myservice2 my.repository/myservice2:llamas : echo tagging image2" \
+    "tag buildkite1111-myservice2 my.repository/myservice2:llamas : echo tagging image2" \
     "push my.repository/myservice2:llamas : echo pushing myservice2 image"
 
   stub buildkite-agent \
@@ -78,8 +78,8 @@ setup_file() {
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah" \
     "pull myimage : echo pulled prebuilt image" \
-    "tag myimage buildkite1111_myservice : echo " \
-    "tag buildkite1111_myservice my.repository/myservice:llamas : echo tagged image" \
+    "tag myimage buildkite1111-myservice : echo " \
+    "tag buildkite1111-myservice my.repository/myservice:llamas : echo tagged image" \
     "push my.repository/myservice:llamas : echo pushed myservice"
 
   stub buildkite-agent \
@@ -125,16 +125,16 @@ setup_file() {
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah" \
     "pull prebuilt : echo pulled prebuilt image" \
-    "tag prebuilt buildkite1111_myservice : echo " \
-    "tag buildkite1111_myservice my.repository/myservice:llamas : echo tagged image1" \
+    "tag prebuilt buildkite1111-myservice : echo " \
+    "tag buildkite1111-myservice my.repository/myservice:llamas : echo tagged image1" \
     "push my.repository/myservice:llamas : echo pushed myservice1" \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah" \
-    "tag prebuilt buildkite1111_myservice : echo " \
-    "tag buildkite1111_myservice my.repository/myservice:latest : echo tagged image2" \
+    "tag prebuilt buildkite1111-myservice : echo " \
+    "tag buildkite1111-myservice my.repository/myservice:latest : echo tagged image2" \
     "push my.repository/myservice:latest : echo pushed myservice2" \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah" \
-    "tag prebuilt buildkite1111_myservice : echo " \
-    "tag buildkite1111_myservice my.repository/myservice:alpacas : echo tagged image3" \
+    "tag prebuilt buildkite1111-myservice : echo " \
+    "tag buildkite1111-myservice my.repository/myservice:alpacas : echo tagged image3" \
     "push my.repository/myservice:alpacas : echo pushed myservice3"
 
   stub buildkite-agent \
@@ -170,9 +170,9 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
-    "image inspect buildkite1111_helper : exit 1" \
+    "image inspect buildkite1111-helper : exit 1" \
     "compose -f docker-compose.yml -p buildkite1111 build helper : echo built helper" \
-    "tag buildkite1111_helper my.repository/helper:llamas : echo tagged helper" \
+    "tag buildkite1111-helper my.repository/helper:llamas : echo tagged helper" \
     "push my.repository/helper:llamas : echo pushed helper"
 
   run $PWD/hooks/command
