@@ -1187,7 +1187,7 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
-@test "Run with mount-checkout set with default workdir" {
+@test "Run with mount-checkout set to true" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PIPELINE_SLUG=test
@@ -1214,7 +1214,7 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
-@test "Run with mount-checkout set with custom workdir" {
+@test "Run with mount-checkout set to true with custom workdir" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PIPELINE_SLUG=test
@@ -1238,6 +1238,121 @@ export BUILDKITE_JOB_ID=1111
 
   assert_success
   assert_output --partial "ran myservice with mount-checkout"
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set to specific path" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT="/special"
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f \* up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f \* run --name buildkite1111_myservice_build_1 -v \* --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with mount-checkout on \${11}"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with mount-checkout on /plugin:/special"
+
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set to specific path and workdir set" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT="/special"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WORKDIR="/custom_workdir"
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f \* up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f \* run --name buildkite1111_myservice_build_1 \* -v \* --rm myservice /bin/sh -e -c 'pwd' : echo echo ran myservice with mount-checkout on \${12}"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with mount-checkout on /plugin:/special"
+  assert_output --partial "--workdir=/custom_workdir"
+
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set something else" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT="not_absolute"
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "mount-checkout should be either true or an absolute path to use as a mountpoint"
+
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set something else and workdir set" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT="not-absolute"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WORKDIR="/custom_workdir"
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "mount-checkout should be either true or an absolute path to use as a mountpoint"
+
   unstub docker-compose
   unstub buildkite-agent
 }
