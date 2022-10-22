@@ -145,7 +145,7 @@ fi
 
 if [[ "${mount_checkout}" == "true" ]]; then
   run_params+=("-v" "${pwd_default}:${workdir}")
-elif [[ "${mount_checkout}" ~= ^/.*$ ]]; then
+elif [[ "${mount_checkout}" =~ ^/.*$ ]]; then
   run_params+=("-v" "${pwd_default}:${mount_checkout}")
 elif [[ "${mount_checkout}" != "false" ]]; then
   echo -n "🚨 mount-checkout should be either true or an absolute path to use as a mountpoint"
