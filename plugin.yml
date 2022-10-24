@@ -60,7 +60,7 @@ configuration:
     mount-ssh-agent:
       type: boolean
     mount-checkout:
-      type: boolean
+      type: [ boolean, string ]
     no-cache:
       type: boolean
     propagate-environment:

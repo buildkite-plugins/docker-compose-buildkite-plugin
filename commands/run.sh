@@ -10,6 +10,7 @@ override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 mount_ssh_agent=''
 mount_checkout="$(plugin_read_config MOUNT_CHECKOUT "false")"
+workdir=''
 
 expand_headers_on_error() {
   echo "^^^ +++"
@@ -138,8 +139,6 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
   run_params+=(--no-deps)
 fi
 
-workdir=''
-
 if [[ -n "$(plugin_read_config WORKDIR)" ]] || [[ "${mount_checkout}" == "true" ]]; then
   workdir="$(plugin_read_config WORKDIR "$workdir_default")"
 fi
@@ -148,9 +147,13 @@ if [[ -n "${workdir}" ]] ; then
   run_params+=("--workdir=${workdir}")
 fi
 
-# By default, mount $PWD onto $WORKDIR
-if [[ "${mount_checkout}" == "true" ]] ; then
+if [[ "${mount_checkout}" == "true" ]]; then
   run_params+=("-v" "${pwd_default}:${workdir}")
+elif [[ "${mount_checkout}" =~ ^/.*$ ]]; then
+  run_params+=("-v" "${pwd_default}:${mount_checkout}")
+elif [[ "${mount_checkout}" != "false" ]]; then
+  echo -n "🚨 mount-checkout should be either true or an absolute path to use as a mountpoint"
+  exit 1
 fi
 
 # Can't set both user and propagate-uid-gid
