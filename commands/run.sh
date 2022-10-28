@@ -268,9 +268,9 @@ if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
   # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
   if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
+    run_docker_compose "${up_params[@]}" up --wait -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
   else
-    run_docker_compose up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
+    run_docker_compose up --wait -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
   fi
 fi
 
