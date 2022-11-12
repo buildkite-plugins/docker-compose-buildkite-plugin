@@ -795,3 +795,24 @@ load '../lib/shared'
 
   unstub docker-compose
 }
+
+@test "Build with secrets" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SECRETS_0='id=test,file=~/.test'
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SECRETS_1='id=SECRET_VAR'
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --secret \* --secret \* \* : echo built \${13} with secrets \${10} and \${12}"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "with secrets id=test,file=~/.test and id=SECRET_VAR"
+
+  unstub docker-compose
+}
