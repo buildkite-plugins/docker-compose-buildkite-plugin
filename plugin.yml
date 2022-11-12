@@ -82,6 +82,10 @@ configuration:
       type: boolean
     ssh:
       type: boolean
+    secrets:
+      type: array
+      items:
+        type: string
     target:
       type: string
     tty:
@@ -122,6 +126,7 @@ configuration:
     pull: [ run ]
     push-retries: [ push ]
     skip-pull: [ run ]
+    secrets: [ buildkit, build ]
     ssh: [ buildkit ]
     target: [ build ]
     tty: [ run ]
