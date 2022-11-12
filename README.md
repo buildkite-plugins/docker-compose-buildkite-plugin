@@ -614,14 +614,6 @@ The default is `on-error`.
 
 If set to `2`, plugin will use `docker compose` to execute commands; otherwise it will default to version `1` using `docker-compose` instead.
 
-## Developing
-
-To run the tests:
-
-```bash
-docker-compose run --rm tests bats tests tests/v2
-```
-
 ### `buildkit` (optional, build only, boolean)
 
 Assuming you have a compatible docker installation and configuration in the agent, activating this option would setup the environment for the `docker-compose build` call to use BuildKit. Note that if you are using `cli-version` 2, you are already using buildkit by default.
@@ -631,6 +623,18 @@ You may want to also add `BUILDKIT_INLINE_CACHE=1` to your build arguments (`arg
 ### `ssh` (optional, build only, boolean)
 
 When enabled, it will add the `--ssh` option to the build command. Note that it assumes you have a compatible docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).
+
+### `secrets` (optional, build only, array of strings)
+
+All elements in this array will be passed literally to the `build` command as parameters of the [`--secrets` option](https://docs.docker.com/engine/reference/commandline/buildx_build/#secret). Note that you must have BuildKit enabled for this option to have any effect and special `RUN` stanzas in your Dockerfile to actually make use of them.
+
+## Developing
+
+To run the tests:
+
+```bash
+docker-compose run --rm tests bats tests tests/v2
+```
 
 ## License
 
