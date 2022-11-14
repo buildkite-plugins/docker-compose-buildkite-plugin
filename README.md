@@ -572,6 +572,12 @@ If set to false, doesn't start linked services.
 
 The default is `true`.
 
+### `wait` (optional, run only)
+
+Whether to wait for dependencies to be up (and healthy if possible) when starting them up. It translates to using [`--wait` in the docker-compose up] command.
+
+Defaults to `false`.
+
 ### `ansi` (optional, run only)
 
 If set to false, disables the ansi output from containers.
