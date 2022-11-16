@@ -606,6 +606,12 @@ The default is `true`.
 
 Sets the `--entrypoint` argument when running `docker-compose`.
 
+### `service-ports` (optional, run only)
+
+If set to true, docker compose will run with the service ports enabled and mapped to the host. Equivalent to `--service-ports` in docker-compose.
+
+The default is `false`.
+
 ### `upload-container-logs` (optional, run only)
 
 Select when to upload container logs.
