@@ -262,16 +262,17 @@ elif [[ ! -f "$override_file" ]]; then
   run_docker_compose build "${build_params[@]}" "$run_service"
 fi
 
+up_params+=("up")  # this ensures that the array has elements to avoid issues with bash 4.3
+
+if [[ "$(plugin_read_config WAIT "false")" == "true" ]] ; then
+  up_params+=("--wait")
+fi
+
 dependency_exitcode=0
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
-
   # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
-  if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
-  else
-    run_docker_compose up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
-  fi
+  run_docker_compose "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
 fi
 
 if [[ $dependency_exitcode -ne 0 ]] ; then

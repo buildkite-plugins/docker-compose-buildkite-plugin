@@ -128,4 +128,5 @@ configuration:
     use-aliases: [ run ]
     user: [ run ]
     volumes: [ run ]
+    wait: [ run ]
     workdir: [ run ]

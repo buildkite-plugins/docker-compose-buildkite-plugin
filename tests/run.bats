@@ -1356,3 +1356,31 @@ export BUILDKITE_JOB_ID=1111
   unstub docker-compose
   unstub buildkite-agent
 }
+
+@test "Run waiting for dependencies" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WAIT=true
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite1111 up --wait -d --scale myservice=0 : echo ran myservice dependencies" \
+    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Starting dependencies"
+  assert_output --partial "ran myservice"
+
+  unstub docker-compose
+  unstub buildkite-agent
+}
