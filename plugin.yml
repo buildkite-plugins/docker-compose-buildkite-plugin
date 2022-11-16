@@ -76,6 +76,8 @@ configuration:
       type: integer
     rm:
       type: boolean
+    service-ports:
+      type: boolean
     skip-checkout:
       type: boolean
     skip-pull:
