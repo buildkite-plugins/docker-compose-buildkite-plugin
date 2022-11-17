@@ -76,6 +76,8 @@ configuration:
       type: integer
     rm:
       type: boolean
+    service-ports:
+      type: boolean
     skip-checkout:
       type: boolean
     skip-pull:
@@ -125,6 +127,7 @@ configuration:
     propagate-uid-gid: [ run ]
     pull: [ run ]
     push-retries: [ push ]
+    service-ports: [ run ]
     skip-pull: [ run ]
     secrets: [ buildkit, build ]
     ssh: [ buildkit ]

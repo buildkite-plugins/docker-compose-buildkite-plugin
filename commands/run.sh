@@ -231,6 +231,11 @@ if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
   )
 fi
 
+# Optionally expose service ports
+if [[ "$(plugin_read_config SERVICE_PORTS "false")" == "true" ]]; then
+  run_params+=(--service-ports)
+fi
+
 run_params+=("$run_service")
 
 build_params=(--pull)
