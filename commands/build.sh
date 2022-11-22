@@ -69,7 +69,7 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
       continue
     fi
 
-    cache_from_group_name=$(echo "${tokens[*]:3}")
+    cache_from_group_name=$(IFS=':'; echo "${tokens[*]:3}")
     if [[ -z "$cache_from_group_name" ]]; then
       cache_from_group_name=":default:"
     fi
