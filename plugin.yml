@@ -27,6 +27,10 @@ configuration:
     cache-from:
       type: [ string, array ]
       minimum: 1
+    separator-cache-from:
+      type: string
+      minLength: 1
+      maxLength: 1
     cli-version:
       type: string
       enum:
@@ -115,6 +119,7 @@ configuration:
     ansi: [ run ]
     buildkit: [ build ]
     cache-from: [ build ]
+    cache-from-separator: [ cache-from ]
     dependencies: [ run ]
     env: [ run ]
     environment: [ run ]
