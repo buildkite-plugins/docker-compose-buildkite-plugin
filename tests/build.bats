@@ -296,7 +296,7 @@ load '../lib/shared'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0='helloworld#my.repository:port/myservice_cache#latest'
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_SEPARATOR='#'
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SEPARATOR_CACHE_FROM='#'
 
   stub docker \
     "pull my.repository:port/myservice_cache:latest : echo pulled cache image"
