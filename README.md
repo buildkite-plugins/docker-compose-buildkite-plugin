@@ -295,6 +295,10 @@ steps:
             - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
 
+**Important**: if your registry URL contains a port, you will need to take the following into account:
+* specify the `separator-cache-from` option to change the colon character to something else (like `#`)
+* you will have to specify tags in the `push` elements (or the plugin will try to validate everything after the port as a tag)
+
 #### Multiple cache-from values
 
 This plugin allows for the value of `cache-from` to be a string or a list. If it's a list, as below, then the first successfully pulled image will be used.
@@ -306,17 +310,17 @@ steps:
       - docker-compose#v4.7.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
+          separator-cache-from: "#"
           cache-from:
-            - app:index.docker.io/myorg/myrepo/myapp:my-branch
-            - app:index.docker.io/myorg/myrepo/myapp:latest
+            - "app#myregistry:port/myrepo/myapp#my-branch"
+            - "app#myregistry:port/myrepo/myapp#latest"
   - wait
   - label: ":docker: Push to final repository"
     plugins:
       - docker-compose#v4.7.0:
           push:
-            - app:index.docker.io/myorg/myrepo/myapp
-            - app:index.docker.io/myorg/myrepo/myapp:my-branch
-            - app:index.docker.io/myorg/myrepo/myapp:latest
+            - app:myregistry:port/myrepo/myapp:my-branch
+            - app:myregistry:port/myrepo/myapp:latest
 ```
 
 You may actually want to build your image with multiple cache-from values, for instance, with the cached images of multiple stages in a multi-stage build.
@@ -517,6 +521,14 @@ This option can also be configured on the agent machine using the environment va
 ### `cache-from` (optional, build only)
 
 A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
+
+### `separator-cache-from` (optional, build only, single character)
+
+A single character that specifies the character to use for splitting elements in the `cache-from` option.
+
+By default it is `:` which should not be a problem unless your registry's URL contains a port, in which case you will have to use this option to specify a different character.
+
+**Important**: the tag to use is its own field, so you will have to specify elements like `service#registry:port/myrepo/myapp#tag#group`
 
 ### `target` (optional, build only)
 
