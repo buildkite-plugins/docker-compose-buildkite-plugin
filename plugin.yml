@@ -27,6 +27,8 @@ configuration:
     cache-from:
       type: [ string, array ]
       minimum: 1
+    compatibility:
+      type: boolean
     cli-version:
       type: string
       enum:
