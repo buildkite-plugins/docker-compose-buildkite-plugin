@@ -119,6 +119,7 @@ fi
 tty_default='true'
 workdir_default="/workdir"
 pwd_default="$PWD"
+run_dependencies="true"
 
 # Set operating system specific defaults
 if is_windows ; then
@@ -137,6 +138,9 @@ fi
 # Optionally disable dependencies
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
   run_params+=(--no-deps)
+  run_dependencies="false"
+elif [[ "$(plugin_read_config PRE_RUN_DEPENDENCIES "true")" == "false" ]]; then
+  run_dependencies="false"
 fi
 
 if [[ -n "$(plugin_read_config WORKDIR)" ]] || [[ "${mount_checkout}" == "true" ]]; then
@@ -274,7 +278,7 @@ if [[ "$(plugin_read_config WAIT "false")" == "true" ]] ; then
 fi
 
 dependency_exitcode=0
-if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
+if [[ "${run_dependencies}" == "true" ]] ; then
   # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
   run_docker_compose "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?

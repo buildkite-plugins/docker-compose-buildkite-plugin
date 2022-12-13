@@ -63,6 +63,8 @@ configuration:
       type: [ boolean, string ]
     no-cache:
       type: boolean
+    pre-run-dependencies:
+      type: boolean
     propagate-environment:
       type: boolean
     propagate-uid-gid:
@@ -124,6 +126,7 @@ configuration:
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
     mount-checkout: [ run ]
+    pre-run-dependencies: [ run ]
     propagate-uid-gid: [ run ]
     pull: [ run ]
     push-retries: [ push ]

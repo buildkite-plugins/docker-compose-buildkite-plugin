@@ -568,9 +568,13 @@ The default is `true` on unix, `false` on windows
 
 ### `dependencies` (optional, run only)
 
-If set to false, doesn't start linked services.
+If set to false, runs with `--no-deps` and doesn't start linked services.
 
 The default is `true`.
+
+### `pre-run-dependencies` (optional, run only)
+
+If `dependencies` are activated (which is the default), you can skip starting them up before the main container by setting this option to `false`. This is useful if you want compose to take care of that on its own at the expense of messier output in the run step.
 
 ### `wait` (optional, run only)
 
