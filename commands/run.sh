@@ -182,6 +182,11 @@ if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
   run_params+=(--rm)
 fi
 
+# Enable compatibility mode for v3 files
+if [[ "$(plugin_read_config COMPATIBILITY "false")" == "true" ]]; then
+  run_params+=(--compatibility)
+fi
+
 # Optionally sets --entrypoint
 if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
   run_params+=(--entrypoint)
