@@ -604,7 +604,7 @@ The default is `true`.
 
 ### `compatibility` (optional, run only)
 
-If set to true, docker compose will run the `up` command with compatibility mode. Equivalent to `--compatibility` in docker-compose.
+If set to true, all docker compose commands will rum with compatibility mode. Equivalent to `--compatibility` in docker-compose.
 
 The default is `false`.
 
@@ -612,7 +612,7 @@ Note that [the effect of this option changes depending on your docker compose CL
 * in v1 it translates (composefile) v3 deploy keys to their non-swarm (composefile) v2 equivalents
 * in v2 it will revert some behaviour to v1 as well, including (but not limited to):
   - [Character separator for container names](https://github.com/docker/compose/blob/a0acc20d883ce22b8b0c65786e3bea1328809bbd/cmd/compose/compose.go#L181)
-  - [Not normalizing compose models (when running `config`)](https://github.com/docker/compose/blob/2e7644ff21f9ca0ea6fb5e8d41d4f6af32cd7e20/cmd/compose/convert.go#L69) (but it shouldn't apply here because it is only used in the `up` command)
+  - [Not normalizing compose models (when running `config`)](https://github.com/docker/compose/blob/2e7644ff21f9ca0ea6fb5e8d41d4f6af32cd7e20/cmd/compose/convert.go#L69)
 
 ### `entrypoint` (optional, run only)
 

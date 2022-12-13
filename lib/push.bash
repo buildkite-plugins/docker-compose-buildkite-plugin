@@ -22,7 +22,7 @@ default_compose_image_for_service() {
   local service="$1"
   
   local separator="_"
-  if [[ "$(plugin_read_config CLI_VERSION "1")" == "2" ]] ; then
+  if [[ "$(plugin_read_config CLI_VERSION "1")" == "2" ]] && [[ "$(plugin_read_config COMPATIBILITY "false")" != "true" ]] ; then
     separator="-"
   fi
 
