@@ -580,9 +580,13 @@ The default is `true` on unix, `false` on windows
 
 ### `dependencies` (optional, run only)
 
-If set to false, doesn't start linked services.
+If set to false, runs with `--no-deps` and doesn't start linked services.
 
 The default is `true`.
+
+### `pre-run-dependencies` (optional, run only)
+
+If `dependencies` are activated (which is the default), you can skip starting them up before the main container by setting this option to `false`. This is useful if you want compose to take care of that on its own at the expense of messier output in the run step.
 
 ### `wait` (optional, run only)
 
@@ -613,6 +617,18 @@ The default is `false`.
 If set to true, docker compose will remove the primary container after run. Equivalent to `--rm` in docker-compose.
 
 The default is `true`.
+
+### `compatibility` (optional, run only)
+
+If set to true, all docker compose commands will rum with compatibility mode. Equivalent to `--compatibility` in docker-compose.
+
+The default is `false`.
+
+Note that [the effect of this option changes depending on your docker compose CLI version](https://docs.docker.com/compose/cli-command-compatibility/#flags-that-will-not-be-implemented):
+* in v1 it translates (composefile) v3 deploy keys to their non-swarm (composefile) v2 equivalents
+* in v2 it will revert some behaviour to v1 as well, including (but not limited to):
+  - [Character separator for container names](https://github.com/docker/compose/blob/a0acc20d883ce22b8b0c65786e3bea1328809bbd/cmd/compose/compose.go#L181)
+  - [Not normalizing compose models (when running `config`)](https://github.com/docker/compose/blob/2e7644ff21f9ca0ea6fb5e8d41d4f6af32cd7e20/cmd/compose/convert.go#L69)
 
 ### `entrypoint` (optional, run only)
 

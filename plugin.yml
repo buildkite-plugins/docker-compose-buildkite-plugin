@@ -27,10 +27,8 @@ configuration:
     cache-from:
       type: [ string, array ]
       minimum: 1
-    separator-cache-from:
-      type: string
-      minLength: 1
-      maxLength: 1
+    compatibility:
+      type: boolean
     cli-version:
       type: string
       enum:
@@ -67,6 +65,8 @@ configuration:
       type: [ boolean, string ]
     no-cache:
       type: boolean
+    pre-run-dependencies:
+      type: boolean
     propagate-environment:
       type: boolean
     propagate-uid-gid:
@@ -80,6 +80,10 @@ configuration:
       type: integer
     rm:
       type: boolean
+    separator-cache-from:
+      type: string
+      minLength: 1
+      maxLength: 1
     service-ports:
       type: boolean
     skip-checkout:
@@ -129,6 +133,7 @@ configuration:
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
     mount-checkout: [ run ]
+    pre-run-dependencies: [ run ]
     propagate-uid-gid: [ run ]
     pull: [ run ]
     push-retries: [ push ]

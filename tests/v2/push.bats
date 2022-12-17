@@ -96,6 +96,36 @@ setup_file() {
   unstub buildkite-agent
 }
 
+@test "Push a prebuilt image with a repository and a tag in compatibility mode" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMPATIBILITY=true
+
+  stub docker \
+    "compose --compatibility -f docker-compose.yml -p buildkite1111 config : echo blah" \
+    "pull myimage : echo pulled prebuilt image" \
+    "tag myimage buildkite1111_myservice : echo " \
+    "tag buildkite1111_myservice my.repository/myservice:llamas : echo tagged image" \
+    "push my.repository/myservice:llamas : echo pushed myservice"
+
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled prebuilt image"
+  assert_output --partial "tagged image"
+  assert_output --partial "pushed myservice"
+  unstub docker
+  unstub buildkite-agent
+}
+
 @test "Push a prebuilt image with an invalid tag" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:-llamas
