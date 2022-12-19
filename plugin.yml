@@ -80,6 +80,10 @@ configuration:
       type: integer
     rm:
       type: boolean
+    separator-cache-from:
+      type: string
+      minLength: 1
+      maxLength: 1
     service-ports:
       type: boolean
     skip-checkout:
@@ -119,6 +123,7 @@ configuration:
     ansi: [ run ]
     buildkit: [ build ]
     cache-from: [ build ]
+    cache-from-separator: [ cache-from ]
     dependencies: [ run ]
     env: [ run ]
     environment: [ run ]

@@ -15,7 +15,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
 ```
 
@@ -28,7 +28,7 @@ through if you need:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
           config: docker-compose.tests.yml
           env:
@@ -41,7 +41,7 @@ or multiple config files:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
           config:
             - docker-compose.yml
@@ -56,7 +56,7 @@ env:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
 ```
 
@@ -65,7 +65,7 @@ If you want to control how your command is passed to docker-compose, you can use
 ```yml
 steps:
   - plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
           command: ["custom", "command", "values"]
 ```
@@ -79,7 +79,7 @@ steps:
   - plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
   - wait
@@ -87,7 +87,7 @@ steps:
     plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
 ```
 
@@ -104,7 +104,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
 ```
 
@@ -122,7 +122,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
           volumes:
             - "./dist:/app/dist"
@@ -146,7 +146,7 @@ this plugin offers a `environment` block of its own:
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
           env:
             - BUILDKITE_BUILD_NUMBER
@@ -164,7 +164,7 @@ Alternatively, you can have the plugin add all environment variables defined for
 steps:
   - command: use-vars.sh
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
           propagate-environment: true
 ```
@@ -179,7 +179,7 @@ Alternatively, if you want to set build arguments when pre-building an image, th
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           args:
@@ -196,7 +196,7 @@ If you have multiple steps that use the same service/image (such as steps that r
 steps:
   - label: ":docker: Build"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
 
@@ -206,7 +206,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: app
 ```
 
@@ -222,7 +222,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build:
             - app
             - tests
@@ -234,7 +234,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: tests
 ```
 
@@ -246,7 +246,7 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           push: app
 ```
 
@@ -256,7 +256,7 @@ To push multiple images, you can use a list:
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           push:
             - first-service
             - second-service
@@ -268,7 +268,7 @@ If you want to push to a specific location (that's not defined as the `image` in
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -282,18 +282,22 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 steps:
   - label: ":docker: Build an image"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
+
+**Important**: if your registry URL contains a port, you will need to take the following into account:
+* specify the `separator-cache-from` option to change the colon character to something else (like `#`)
+* you will have to specify tags in the `push` elements (or the plugin will try to validate everything after the port as a tag)
 
 #### Multiple cache-from values
 
@@ -303,20 +307,20 @@ This plugin allows for the value of `cache-from` to be a string or a list. If it
 steps:
   - label: ":docker Build an image"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
+          separator-cache-from: "#"
           cache-from:
-            - app:index.docker.io/myorg/myrepo/myapp:my-branch
-            - app:index.docker.io/myorg/myrepo/myapp:latest
+            - "app#myregistry:port/myrepo/myapp#my-branch"
+            - "app#myregistry:port/myrepo/myapp#latest"
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           push:
-            - app:index.docker.io/myorg/myrepo/myapp
-            - app:index.docker.io/myorg/myrepo/myapp:my-branch
-            - app:index.docker.io/myorg/myrepo/myapp:latest
+            - app:myregistry:port/myrepo/myapp:my-branch
+            - app:myregistry:port/myrepo/myapp:latest
 ```
 
 You may actually want to build your image with multiple cache-from values, for instance, with the cached images of multiple stages in a multi-stage build.
@@ -326,7 +330,7 @@ Adding a grouping tag to the end of a cache-from list item allows this plugin to
 steps:
   - label: ":docker: Build Intermediate Image"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build: myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo/myservice_intermediate
@@ -336,7 +340,7 @@ steps:
   - wait
   - label: ":docker: Build Final Image"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build: myservice
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo
@@ -380,7 +384,7 @@ A basic pipeline similar to the following:
 steps:
   - label: ":docker: Run & Push"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           run: myservice
           push: myservice
 ```
@@ -395,7 +399,7 @@ A basic pipeline similar to the following:
 steps:
   - label: ":docker: Build & Push"
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v4.9.0:
           build: myservice
           push: myservice
 ```
@@ -517,6 +521,14 @@ This option can also be configured on the agent machine using the environment va
 ### `cache-from` (optional, build only)
 
 A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
+
+### `separator-cache-from` (optional, build only, single character)
+
+A single character that specifies the character to use for splitting elements in the `cache-from` option.
+
+By default it is `:` which should not be a problem unless your registry's URL contains a port, in which case you will have to use this option to specify a different character.
+
+**Important**: the tag to use is its own field, so you will have to specify elements like `service#registry:port/myrepo/myapp#tag#group`
 
 ### `target` (optional, build only)
 

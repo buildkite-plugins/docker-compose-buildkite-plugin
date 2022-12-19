@@ -4,6 +4,7 @@ set -ueo pipefail
 image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 push_retries="$(plugin_read_config PUSH_RETRIES "0")"
+separator="$(plugin_read_config SEPARATOR_CACHE_FROM ":")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 
@@ -54,7 +55,7 @@ fi
 # If no-cache is set skip pulling the cache-from images
 if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
   for line in $(plugin_read_list CACHE_FROM) ; do
-    IFS=':' read -r -a tokens <<< "$line"
+    IFS="${separator}" read -r -a tokens <<< "$line"
     service_name=${tokens[0]}
     service_image=$(IFS=':'; echo "${tokens[*]:1:2}")
     if [ ${#tokens[@]} -gt 2 ]; then
