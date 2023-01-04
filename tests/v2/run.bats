@@ -23,7 +23,7 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
@@ -49,7 +49,7 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice : echo ran myservice"
 
   stub buildkite-agent \
@@ -76,7 +76,7 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --workdir=/test_workdir --rm myservice : echo ran myservice"
 
   stub buildkite-agent \
@@ -102,7 +102,7 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c $'sh -c \'echo hello world\'' : echo ran myservice"
 
   stub buildkite-agent \
@@ -130,7 +130,7 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c $'cmd1\ncmd2\ncmd3' : echo ran myservice"
 
   stub buildkite-agent \
@@ -158,7 +158,7 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice"
 
   stub buildkite-agent \
@@ -189,7 +189,7 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV -e ANOTHER=this\ is\ a\ long\ string\ with\ spaces\;\ and\ semi-colons --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
@@ -215,7 +215,7 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull --no-cache myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
@@ -243,7 +243,7 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
@@ -268,7 +268,7 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
@@ -299,7 +299,7 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -e \* -e \* --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with vars \${12} and \${14}"
 
   stub buildkite-agent \
@@ -329,7 +329,7 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
@@ -356,7 +356,7 @@ cmd3"
 
   stub docker \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
@@ -384,7 +384,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo pulled myservice" \
+    "compose -f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo pulled myservice" \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
@@ -411,7 +411,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
@@ -955,7 +955,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm --entrypoint 'my custom entrypoint' myservice : echo ran myservice"
 
   stub buildkite-agent \
@@ -982,7 +982,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm -e BUILDKITE_JOB_ID -e BUILDKITE_BUILD_ID -e BUILDKITE_AGENT_ACCESS_TOKEN -v $BATS_MOCK_TMPDIR/bin/buildkite-agent:/usr/bin/buildkite-agent myservice : echo ran myservice"
 
   stub buildkite-agent \
@@ -1010,7 +1010,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull --no-cache --parallel myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
@@ -1037,7 +1037,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -v /tmp/sample-mirror:/tmp/sample-mirror:ro --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
@@ -1065,7 +1065,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm -e SSH_AUTH_SOCK=/ssh-agent -v /tmp/ssh_auth_sock:/ssh-agent -v /root/.ssh/known_hosts:/root/.ssh/known_hosts myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
@@ -1300,7 +1300,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up --wait -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up --wait -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
