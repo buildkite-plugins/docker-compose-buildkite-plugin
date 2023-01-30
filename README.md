@@ -486,9 +486,9 @@ Whether to match the user ID and group ID for the container user to the user ID 
 
 Using this option ensures that any files created on shared mounts from within the container will be accessible to the host user. It is otherwise common to accidentally create root-owned files that Buildkite will be unable to remove, since containers by default run as the root user.
 
-### `mount-ssh-agent` (optional, run-only, boolean)
+### `mount-ssh-agent` (optional, run-only, boolean or string)
 
-Whether to automatically mount the ssh-agent socket from the host agent machine into the container (at `/ssh-agent`and `/root/.ssh/known_hosts` respectively), allowing git operations to work correctly.
+Whether to mount the ssh-agent socket (at `/ssh-agent`) from the host agent machine into the container or not. Instead of just `true` or `false`, you can specify absolute path in the container for the home directory of the user used to run on which the agent's `.ssh/known_hosts` will be mounted (by default, `/root`).
 
 Default: `false`
 

@@ -60,7 +60,7 @@ configuration:
     mount-buildkite-agent:
       type: boolean
     mount-ssh-agent:
-      type: boolean
+      type: [ boolean, string ]
     mount-checkout:
       type: [ boolean, string ]
     no-cache:
