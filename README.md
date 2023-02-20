@@ -650,9 +650,9 @@ Select when to upload container logs.
 
 The default is `on-error`.
 
-### `cli-version` (optional)
+### `cli-version` (optional, string or integer)
 
-If set to `2`, plugin will use `docker compose` to execute commands; otherwise it will default to version `1` using `docker-compose` instead.
+If set to `2`, plugin will use `docker compose` to execute commands; otherwise it will default to version `1`, using `docker-compose` instead.
 
 ### `buildkit` (optional, build only, boolean)
 
