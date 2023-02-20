@@ -8,7 +8,6 @@ run_service="$(plugin_read_config RUN)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
-mount_ssh_agent=''
 mount_checkout="$(plugin_read_config MOUNT_CHECKOUT "false")"
 workdir=''
 
@@ -193,23 +192,26 @@ if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
 fi
 
 # Mount ssh-agent socket and known_hosts
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-$mount_ssh_agent}" =~ ^(true|on|1)$ ]] ; then
+if [[ ! "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-false}" = 'false' ]] ; then
   if [[ -z "${SSH_AUTH_SOCK:-}" ]] ; then
     echo "+++ 🚨 \$SSH_AUTH_SOCK isn't set, has ssh-agent started?"
     exit 1
   fi
   if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
-    echo "+++ 🚨 There isn't any file at ${SSH_AUTH_SOCK}, has ssh-agent started?"
+    echo "+++ 🚨 The file at ${SSH_AUTH_SOCK} does not exist or is not a socket, was ssh-agent started?"
     exit 1
   fi
-  if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
-    echo "+++ 🚨 The file at ${SSH_AUTH_SOCK} isn't a socket, has ssh-agent started?"
-    exit 1
+
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-''}" =~ ^(true|on|1)$ ]]; then
+    MOUNT_PATH=/root
+  else
+    MOUNT_PATH="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT}"
   fi
+
   run_params+=(
     "-e" "SSH_AUTH_SOCK=/ssh-agent"
     "-v" "${SSH_AUTH_SOCK}:/ssh-agent"
-    "-v" "${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts"
+    "-v" "${HOME}/.ssh/known_hosts:${MOUNT_PATH}/.ssh/known_hosts"
   )
 fi
 
