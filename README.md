@@ -464,7 +464,7 @@ Example: `[ "powershell", "-Command" ]`
 
 Whether to skip the repository checkout phase. This is useful for steps that use a pre-built image and will fail if there is no pre-built image.
 
-**Important**: as the code repository will not be available in the step, you need to ensure that the docker compose file(s) are present in some way (like using artifacts) 
+**Important**: as the code repository will not be available in the step, you need to ensure that the docker compose file(s) are present in some way (like using artifacts)
 
 ### `skip-pull` (optional, run only)
 
