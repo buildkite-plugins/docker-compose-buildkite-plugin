@@ -30,10 +30,11 @@ configuration:
     compatibility:
       type: boolean
     cli-version:
-      type: string
-      enum:
-        - 1
-        - 2
+      oneOf:
+        - type: string
+          enum: [ "1", "2" ]
+        - type: integer
+          enum: [ 1, 2 ]
     command:
       type: array
     config:
