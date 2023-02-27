@@ -171,7 +171,7 @@ steps:
 
 ## Container Labels
 
-When running a command, the plugin will automatically use add the following Docker labels to the container specified in the `run` option:
+When running a command, the plugin will automatically add the following Docker labels to the container specified in the `run` option:
 - `com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}`
 - `com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG}`
 - `com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER}`
