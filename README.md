@@ -181,6 +181,11 @@ When running a command, the plugin will automatically use add the following Dock
 - `com.buildkite.agent_name=${BUILDKITE_AGENT_NAME}`
 - `com.buildkite.agent_id=${BUILDKITE_AGENT_ID}`
 
+These labels can make it easier to query containers on hosts using `docker ps` for example:
+
+```bash
+docker ps --filter "label=com.buildkite.job_label=Run tests"
+```
 
 ## Build Arguments
 
