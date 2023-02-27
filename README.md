@@ -169,6 +169,19 @@ steps:
           propagate-environment: true
 ```
 
+## Container Labels
+
+When running a command, the plugin will automatically use add the following Docker labels to the container specified in the `run` option:
+- `com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}`
+- `com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG}`
+- `com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER}`
+- `com.buildkite.job_id=${BUILDKITE_JOB_ID}`
+- `com.buildkite.job_label=${BUILDKITE_LABEL}`
+- `com.buildkite.step_key=${BUILDKITE_STEP_KEY}`
+- `com.buildkite.agent_name=${BUILDKITE_AGENT_NAME}`
+- `com.buildkite.agent_id=${BUILDKITE_AGENT_ID}`
+
+
 ## Build Arguments
 
 You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/#args) to set specific build arguments when building an image.
