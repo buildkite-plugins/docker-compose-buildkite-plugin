@@ -1503,3 +1503,42 @@ export BUILDKITE_JOB_ID=1111
   unstub docker-compose
   unstub buildkite-agent
 }
+
+@test "Run with Docker labels" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="true"
+  export BUILDKITE_PIPELINE_NAME="label-test"
+  export BUILDKITE_LABEL="Testjob"
+  export BUILDKITE_STEP_KEY="test-job"
+  export BUILDKITE_AGENT_NAME="agent"
+  export BUILDKITE_AGENT_ID="1234"
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 \
+      --label com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME} \
+      --label com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG} \
+      --label com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER} \
+      --label com.buildkite.job_id=${BUILDKITE_JOB_ID} \
+      --label com.buildkite.job_label=${BUILDKITE_LABEL} \
+      --label com.buildkite.step_key=${BUILDKITE_STEP_KEY} \
+      --label com.buildkite.agent_name=${BUILDKITE_AGENT_NAME} \
+      --label com.buildkite.agent_id=${BUILDKITE_AGENT_ID} \
+      --rm myservice /bin/sh -e -c $'pwd' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : echo myimage" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice"
+  unstub docker-compose
+  unstub buildkite-agent
+}
