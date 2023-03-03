@@ -187,6 +187,8 @@ These labels can make it easier to query containers on hosts using `docker ps` f
 docker ps --filter "label=com.buildkite.job_label=Run tests"
 ```
 
+This behaviour can be disabled with the `run-labels: false` option.
+
 ## Build Arguments
 
 You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/#args) to set specific build arguments when building an image.
@@ -633,6 +635,12 @@ The default is `false`.
 ### `rm` (optional, run only)
 
 If set to true, docker compose will remove the primary container after run. Equivalent to `--rm` in docker-compose.
+
+The default is `true`.
+
+### `run-labels` (optional, run only)
+
+If set to true, adds useful Docker labels to the primary container. See [Container Labels](#container-labels) for more info.
 
 The default is `true`.
 
