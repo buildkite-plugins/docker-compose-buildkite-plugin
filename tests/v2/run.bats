@@ -10,6 +10,7 @@ load '../../lib/run'
 
 setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
 }
 
 @test "Run without a prebuilt image" {

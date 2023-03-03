@@ -9,6 +9,9 @@ load '../lib/run'
 # export DOCKER_STUB_DEBUG=/dev/tty
 # export BATS_MOCK_TMPDIR=$PWD
 
+setup_file() {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
+}
 
 @test "Logs: Detect some containers KO" {
   export BUILDKITE_AGENT_ACCESS_TOKEN="123123"

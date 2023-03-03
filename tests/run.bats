@@ -8,6 +8,10 @@ load '../lib/run'
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 # export BATS_MOCK_TMPDIR=$PWD
 
+setup_file() {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
+}
+
 @test "Run without a prebuilt image" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
