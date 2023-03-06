@@ -1505,17 +1505,20 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with Docker labels" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
+  # Pipeline vars
+  export BUILDKITE_AGENT_ID="1234"
+  export BUILDKITE_AGENT_NAME="agent"
   export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="true"
-  export BUILDKITE_PIPELINE_NAME="label-test"
+  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_LABEL="Testjob"
+  export BUILDKITE_PIPELINE_NAME="label-test"
+  export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_STEP_KEY="test-job"
-  export BUILDKITE_AGENT_NAME="agent"
-  export BUILDKITE_AGENT_ID="1234"
+
+  # Plugin config
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="true"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
