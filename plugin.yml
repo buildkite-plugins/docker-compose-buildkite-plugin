@@ -81,6 +81,8 @@ configuration:
       type: integer
     rm:
       type: boolean
+    run-labels:
+      type: boolean
     separator-cache-from:
       type: string
       minLength: 1

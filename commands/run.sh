@@ -78,6 +78,20 @@ fi
 # We set a predictable container name so we can find it and inspect it later on
 run_params+=("run" "--name" "$container_name")
 
+if [[ "$(plugin_read_config RUN_LABELS "true")" =~ ^(true|on|1)$ ]]; then
+  # Add useful labels to run container
+  run_params+=(
+    "--label" "com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}"
+    "--label" "com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG}"
+    "--label" "com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER}"
+    "--label" "com.buildkite.job_id=${BUILDKITE_JOB_ID}"
+    "--label" "com.buildkite.job_label=${BUILDKITE_LABEL}"
+    "--label" "com.buildkite.step_key=${BUILDKITE_STEP_KEY}"
+    "--label" "com.buildkite.agent_name=${BUILDKITE_AGENT_NAME}"
+    "--label" "com.buildkite.agent_id=${BUILDKITE_AGENT_ID}"
+  )
+fi
+
 # append env vars provided in ENV or ENVIRONMENT, these are newline delimited
 while IFS=$'\n' read -r env ; do
   [[ -n "${env:-}" ]] && run_params+=("-e" "${env}")
