@@ -642,7 +642,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=true
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh default \* : echo built \${11} with ssh"
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh default \* : echo built \${12} with ssh"
 
   run "$PWD"/hooks/command
 
@@ -662,7 +662,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=context
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh context \* : echo built \${11} with ssh"
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh context \* : echo built \${12} with ssh"
 
   run "$PWD"/hooks/command
 
