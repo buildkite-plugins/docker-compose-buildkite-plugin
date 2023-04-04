@@ -411,7 +411,7 @@ steps:
 
 Will cause the image to be built twice (once before running and once before pushing) unless there was a previous `build` step that set the appropriate metadata.
 
-##### Run & Push
+##### Build & Push
 
 A basic pipeline similar to the following:
 
