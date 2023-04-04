@@ -688,9 +688,9 @@ Assuming you have a compatible docker installation and configuration in the agen
 
 You may want to also add `BUILDKIT_INLINE_CACHE=1` to your build arguments (`args` option in this plugin), but know that [there are known issues with it](https://github.com/moby/buildkit/issues/2274).
 
-### `ssh` (optional, build only, boolean)
+### `ssh` (optional, build only, boolean or string)
 
-When enabled, it will add the `--ssh` option to the build command. Note that it assumes you have a compatible docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).
+It will add the `--ssh` option to the build command with the passed value (if `true` it will use `default`). Note that it assumes you have a compatible docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).
 
 ### `secrets` (optional, build only, array of strings)
 
