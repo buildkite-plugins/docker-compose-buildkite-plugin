@@ -141,7 +141,7 @@ configuration:
     pull: [ run ]
     push-retries: [ push ]
     service-ports: [ run ]
-    skip-pull: [ run ]
+    skip-pull: [ build, run ]
     secrets: [ buildkit, build ]
     ssh: [ buildkit ]
     target: [ build ]

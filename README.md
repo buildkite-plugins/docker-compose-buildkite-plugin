@@ -486,7 +486,7 @@ Whether to skip the repository checkout phase. This is useful for steps that use
 
 **Important**: as the code repository will not be available in the step, you need to ensure that the docker compose file(s) are present in some way (like using artifacts)
 
-### `skip-pull` (optional, run only)
+### `skip-pull` (optional, build and run only)
 
 Completely avoid running any `pull` command. Images being used will need to be present in the machine from before or have been built in the same step. Could be useful to avoid hitting rate limits when you can be sure the operation is unnecessary. Note that it is possible other commands run in the plugin's lifecycle will trigger a pull of necessary images.
 
