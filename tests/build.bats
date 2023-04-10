@@ -841,7 +841,7 @@ load '../lib/shared'
   refute_output --partial "built myservice"
 }
 
-@test "Build with ssh option and buildkit" {
+@test "Build with ssh option as true and buildkit" {
   export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PIPELINE_SLUG=test
@@ -851,7 +851,28 @@ load '../lib/shared'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=true
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh \* : echo built \${10} with ssh"
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh default \* : echo built \${11} with ssh"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "with ssh"
+
+  unstub docker-compose
+}
+
+@test "Build with ssh option as string and buildkit" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKIT=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=context
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh context \* : echo built \${11} with ssh"
 
   run "$PWD"/hooks/command
 

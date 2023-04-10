@@ -94,7 +94,7 @@ configuration:
     skip-pull:
       type: boolean
     ssh:
-      type: boolean
+      type: [ boolean, string ]
     secrets:
       type: array
       items:
