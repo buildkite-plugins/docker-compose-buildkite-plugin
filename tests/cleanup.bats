@@ -19,7 +19,7 @@ load '../lib/run'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 kill : echo killing containers" \
     "-f docker-compose.yml -p buildkite1111 rm --force -v : echo removing stopped containers" \
-    "-f docker-compose.yml -p buildkite1111 down --volumes : echo removing everything"
+    "-f docker-compose.yml -p buildkite1111 down --remove-orphans --volumes : echo removing everything"
 
   run $PWD/hooks/pre-exit
 

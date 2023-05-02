@@ -18,9 +18,9 @@ compose_cleanup() {
 
   # Stop and remove all the linked services and network
   if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
-    run_docker_compose down --volumes || true
+    run_docker_compose down --remove-orphans --volumes || true
   else
-    run_docker_compose down || true
+    run_docker_compose down --remove-orphans || true
   fi
 }
 
@@ -72,7 +72,7 @@ check_linked_containers_and_save_logs() {
 }
 
 # docker-compose's -v arguments don't do local path expansion like the .yml
-# versions do. So we add very simple support, for the common and basic case.
+# versions do. So we add very simple support for the common and basic case.
 #
 # "./foo:/foo" => "/buildkite/builds/.../foo:/foo"
 expand_relative_volume_path() {
