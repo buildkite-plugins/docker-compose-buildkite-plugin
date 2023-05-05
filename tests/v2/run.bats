@@ -1376,3 +1376,32 @@ export BUILDKITE_JOB_ID=1111
   unstub docker
   unstub buildkite-agent
 }
+
+@test "Run with --quiet-pull" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WAIT=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 up --quiet-pull -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  refute_output --partial "Pulling"
+  assert_output --partial "ran myservice"
+
+  unstub docker
+  unstub buildkite-agent
+}
