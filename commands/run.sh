@@ -112,6 +112,19 @@ if [[ "$(plugin_read_config PROPAGATE_ENVIRONMENT "false")" =~ ^(true|on|1)$ ]] 
   fi
 fi
 
+# If requested, propagate a set of env vars as listed in a given env var to the
+# container.
+if [[ -n "$(plugin_read_config ENV_PROPAGATION_LIST)" ]]; then
+  env_propagation_list_var="$(plugin_read_config ENV_PROPAGATION_LIST)"
+  if [[ -z "${!env_propagation_list_var:-}" ]]; then
+    echo -n "env-propagation-list desired, but ${env_propagation_list_var} is not defined!"
+    exit 1
+  fi
+  for var in ${!env_propagation_list_var}; do
+    run_params+=("-e" "$var")
+  done
+fi
+
 while IFS=$'\n' read -r vol ; do
   [[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
 done <<< "$(plugin_read_list VOLUMES)"

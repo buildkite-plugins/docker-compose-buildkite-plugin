@@ -50,6 +50,8 @@ configuration:
     environment:
       type: [ string, array ]
       minimum: 1
+    env-propagation-list:
+      type: string
     expand-volume-vars:
       type: boolean
     image-repository:
