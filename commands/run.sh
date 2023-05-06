@@ -306,6 +306,10 @@ if [[ "$(plugin_read_config WAIT "false")" == "true" ]] ; then
   up_params+=("--wait")
 fi
 
+if [[ "$(plugin_read_config QUIET_PULL "false")" == "true" ]] ; then
+  up_params+=("--quiet-pull")
+fi
+
 dependency_exitcode=0
 if [[ "${run_dependencies}" == "true" ]] ; then
   # Start up service dependencies in a different header to keep the main run with less noise
