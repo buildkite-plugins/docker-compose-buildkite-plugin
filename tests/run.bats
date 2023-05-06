@@ -1571,6 +1571,6 @@ export BUILDKITE_JOB_ID=1111
   refute_output --partial "Pulling"
   assert_output --partial "ran myservice"
 
-  unstub docker
+  unstub docker-compose
   unstub buildkite-agent
 }
