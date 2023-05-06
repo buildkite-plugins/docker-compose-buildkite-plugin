@@ -468,7 +468,7 @@ If you set this to `VALUE`, and `VALUE` is an environment variable containing a 
 
 Whether or not to automatically propagate all pipeline environment variables into the run container. Avoiding the need to be specified with environment.
 
-\* Caveat: only environment variables listed in $BUILDKITE_ENV_FILE will be propagated. This does not include e.g. variables that you exported in an `environment` hook. If you wish for those to be propagated, try `env-propagation-list`.
+**Important**: only pipeline environment variables will be propagated (what you see in the BuildKite UI, those listed in `$BUILDKITE_ENV_FILE`). This does not include variables exported in preceeding `environment` hooks. If you wish for those to be propagated you will need to list them specifically or use `env-propagation-list`.
 
 ### `command` (optional, run only, array)
 
