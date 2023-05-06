@@ -636,7 +636,8 @@ The default is `false`.
 
 ### `quiet-pull` (optional, run only)
 
-Sets `docker-compose up` to run with `--quiet-pull`. There are other commands that can accept `--quiet-pull` or equivalents. They have not been implemented yet. 
+
+Start up dependencies with `--quiet-pull` to prevent even more logs during that portion of the execution.
 
 The default is `false`.
 
