@@ -634,6 +634,12 @@ Sets `docker-compose` to run with `--verbose`
 
 The default is `false`.
 
+### `quiet-pull` (optional, run only)
+
+Start up dependencies with `--quiet-pull` to prevent even more logs during that portion of the execution.
+
+The default is `false`.
+
 ### `rm` (optional, run only)
 
 If set to true, docker compose will remove the primary container after run. Equivalent to `--rm` in docker-compose.

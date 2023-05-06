@@ -79,6 +79,8 @@ configuration:
       type: integer
     push-retries:
       type: integer
+    quiet-pull:
+      type: boolean
     rm:
       type: boolean
     run-labels:
@@ -140,6 +142,7 @@ configuration:
     propagate-uid-gid: [ run ]
     pull: [ run ]
     push-retries: [ push ]
+    quiet-pull: [ run ]
     service-ports: [ run ]
     skip-pull: [ build, run ]
     secrets: [ buildkit, build ]
