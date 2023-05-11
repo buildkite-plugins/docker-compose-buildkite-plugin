@@ -13,7 +13,7 @@ load '../lib/run'
   assert_success
   assert_equal "${lines[0]}" "kill"
   assert_equal "${lines[1]}" "rm --force -v"
-  assert_equal "${lines[2]}" "down --volumes"
+  assert_equal "${lines[2]}" "down --remove-orphans --volumes"
 }
 
 @test "Possible to gracefully shutdown containers in docker-compose cleanup" {
@@ -26,7 +26,7 @@ load '../lib/run'
   assert_success
   assert_equal "${lines[0]}" "stop"
   assert_equal "${lines[1]}" "rm --force -v"
-  assert_equal "${lines[2]}" "down --volumes"
+  assert_equal "${lines[2]}" "down --remove-orphans --volumes"
 }
 
 @test "Possible to skip volume destruction in docker-compose cleanup" {
@@ -39,5 +39,5 @@ load '../lib/run'
   assert_success
   assert_equal "${lines[0]}" "kill"
   assert_equal "${lines[1]}" "rm --force"
-  assert_equal "${lines[2]}" "down"
+  assert_equal "${lines[2]}" "down --remove-orphans"
 }
