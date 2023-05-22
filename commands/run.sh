@@ -417,14 +417,15 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
+trap 'run_docker_compose stop ${container_name}' SIGINT SIGTERM
+
 # Disable -e outside of the subshell; since the subshell returning a failure
 # would exit the parent shell (here) early.
 set +e
 
 (
-  trap 'run_docker_compose stop ${container_name}' SIGINT SIGTERM
-
   echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
+
   run_docker_compose "${run_params[@]}"
 )
 
