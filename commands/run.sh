@@ -417,7 +417,12 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
-trap 'run_docker_compose stop ${container_name}' SIGINT SIGTERM
+ensure_stopped() {
+  echo ':warning: Signal received, stopping container'
+  run_docker_compose stop "${container_name}" || true
+}
+
+trap ensure_stopped SIGINT SIGTERM
 
 # Disable -e outside of the subshell; since the subshell returning a failure
 # would exit the parent shell (here) early.
