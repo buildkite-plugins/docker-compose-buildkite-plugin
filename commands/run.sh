@@ -422,6 +422,8 @@ fi
 set +e
 
 (
+  trap 'run_docker_compose stop ${container_name}' INT TERM
+
   echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
   run_docker_compose "${run_params[@]}"
 )
