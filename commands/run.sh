@@ -426,11 +426,11 @@ trap ensure_stopped SIGINT SIGTERM
 
 # Disable -e to prevent cancelling step if the command fails for whatever reason
 set +e
-
-echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
-run_docker_compose "${run_params[@]}"
-exitcode=$?
-
+( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)
+  echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
+  run_docker_compose "${run_params[@]}"
+  exitcode=$?
+)
 # Restore -e as an option.
 set -e
 
