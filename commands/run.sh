@@ -420,7 +420,7 @@ fi
 ensure_stopped() {
   echo '+++ :warning: Signal received, stopping container'
   docker stop "${container_name}" || true
-  echo '--- Last log lines that may be missing above (will be empty if container was already removed)'
+  echo '~~~ Last log lines that may be missing above (if container was not already removed)'
   docker logs "${container_name}" || true
   exitcode='TRAP'
 }
@@ -439,8 +439,7 @@ set -e
 
 if [[ $exitcode = "TRAP" ]]; then
   # command failed due to cancellation signal, prevent printing more messages
-  # mask the exit code
-  exitcode=0
+  exitcode=-1
 elif [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
