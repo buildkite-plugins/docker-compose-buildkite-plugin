@@ -422,7 +422,7 @@ ensure_stopped() {
   docker stop "${container_name}" || true
   echo '~~~ Last log lines that may be missing above (if container was not already removed)'
   docker logs "${container_name}" || true
-  trapped='TRAP'
+  exitcode='TRAP'
 }
 
 trap ensure_stopped SIGINT SIGTERM SIGQUIT
@@ -432,12 +432,13 @@ set +e
 ( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)
   echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
   run_docker_compose "${run_params[@]}"
-  exitcode=$?
 )
+exitcode=$?
+
 # Restore -e as an option.
 set -e
 
-if [[ "${trapped:-}" = "TRAP" ]]; then
+if [[ $exitcode = "TRAP" ]]; then
   # command failed due to cancellation signal, make sure there is an error but no further output
   exitcode=-1
 elif [[ $exitcode -ne 0 ]] ; then
