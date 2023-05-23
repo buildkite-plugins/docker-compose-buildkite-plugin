@@ -419,7 +419,7 @@ fi
 
 ensure_stopped() {
   echo '+++ :warning: Signal received, stopping container'
-  run_docker_compose stop "${run_service}" || true
+  docker stop "${container_name}" || true
   echo '--- Last log lines that may be missing above (will be empty if container was already removed)'
   docker logs "${container_name}" || true
   exitcode='TRAP'
