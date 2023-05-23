@@ -420,6 +420,7 @@ fi
 ensure_stopped() {
   echo ':warning: Signal received, stopping container'
   run_docker_compose stop "${container_name}" || true
+  exitcode=-1
 }
 
 trap ensure_stopped SIGINT SIGTERM
