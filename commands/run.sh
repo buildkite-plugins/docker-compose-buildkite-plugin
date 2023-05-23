@@ -424,16 +424,11 @@ ensure_stopped() {
 
 trap ensure_stopped SIGINT SIGTERM
 
-# Disable -e outside of the subshell; since the subshell returning a failure
-# would exit the parent shell (here) early.
+# Disable -e to prevent cancelling step if the command fails for whatever reason
 set +e
 
-(
-  echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
-
-  run_docker_compose "${run_params[@]}"
-)
-
+echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
+run_docker_compose "${run_params[@]}"
 exitcode=$?
 
 # Restore -e as an option.
