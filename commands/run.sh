@@ -422,7 +422,7 @@ ensure_stopped() {
   docker stop "${container_name}" || true
   echo '~~~ Last log lines that may be missing above (if container was not already removed)'
   docker logs "${container_name}" || true
-  exitcode='TRAP'
+  trapped='TRAP'
 }
 
 trap ensure_stopped SIGINT SIGTERM SIGQUIT
@@ -437,8 +437,8 @@ set +e
 # Restore -e as an option.
 set -e
 
-if [[ $exitcode = "TRAP" ]]; then
-  # command failed due to cancellation signal, prevent printing more messages
+if [[ "${trapped:-}" = "TRAP" ]]; then
+  # command failed due to cancellation signal, make sure there is an error but no further output
   exitcode=-1
 elif [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
