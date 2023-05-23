@@ -419,7 +419,7 @@ fi
 
 ensure_stopped() {
   echo '+++ :warning: Signal received, stopping container'
-  run_docker_compose stop "${container_name}" || true
+  run_docker_compose stop "${run_service}" || true
   exitcode='TRAP'
 }
 
