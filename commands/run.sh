@@ -420,7 +420,7 @@ fi
 ensure_stopped() {
   echo '+++ :warning: Signal received, stopping container'
   run_docker_compose stop "${container_name}" || true
-  exitcode=-1
+  exitcode='TRAP'
 }
 
 trap ensure_stopped SIGINT SIGTERM
@@ -435,7 +435,11 @@ set +e
 # Restore -e as an option.
 set -e
 
-if [[ $exitcode -ne 0 ]] ; then
+if [[ $exitcode = "TRAP" ]]; then
+  # command failed due to cancellation signal, prevent printing more messages
+  # mask the exit code
+  exitcode=0
+elif [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
   echo "${run_params[@]}"
@@ -449,4 +453,4 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   fi
 fi
 
-return $exitcode
+return "$exitcode"
