@@ -423,7 +423,7 @@ ensure_stopped() {
   exitcode='TRAP'
 }
 
-trap ensure_stopped SIGINT SIGTERM
+trap ensure_stopped SIGINT SIGTERM SIGQUIT
 
 # Disable -e to prevent cancelling step if the command fails for whatever reason
 set +e
