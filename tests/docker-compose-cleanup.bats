@@ -4,10 +4,14 @@ load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 load '../lib/run'
 
-@test "Default cleanup of docker-compose" {
+setup () {
   run_docker_compose() {
+    # shellcheck disable=2317 # funtion used by loaded scripts
     echo "$@"
   }
+}
+
+@test "Default cleanup of docker-compose" {
   run compose_cleanup
 
   assert_success
@@ -18,9 +22,6 @@ load '../lib/run'
 
 @test "Possible to gracefully shutdown containers in docker-compose cleanup" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_GRACEFUL_SHUTDOWN=1
-  run_docker_compose() {
-    echo "$@"
-  }
   run compose_cleanup
 
   assert_success
@@ -31,9 +32,6 @@ load '../lib/run'
 
 @test "Possible to skip volume destruction in docker-compose cleanup" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_LEAVE_VOLUMES=1
-  run_docker_compose() {
-    echo "$@"
-  }
   run compose_cleanup
 
   assert_success
