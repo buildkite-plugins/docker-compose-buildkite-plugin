@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 load '../lib/run'
 
@@ -45,7 +45,7 @@ setup_file() {
     "logs -t 456456 : exit 0" \
     "inspect --format={{.State.ExitCode}} 789789 : echo 0"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -89,7 +89,7 @@ setup_file() {
     "logs -t 456456 : exit 0" \
     "inspect --format={{.State.ExitCode}} 789789 : echo 0"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "built myservice"
@@ -128,7 +128,7 @@ setup_file() {
     "inspect --format={{.State.ExitCode}} 456456 : echo 0" \
     "inspect --format={{.State.ExitCode}} 789789 : echo 0"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -168,7 +168,7 @@ setup_file() {
     "ps -a --filter label=com.docker.compose.project=buildkite1111 -q : echo" \
     "ps -a --filter label=com.docker.compose.project=buildkite1111 --format '{{.ID}}\\t{{.Label \"com.docker.compose.service\"}}' : cat tests/fixtures/id-service-no-services.txt"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"

@@ -2,7 +2,7 @@
 
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 load '../lib/metadata'
 

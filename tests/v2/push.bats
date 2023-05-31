@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../../lib/shared'
 
 # export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
@@ -26,7 +26,7 @@ setup_file() {
     "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0" \
     "compose -f docker-compose.yml -p buildkite1111 push app : echo pushed app"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial ":warning: Skipping build"
@@ -58,7 +58,7 @@ setup_file() {
     "meta-data exists docker-compose-plugin-built-image-tag-myservice1 : exit 1" \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice2 : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "tagging image1"
@@ -86,7 +86,7 @@ setup_file() {
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled prebuilt image"
@@ -116,7 +116,7 @@ setup_file() {
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled prebuilt image"
@@ -135,7 +135,7 @@ setup_file() {
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   refute_output --partial "pulled prebuilt image"
@@ -175,7 +175,7 @@ setup_file() {
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled prebuilt image"
@@ -205,7 +205,7 @@ setup_file() {
     "tag buildkite1111-helper my.repository/helper:llamas : echo tagged helper" \
     "push my.repository/helper:llamas : echo pushed helper"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built helper"

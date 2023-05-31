@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 load '../lib/metadata'
 
@@ -37,7 +37,7 @@ setup_file() {
      "meta-data exists docker-compose-plugin-built-image-tag-myservice : test -f /tmp/build-run-metadata" \
      "meta-data get docker-compose-plugin-built-image-tag-myservice : cat /tmp/build-run-metadata"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "Building services myservice"
@@ -73,7 +73,7 @@ setup_file() {
      "pull my.repository/llamas:test-myservice-build-1 : echo pulled pre-built image" \
      "tag my.repository/llamas:test-myservice-build-1 buildkite12_myservice : echo re-tagged pre-built image"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
 
@@ -104,7 +104,7 @@ setup_file() {
      "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
      "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
 
@@ -142,7 +142,7 @@ setup_file() {
      "pull myservice-tag : echo pulled pre-built image" \
      "tag myservice-tag buildkite12_myservice : echo re-tagged pre-built image"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
 
