@@ -417,21 +417,31 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
-# Disable -e outside of the subshell; since the subshell returning a failure
-# would exit the parent shell (here) early.
-set +e
+ensure_stopped() {
+  echo '+++ :warning: Signal received, stopping container'
+  docker stop "${container_name}" || true
+  echo '~~~ Last log lines that may be missing above (if container was not already removed)'
+  docker logs "${container_name}" || true
+  exitcode='TRAP'
+}
 
-(
+trap ensure_stopped SIGINT SIGTERM SIGQUIT
+
+# Disable -e to prevent cancelling step if the command fails for whatever reason
+set +e
+( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)
   echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
   run_docker_compose "${run_params[@]}"
 )
-
 exitcode=$?
 
 # Restore -e as an option.
 set -e
 
-if [[ $exitcode -ne 0 ]] ; then
+if [[ $exitcode = "TRAP" ]]; then
+  # command failed due to cancellation signal, make sure there is an error but no further output
+  exitcode=-1
+elif [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
   echo "${run_params[@]}"
@@ -445,4 +455,4 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   fi
 fi
 
-return $exitcode
+return "$exitcode"
