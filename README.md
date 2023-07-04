@@ -600,9 +600,9 @@ The default is `false`.
 
 ### `tty` (optional, run only)
 
-If set to false, doesn't allocate a TTY. This is useful in some situations where TTY's aren't supported, for instance windows.
+If set to true, allocates a TTY. This is useful in some situations TTYs are required.
 
-The default is `true` on unix, `false` on windows
+The default is `false`.
 
 ### `dependencies` (optional, run only)
 
