@@ -142,14 +142,13 @@ if [[ -n "${BUILDKITE_REPO_MIRROR:-}" ]]; then
   run_params+=("-v" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro")
 fi
 
-tty_default='true'
+tty_default='false'
 workdir_default="/workdir"
 pwd_default="$PWD"
 run_dependencies="true"
 
 # Set operating system specific defaults
 if is_windows ; then
-  tty_default='false'
   workdir_default="C:\\workdir"
   # escaping /C is a necessary workaround for an issue with Git for Windows 2.24.1.2
   # https://github.com/git-for-windows/git/issues/2442
