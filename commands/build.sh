@@ -5,7 +5,6 @@ image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 push_retries="$(plugin_read_config PUSH_RETRIES "0")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
-use_prior_image="$(plugin_read_config USE_PRIOR_IMAGE)"
 build_images=()
 
 service_name_cache_from_var() {

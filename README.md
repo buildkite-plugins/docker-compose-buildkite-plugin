@@ -1,5 +1,10 @@
 # Docker Compose Buildkite Plugin [![Build status](https://badge.buildkite.com/a1d1805d117ec32791cb22055aedc5ff709f1498024295bef0.svg?branch=master)](https://buildkite.com/buildkite/plugins-docker-compose)
 
+This fork of Buildkite's default plugin. It allows for the skipping of build
+steps if an image with the specified tag already exists. This can dramatically
+speed up certain steps such as dependency installs or asset builds if your
+images are tagged with a proper cache key.
+
 A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) that lets you build, run and push build steps using [Docker Compose](https://docs.docker.com/compose/).
 
 * Containers are built, run and linked on demand using Docker Compose
