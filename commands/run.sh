@@ -131,6 +131,28 @@ if [[ "$(plugin_read_config USE_ALIASES "false")" == "true" ]] ; then
   run_params+=(--use-aliases)
 fi
 
+# Optionally handle the mount-buildkite-agent option
+if [[ "$(plugin_read_config MOUNT_BUILDKITE_AGENT "false")" == "true" ]]; then
+  if [[ -z "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+    if ! command -v buildkite-agent >/dev/null 2>&1 ; then
+      echo -n "+++ 🚨 Failed to find buildkite-agent in PATH to mount into container, "
+      echo "you can disable this behaviour with 'mount-buildkite-agent:false'"
+    else
+      BUILDKITE_AGENT_BINARY_PATH=$(command -v buildkite-agent)
+    fi
+  fi
+fi
+
+# Mount buildkite-agent if we have a path for it
+if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+  run_params+=(
+    "--env" "BUILDKITE_JOB_ID"
+    "--env" "BUILDKITE_BUILD_ID"
+    "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
+    "--volume" "$BUILDKITE_AGENT_BINARY_PATH:/usr/bin/buildkite-agent"
+  )
+fi
+
 run_params+=("$run_service")
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
