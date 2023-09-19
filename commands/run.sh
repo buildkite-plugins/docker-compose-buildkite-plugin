@@ -146,9 +146,9 @@ fi
 # Mount buildkite-agent if we have a path for it
 if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
   run_params+=(
-    "--env" "BUILDKITE_JOB_ID"
-    "--env" "BUILDKITE_BUILD_ID"
-    "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
+    "-e" "BUILDKITE_JOB_ID"
+    "-e" "BUILDKITE_BUILD_ID"
+    "-e" "BUILDKITE_AGENT_ACCESS_TOKEN"
     "--volume" "$BUILDKITE_AGENT_BINARY_PATH:/usr/bin/buildkite-agent"
   )
 fi
