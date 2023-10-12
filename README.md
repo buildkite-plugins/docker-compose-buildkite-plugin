@@ -544,7 +544,8 @@ This option can also be configured on the agent machine using the environment va
 
 ### `cache-from` (optional, build only)
 
-A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
+A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag:group` before building, ignoring any failures. The parameters `service` and `image-repo` are mandatory, without them it won't work. If multiple images are listed for a service, the first one to successfully pull will be used. Adding a grouping tag to the end of a `cache-from` list item allows this plugin to differentiate between groups within which only the first successfully downloaded image should be used (those elements that don't have a group specified will make a separate `:default:` group of its own). This way, not all images need to be downloaded and used as cache, not just the first.
+Requires docker-compose file version `3.2+`.
 
 ### `separator-cache-from` (optional, build only, single character)
 
