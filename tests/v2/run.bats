@@ -259,6 +259,33 @@ cmd3"
   unstub buildkite-agent
 }
 
+@test "Run without a prebuilt image without pulling" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "ran myservice"
+  unstub docker
+  unstub buildkite-agent
+}
+
 @test "Run with a prebuilt image and propagate environment but no BUILDKITE_ENV_FILE" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PIPELINE_SLUG=test
