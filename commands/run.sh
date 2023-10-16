@@ -427,7 +427,7 @@ ensure_stopped() {
 
 trap ensure_stopped SIGINT SIGTERM SIGQUIT
 
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_RUN_LOG_GROUP:-true}" = "true" ]]; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_RUN_LOG_GROUP:-false}" = "true" ]]; then
   group_type="---"
 else
   group_type="+++"

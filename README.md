@@ -432,11 +432,11 @@ Pull down multiple pre-built images. By default only the service that is being r
 
 ### `collapse-run-log-group` (optional, boolean, run only)
 
-Whether to collapse or expand the log group that is created for the output of `docker-compose run`. When this setting is `true`, the output is collected into a `---` group, when `false` the output is collected into a `+++` group. Setting this to `false` can be useful to highlight your command's output if it does not create its own `+++` group.
+Whether to collapse or expand the log group that is created for the output of `docker-compose run`. When this setting is `true`, the output is collected into a `---` group, when `false` the output is collected into a `+++` group. Setting this to `true` can be useful to de-emphasize plugin output if your command creates its own `+++` group.
 
 For more information see [Managing log output](https://buildkite.com/docs/pipelines/managing-log-output).
 
-Default `true`
+Default `false`
 
 ### `config` (optional)
 
