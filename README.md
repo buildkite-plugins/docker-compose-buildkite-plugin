@@ -191,7 +191,7 @@ This behaviour can be disabled with the `run-labels: false` option.
 
 ## Build Arguments
 
-You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/#args) to set specific build arguments when building an image.
+You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/build/#args) to set specific build arguments when building an image.
 
 Alternatively, if you want to set build arguments when pre-building an image, this plugin offers an `args` block of its own:
 
