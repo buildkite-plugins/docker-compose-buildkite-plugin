@@ -71,8 +71,7 @@ setup_file() {
      "meta-data get docker-compose-plugin-built-image-tag-myservice : cat /tmp/build-push-metadata"
 
   stub docker \
-     "pull my.repository/llamas:test-myservice-build-1 : echo pulled pre-built image" \
-     "tag my.repository/llamas:test-myservice-build-1 buildkite12_myservice : echo re-tagged pre-built image"
+     "pull my.repository/llamas:test-myservice-build-1 : echo pulled pre-built image"
 
   run "$PWD"/hooks/command
 
@@ -81,7 +80,6 @@ setup_file() {
   assert_output --partial "Building services myservice"
   assert_output --partial "Pushing built images to my.repository/llamas"
   assert_output --partial "Pulling pre-built service myservice"
-  assert_output --partial "Tagging pre-built service myservice"
   assert_output --partial "Pushing images for myservice"
 
   unstub docker-compose
