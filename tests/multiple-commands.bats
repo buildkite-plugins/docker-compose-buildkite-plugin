@@ -82,6 +82,7 @@ setup_file() {
   assert_output --partial "Pulling pre-built service myservice"
   assert_output --partial "Pushing images for myservice"
 
+  unstub docker
   unstub docker-compose
   unstub buildkite-agent
 }
@@ -165,8 +166,7 @@ setup_file() {
      "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myservice-tag"
 
   stub docker \
-     "pull myservice-tag : echo pulled pre-built image" \
-     "tag myservice-tag buildkite12_myservice : echo re-tagged pre-built image"
+     "pull myservice-tag : echo pulled pre-built image"
 
   run "$PWD"/hooks/command
 
@@ -179,6 +179,7 @@ setup_file() {
   assert_output --partial "Pulling pre-built service myservice"
   assert_output --partial "Pushing images for myservice" 
 
+  unstub docker
   unstub docker-compose
   unstub buildkite-agent
 }
