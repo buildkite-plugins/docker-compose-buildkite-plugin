@@ -30,8 +30,7 @@ for line in $(plugin_read_list PUSH) ; do
     fi
   fi
 
-  prebuilt_image=$(get_prebuilt_image "$service_name")
-  if [[ -n "$prebuilt_image" ]]; then
+  if prebuilt_image="$(get_prebuilt_image "$service_name")"; then
     echo "~~~ :docker: Using pre-built image ${prebuilt_image}"
 
     # Only pull it down once
@@ -41,8 +40,7 @@ for line in $(plugin_read_list PUSH) ; do
       pulled_services+=("${service_name}")
     fi
 
-    echo "~~~ :docker: Tagging pre-built service ${service_name} image ${prebuilt_image} as ${service_image}" >&2;
-    plugin_prompt_and_run docker tag "$prebuilt_image" "$service_image"
+    service_image="${prebuilt_image}"
   elif docker_image_exists "${service_image}"; then
     echo "~~~ :docker: Using service image ${service_image} from Docker Compose config"
   else
