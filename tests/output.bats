@@ -31,7 +31,6 @@ setup_file() {
     "artifact upload docker-compose-logs/\*.log : exit 0"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice command"
 
@@ -48,7 +47,6 @@ setup_file() {
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice dependencies"
   assert_output --partial "ran myservice command"
   assert_output --partial "Some containers had non-zero exit codes"
@@ -76,7 +74,6 @@ setup_file() {
     "artifact upload docker-compose-logs/\*.log : exit 0"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : exit 1" \
 
   stub docker \
@@ -92,7 +89,6 @@ setup_file() {
   run "$PWD"/hooks/command
 
   assert_failure
-  assert_output --partial "built myservice"
   assert_output --partial "Failed to start dependencies"
   assert_output --partial "Some containers had non-zero exit codes"
   unstub buildkite-agent
@@ -117,7 +113,6 @@ setup_file() {
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice command"
 
@@ -131,7 +126,6 @@ setup_file() {
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice dependencies"
   assert_output --partial "ran myservice command"
   refute_output --partial "Some containers had non-zero exit codes"
@@ -160,7 +154,6 @@ setup_file() {
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice command"
 
@@ -171,7 +164,6 @@ setup_file() {
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice dependencies"
   assert_output --partial "ran myservice command"
   refute_output --partial "Uploading linked container logs"
