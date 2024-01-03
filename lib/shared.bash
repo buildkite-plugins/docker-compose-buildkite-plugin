@@ -17,8 +17,16 @@ function plugin_prompt() {
 
 # Shows the command being run, and runs it
 function plugin_prompt_and_run() {
+  local exit_code
+
   plugin_prompt "$@"
   "$@"
+  exit_code=$?
+
+  # Sometimes docker-compose pull leaves unfinished ansi codes
+  echo
+
+  return $exit_code
 }
 
 # Shows the command about to be run, and exits if it fails
@@ -188,6 +196,15 @@ function run_docker_compose() {
     command+=(--verbose)
   fi
 
+  if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
+    command+=(--no-ansi)
+  fi
+
+  # Enable compatibility mode for v3 files
+  if [[ "$(plugin_read_config COMPATIBILITY "false")" == "true" ]]; then
+    command+=(--compatibility)
+  fi
+
   for file in $(docker_compose_config_files) ; do
     command+=(-f "$file")
   done
@@ -245,4 +262,14 @@ function is_windows() {
 
 function is_macos() {
   [[ "$OSTYPE" =~ ^(darwin) ]]
+}
+
+function validate_tag {
+  local tag=$1
+
+  if [[ "$tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+    return 0
+  else
+    return 1
+  fi
 }

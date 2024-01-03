@@ -20,7 +20,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
 ```
 
@@ -33,7 +33,7 @@ through if you need:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
           config: docker-compose.tests.yml
           env:
@@ -46,7 +46,7 @@ or multiple config files:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
           config:
             - docker-compose.yml
@@ -61,7 +61,7 @@ env:
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
 ```
 
@@ -70,7 +70,7 @@ If you want to control how your command is passed to docker-compose, you can use
 ```yml
 steps:
   - plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
           command: ["custom", "command", "values"]
 ```
@@ -84,7 +84,7 @@ steps:
   - plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
   - wait
@@ -92,7 +92,7 @@ steps:
     plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
 ```
 
@@ -109,7 +109,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
 ```
 
@@ -127,21 +127,22 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
           volumes:
             - "./dist:/app/dist"
 ```
 
-If you want to use environment variables in the `volumes` element, you will need to activate the (unsafe) option `expand-volume-vars`.
+If you want to use environment variables in the `volumes` element, you will need to activate the (unsafe) option `expand-volume-vars` (and most likely escape it using `$$VARIABLE_NAME`).
 
 ## Environment
 
 By default, docker-compose makes whatever environment variables it gets available for
 interpolation of docker-compose.yml, but it doesn't pass them in to your containers.
 
-You can use the [environment key in docker-compose.yml](https://docs.docker.com/compose/environment-variables/) to either set specific environment vars or "pass through" environment
-variables from outside docker-compose.
+You can use the [environment key in docker-compose.yml](https://docs.docker.com/compose/environment-variables/) to either set specific environment vars or "pass through" environment variables from outside docker-compose.
+
+### Specific values
 
 If you want to add extra environment above what is declared in your `docker-compose.yml`,
 this plugin offers a `environment` block of its own:
@@ -150,7 +151,7 @@ this plugin offers a `environment` block of its own:
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
           env:
             - BUILDKITE_BUILD_NUMBER
@@ -160,9 +161,42 @@ steps:
 
 Note how the values in the list can either be just a key (so the value is sourced from the environment) or a KEY=VALUE pair.
 
+### Pipeline variables
+
+Alternatively, you can have the plugin add all environment variables defined for the job by the agent as defined in [`BUILDKITE_ENV_FILE`](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_ENV_FILE) activating the `propagate-environment` option:
+
+```yml
+steps:
+  - command: use-vars.sh
+    plugins:
+      - docker-compose#v4.16.0:
+          run: app
+          propagate-environment: true
+```
+
+## Container Labels
+
+When running a command, the plugin will automatically add the following Docker labels to the container specified in the `run` option:
+- `com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}`
+- `com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG}`
+- `com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER}`
+- `com.buildkite.job_id=${BUILDKITE_JOB_ID}`
+- `com.buildkite.job_label=${BUILDKITE_LABEL}`
+- `com.buildkite.step_key=${BUILDKITE_STEP_KEY}`
+- `com.buildkite.agent_name=${BUILDKITE_AGENT_NAME}`
+- `com.buildkite.agent_id=${BUILDKITE_AGENT_ID}`
+
+These labels can make it easier to query containers on hosts using `docker ps` for example:
+
+```bash
+docker ps --filter "label=com.buildkite.job_label=Run tests"
+```
+
+This behaviour can be disabled with the `run-labels: false` option.
+
 ## Build Arguments
 
-You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/#args) to set specific build arguments when building an image.
+You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/build/#args) to set specific build arguments when building an image.
 
 Alternatively, if you want to set build arguments when pre-building an image, this plugin offers an `args` block of its own:
 
@@ -170,7 +204,7 @@ Alternatively, if you want to set build arguments when pre-building an image, th
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           args:
@@ -187,7 +221,7 @@ If you have multiple steps that use the same service/image (such as steps that r
 steps:
   - label: ":docker: Build"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
 
@@ -197,7 +231,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: app
 ```
 
@@ -213,7 +247,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build:
             - app
             - tests
@@ -225,7 +259,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: tests
 ```
 
@@ -237,7 +271,7 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           push: app
 ```
 
@@ -247,7 +281,7 @@ To push multiple images, you can use a list:
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           push:
             - first-service
             - second-service
@@ -259,7 +293,7 @@ If you want to push to a specific location (that's not defined as the `image` in
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -273,18 +307,22 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 steps:
   - label: ":docker: Build an image"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
           cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
+
+**Important**: if your registry URL contains a port, you will need to take the following into account:
+* specify the `separator-cache-from` option to change the colon character to something else (like `#`)
+* you will have to specify tags in the `push` elements (or the plugin will try to validate everything after the port as a tag)
 
 #### Multiple cache-from values
 
@@ -294,20 +332,20 @@ This plugin allows for the value of `cache-from` to be a string or a list. If it
 steps:
   - label: ":docker Build an image"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build: app
           image-repository: index.docker.io/myorg/myrepo
+          separator-cache-from: "#"
           cache-from:
-            - app:index.docker.io/myorg/myrepo/myapp:my-branch
-            - app:index.docker.io/myorg/myrepo/myapp:latest
+            - "app#myregistry:port/myrepo/myapp#my-branch"
+            - "app#myregistry:port/myrepo/myapp#latest"
   - wait
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           push:
-            - app:index.docker.io/myorg/myrepo/myapp
-            - app:index.docker.io/myorg/myrepo/myapp:my-branch
-            - app:index.docker.io/myorg/myrepo/myapp:latest
+            - app:myregistry:port/myrepo/myapp:my-branch
+            - app:myregistry:port/myrepo/myapp:latest
 ```
 
 You may actually want to build your image with multiple cache-from values, for instance, with the cached images of multiple stages in a multi-stage build.
@@ -317,7 +355,7 @@ Adding a grouping tag to the end of a cache-from list item allows this plugin to
 steps:
   - label: ":docker: Build Intermediate Image"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build: myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo/myservice_intermediate
@@ -327,7 +365,7 @@ steps:
   - wait
   - label: ":docker: Build Final Image"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build: myservice
           image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
           image-repository: index.docker.io/myorg/myrepo
@@ -371,14 +409,14 @@ A basic pipeline similar to the following:
 steps:
   - label: ":docker: Run & Push"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           run: myservice
           push: myservice
 ```
 
 Will cause the image to be built twice (once before running and once before pushing) unless there was a previous `build` step that set the appropriate metadata.
 
-##### Run & Push
+##### Build & Push
 
 A basic pipeline similar to the following:
 
@@ -386,7 +424,7 @@ A basic pipeline similar to the following:
 steps:
   - label: ":docker: Build & Push"
     plugins:
-      - docker-compose#v4.0.0:
+      - docker-compose#v4.16.0:
           build: myservice
           push: myservice
 ```
@@ -395,7 +433,15 @@ Will cause the image to be pushed twice (once by the build step and another by t
 
 ### `pull` (optional, run only)
 
-Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images.
+Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images. Note that pulling will be skipped if the `skip-pull` option is activated.
+
+### `collapse-run-log-group` (optional, boolean, run only)
+
+Whether to collapse or expand the log group that is created for the output of `docker-compose run`. When this setting is `true`, the output is collected into a `---` group, when `false` the output is collected into a `+++` group. Setting this to `true` can be useful to de-emphasize plugin output if your command creates its own `+++` group.
+
+For more information see [Managing log output](https://buildkite.com/docs/pipelines/managing-log-output).
+
+Default `false`
 
 ### `config` (optional)
 
@@ -427,6 +473,16 @@ A list of KEY=VALUE that are passed through as build arguments when image is bei
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
 
+### `env-propagation-list` (optional, string)
+
+If you set this to `VALUE`, and `VALUE` is an environment variable containing a space-separated list of environment variables such as `A B C D`, then A, B, C, and D will all be propagated to the container. This is helpful when you've set up an `environment` hook to export secrets as environment variables, and you'd also like to programmatically ensure that secrets get propagated to containers, instead of listing them all out.
+
+### `propagate-environment` (optional, boolean)
+
+Whether or not to automatically propagate all pipeline environment variables into the run container. Avoiding the need to be specified with environment.
+
+**Important**: only pipeline environment variables will be propagated (what you see in the BuildKite UI, those listed in `$BUILDKITE_ENV_FILE`). This does not include variables exported in preceeding `environment` hooks. If you wish for those to be propagated you will need to list them specifically or use `env-propagation-list`.
+
 ### `command` (optional, run only, array)
 
 Sets the command for the Docker image, and defaults the `shell` option to `false`. Useful if the Docker image has an entrypoint, or doesn't contain a shell.
@@ -443,11 +499,19 @@ Example: `[ "powershell", "-Command" ]`
 
 ### `skip-checkout` (optional, run only)
 
-Whether to skip the repository checkout phase. This is useful for steps that use a pre-built image. This will fail if there is no pre-built image.
+Whether to skip the repository checkout phase. This is useful for steps that use a pre-built image and will fail if there is no pre-built image.
+
+**Important**: as the code repository will not be available in the step, you need to ensure that the docker compose file(s) are present in some way (like using artifacts)
+
+### `skip-pull` (optional, build and run only)
+
+Completely avoid running any `pull` command. Images being used will need to be present in the machine from before or have been built in the same step. Could be useful to avoid hitting rate limits when you can be sure the operation is unnecessary. Note that it is possible other commands run in the plugin's lifecycle will trigger a pull of necessary images.
 
 ### `workdir` (optional, run only)
 
-Specify the container working directory via `docker-compose run --workdir`.
+Specify the container working directory via `docker-compose run --workdir`. This option is also used by [`mount-checkout`](#mount-checkout-optional-run-only-boolean) if it doesn't specify where to mount the checkout in the container.
+
+Example: `/app`
 
 ### `user` (optional, run only)
 
@@ -459,15 +523,23 @@ Whether to match the user ID and group ID for the container user to the user ID 
 
 Using this option ensures that any files created on shared mounts from within the container will be accessible to the host user. It is otherwise common to accidentally create root-owned files that Buildkite will be unable to remove, since containers by default run as the root user.
 
-### `mount-ssh-agent` (optional, run-only, boolean)
+### `mount-ssh-agent` (optional, run-only, boolean or string)
 
-Whether to automatically mount the ssh-agent socket from the host agent machine into the container (at `/ssh-agent`and `/root/.ssh/known_hosts` respectively), allowing git operations to work correctly.
+Whether to mount the ssh-agent socket (at `/ssh-agent`) from the host agent machine into the container or not. Instead of just `true` or `false`, you can specify absolute path in the container for the home directory of the user used to run on which the agent's `.ssh/known_hosts` will be mounted (by default, `/root`).
 
 Default: `false`
 
 ### `mount-buildkite-agent` (optional, run-only, boolean)
 
 Whether to automatically mount the `buildkite-agent` binary and associated environment variables from the host agent machine into the container.
+
+Default: `false`
+
+### `mount-checkout` (optional, run-only, string or boolean)
+
+The absolute path where to mount the current working directory which contains your checked out codebase.
+
+If set to `true` it will mount onto `/workdir`, unless `workdir` is set, in which case that will be used.
 
 Default: `false`
 
@@ -485,7 +557,22 @@ This option can also be configured on the agent machine using the environment va
 
 ### `cache-from` (optional, build only)
 
-A list of images to pull caches from in the format `service:index.docker.io/myorg/myrepo/myapp:tag` before building, ignoring any failures. If multiple images are listed for a service, the first one to successfully pull will be used. Requires docker-compose file version `3.2+`.
+A list of images to attempt pulling before building in the format `service:index.docker.io/myorg/myrepo/myapp:tag:group`, ignoring any failures, to allow docker to re-use layers. The parameters `service` and `image-repo` are mandatory, without them it won't work. For each combination of service and group, it will attempt to pull each in order until one is successful (the rest will be ignored). Those elements that don't have a group specified will use a `:default:` group.
+Requires docker-compose file version `3.2+`.
+
+### `separator-cache-from` (optional, build only, single character)
+
+A single character that specifies the character to use for splitting elements in the `cache-from` option.
+
+By default it is `:` which should not be a problem unless your registry's URL contains a port, in which case you will have to use this option to specify a different character.
+
+**Important**: the tag to use is its own field, so you will have to specify elements like `service#registry:port/myrepo/myapp#tag#group`
+
+### `target` (optional, build only)
+
+Allow for intermediate builds with `--target VALUE` options.
+
+Note that there is a single build command run for all services so the target value will apply to all of them.
 
 ### `volumes` (optional, run only)
 
@@ -498,6 +585,8 @@ Additionally, volumes may be specified via the agent environment variable `BUILD
 When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
 
 :warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
+
+Note that rules regarding [environment variable interpolation](https://buildkite.com/docs/pipelines/environment-variables#runtime-variable-interpolation) apply here. That means that `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` will be at run time. All things being equal, you likely want to use `$$VARIABLE_NAME` on the variables mentioned in this option.
 
 ### `graceful-shutdown` (optional, run only)
 
@@ -531,9 +620,19 @@ The default is `true` on unix, `false` on windows
 
 ### `dependencies` (optional, run only)
 
-If set to false, doesn't start linked services.
+If set to false, runs with `--no-deps` and doesn't start linked services.
 
 The default is `true`.
+
+### `pre-run-dependencies` (optional, run only)
+
+If `dependencies` are activated (which is the default), you can skip starting them up before the main container by setting this option to `false`. This is useful if you want compose to take care of that on its own at the expense of messier output in the run step.
+
+### `wait` (optional, run only)
+
+Whether to wait for dependencies to be up (and healthy if possible) when starting them up. It translates to using [`--wait` in the docker-compose up] command.
+
+Defaults to `false`.
 
 ### `ansi` (optional, run only)
 
@@ -553,15 +652,45 @@ Sets `docker-compose` to run with `--verbose`
 
 The default is `false`.
 
+### `quiet-pull` (optional, run only)
+
+Start up dependencies with `--quiet-pull` to prevent even more logs during that portion of the execution.
+
+The default is `false`.
+
 ### `rm` (optional, run only)
 
 If set to true, docker compose will remove the primary container after run. Equivalent to `--rm` in docker-compose.
 
 The default is `true`.
 
+### `run-labels` (optional, run only)
+
+If set to true, adds useful Docker labels to the primary container. See [Container Labels](#container-labels) for more info.
+
+The default is `true`.
+
+### `compatibility` (optional, run only)
+
+If set to true, all docker compose commands will rum with compatibility mode. Equivalent to `--compatibility` in docker-compose.
+
+The default is `false`.
+
+Note that [the effect of this option changes depending on your docker compose CLI version](https://docs.docker.com/compose/cli-command-compatibility/#flags-that-will-not-be-implemented):
+* in v1 it translates (composefile) v3 deploy keys to their non-swarm (composefile) v2 equivalents
+* in v2 it will revert some behaviour to v1 as well, including (but not limited to):
+  - [Character separator for container names](https://github.com/docker/compose/blob/a0acc20d883ce22b8b0c65786e3bea1328809bbd/cmd/compose/compose.go#L181)
+  - [Not normalizing compose models (when running `config`)](https://github.com/docker/compose/blob/2e7644ff21f9ca0ea6fb5e8d41d4f6af32cd7e20/cmd/compose/convert.go#L69)
+
 ### `entrypoint` (optional, run only)
 
 Sets the `--entrypoint` argument when running `docker-compose`.
+
+### `service-ports` (optional, run only)
+
+If set to true, docker compose will run with the service ports enabled and mapped to the host. Equivalent to `--service-ports` in docker-compose.
+
+The default is `false`.
 
 ### `upload-container-logs` (optional, run only)
 
@@ -573,9 +702,23 @@ Select when to upload container logs.
 
 The default is `on-error`.
 
-### `cli-version` (optional)
+### `cli-version` (optional, string or integer)
 
-If set to `2`, plugin will use `docker compose` to execute commands; otherwise it will default to version `1` using `docker-compose` instead.
+If set to `2`, plugin will use `docker compose` to execute commands; otherwise it will default to version `1`, using `docker-compose` instead.
+
+### `buildkit` (optional, build only, boolean)
+
+Assuming you have a compatible docker installation and configuration in the agent, activating this option would setup the environment for the `docker-compose build` call to use BuildKit. Note that if you are using `cli-version` 2, you are already using buildkit by default.
+
+You may want to also add `BUILDKIT_INLINE_CACHE=1` to your build arguments (`args` option in this plugin), but know that [there are known issues with it](https://github.com/moby/buildkit/issues/2274).
+
+### `ssh` (optional, build only, boolean or string)
+
+It will add the `--ssh` option to the build command with the passed value (if `true` it will use `default`). Note that it assumes you have a compatible docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).
+
+### `secrets` (optional, build only, array of strings)
+
+All elements in this array will be passed literally to the `build` command as parameters of the [`--secrets` option](https://docs.docker.com/engine/reference/commandline/buildx_build/#secret). Note that you must have BuildKit enabled for this option to have any effect and special `RUN` stanzas in your Dockerfile to actually make use of them.
 
 ## Developing
 

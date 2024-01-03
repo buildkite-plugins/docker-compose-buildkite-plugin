@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 
 # export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
@@ -24,7 +24,7 @@ load '../lib/shared'
   stub docker \
     "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial ":warning: Skipping build"
@@ -59,7 +59,7 @@ load '../lib/shared'
     "meta-data exists docker-compose-plugin-built-image-tag-myservice1 : exit 1" \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice2 : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "tagging image1"
@@ -90,7 +90,7 @@ load '../lib/shared'
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled prebuilt image"
@@ -99,6 +99,24 @@ load '../lib/shared'
   unstub docker-compose
   unstub docker
   unstub buildkite-agent
+}
+
+@test "Push a prebuilt image with an invalid tag" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:-llamas
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 config : echo blah"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  refute_output --partial "pulled prebuilt image"
+  refute_output --partial "tagged image"
+  assert_output --partial "invalid tag"
+  unstub docker-compose
 }
 
 @test "Push a prebuilt image to multiple tags" {
@@ -134,7 +152,7 @@ load '../lib/shared'
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled prebuilt image"
@@ -167,7 +185,7 @@ load '../lib/shared'
     "tag buildkite1111_helper my.repository/helper:llamas : echo tagged helper" \
     "push my.repository/helper:llamas : echo pushed helper"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built helper"

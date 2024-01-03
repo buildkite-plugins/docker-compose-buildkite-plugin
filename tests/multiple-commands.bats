@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 load '../lib/metadata'
 
@@ -8,12 +8,14 @@ load '../lib/metadata'
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 # export BATS_MOCK_TMPDIR=$PWD
 
-# General pipeline variables
-export BUILDKITE_BUILD_NUMBER=1
-export BUILDKITE_COMMAND="pwd"
-export BUILDKITE_JOB_ID=12
-export BUILDKITE_PIPELINE_SLUG=test
-
+setup_file() {
+  # General pipeline variables
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="pwd"
+  export BUILDKITE_JOB_ID=12
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
+}
 
 @test "Build and run" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
@@ -35,7 +37,7 @@ export BUILDKITE_PIPELINE_SLUG=test
      "meta-data exists docker-compose-plugin-built-image-tag-myservice : test -f /tmp/build-run-metadata" \
      "meta-data get docker-compose-plugin-built-image-tag-myservice : cat /tmp/build-run-metadata"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "Building services myservice"
@@ -71,7 +73,7 @@ export BUILDKITE_PIPELINE_SLUG=test
      "pull my.repository/llamas:test-myservice-build-1 : echo pulled pre-built image" \
      "tag my.repository/llamas:test-myservice-build-1 buildkite12_myservice : echo re-tagged pre-built image"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
 
@@ -102,7 +104,7 @@ export BUILDKITE_PIPELINE_SLUG=test
      "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
      "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
 
@@ -140,7 +142,7 @@ export BUILDKITE_PIPELINE_SLUG=test
      "pull myservice-tag : echo pulled pre-built image" \
      "tag myservice-tag buildkite12_myservice : echo re-tagged pre-built image"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
 

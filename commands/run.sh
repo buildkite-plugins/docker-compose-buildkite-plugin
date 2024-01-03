@@ -8,7 +8,8 @@ run_service="$(plugin_read_config RUN)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
-mount_ssh_agent=''
+mount_checkout="$(plugin_read_config MOUNT_CHECKOUT "false")"
+workdir=''
 
 expand_headers_on_error() {
   echo "^^^ +++"
@@ -69,21 +70,27 @@ elif [[ ${#pull_services[@]} -eq 1 ]] ; then
 fi
 
 # Pull down specified services
-if [[ ${#pull_services[@]} -gt 0 ]] ; then
+if [[ ${#pull_services[@]} -gt 0 ]] && [[ "$(plugin_read_config SKIP_PULL "false")" != "true" ]]; then
   echo "~~~ :docker: Pulling services ${pull_services[0]}"
   retry "$pull_retries" run_docker_compose "${pull_params[@]}"
-
-  # Sometimes docker-compose pull leaves unfinished ansi codes
-  echo
-fi
-
-# Optionally disable ansi output
-if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
-  run_params+=(--no-ansi)
 fi
 
 # We set a predictable container name so we can find it and inspect it later on
 run_params+=("run" "--name" "$container_name")
+
+if [[ "$(plugin_read_config RUN_LABELS "true")" =~ ^(true|on|1)$ ]]; then
+  # Add useful labels to run container
+  run_params+=(
+    "--label" "com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}"
+    "--label" "com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG}"
+    "--label" "com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER}"
+    "--label" "com.buildkite.job_id=${BUILDKITE_JOB_ID}"
+    "--label" "com.buildkite.job_label=${BUILDKITE_LABEL}"
+    "--label" "com.buildkite.step_key=${BUILDKITE_STEP_KEY}"
+    "--label" "com.buildkite.agent_name=${BUILDKITE_AGENT_NAME}"
+    "--label" "com.buildkite.agent_id=${BUILDKITE_AGENT_ID}"
+  )
+fi
 
 # append env vars provided in ENV or ENVIRONMENT, these are newline delimited
 while IFS=$'\n' read -r env ; do
@@ -91,6 +98,32 @@ while IFS=$'\n' read -r env ; do
 done <<< "$(printf '%s\n%s' \
   "$(plugin_read_list ENV)" \
   "$(plugin_read_list ENVIRONMENT)")"
+
+# Propagate all environment variables into the container if requested
+if [[ "$(plugin_read_config PROPAGATE_ENVIRONMENT "false")" =~ ^(true|on|1)$ ]] ; then
+  if [[ -n "${BUILDKITE_ENV_FILE:-}" ]] ; then
+    # Read in the env file and convert to --env params for docker
+    # This is because --env-file doesn't support newlines or quotes per https://docs.docker.com/compose/env-file/#syntax-rules
+    while read -r var; do
+      run_params+=("-e" "${var%%=*}")
+    done < "${BUILDKITE_ENV_FILE}"
+  else
+    echo -n "🚨 Not propagating environment variables to container as \$BUILDKITE_ENV_FILE is not set"
+  fi
+fi
+
+# If requested, propagate a set of env vars as listed in a given env var to the
+# container.
+if [[ -n "$(plugin_read_config ENV_PROPAGATION_LIST)" ]]; then
+  env_propagation_list_var="$(plugin_read_config ENV_PROPAGATION_LIST)"
+  if [[ -z "${!env_propagation_list_var:-}" ]]; then
+    echo -n "env-propagation-list desired, but ${env_propagation_list_var} is not defined!"
+    exit 1
+  fi
+  for var in ${!env_propagation_list_var}; do
+    run_params+=("-e" "$var")
+  done
+fi
 
 while IFS=$'\n' read -r vol ; do
   [[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
@@ -110,10 +143,17 @@ if [[ -n "${BUILDKITE_REPO_MIRROR:-}" ]]; then
 fi
 
 tty_default='true'
+workdir_default="/workdir"
+pwd_default="$PWD"
+run_dependencies="true"
 
 # Set operating system specific defaults
 if is_windows ; then
   tty_default='false'
+  workdir_default="C:\\workdir"
+  # escaping /C is a necessary workaround for an issue with Git for Windows 2.24.1.2
+  # https://github.com/git-for-windows/git/issues/2442
+  pwd_default="$(cmd.exe //C "echo %CD%")"
 fi
 
 # Optionally disable allocating a TTY
@@ -124,10 +164,26 @@ fi
 # Optionally disable dependencies
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "false" ]] ; then
   run_params+=(--no-deps)
+  run_dependencies="false"
+elif [[ "$(plugin_read_config PRE_RUN_DEPENDENCIES "true")" == "false" ]]; then
+  run_dependencies="false"
 fi
 
-if [[ -n "$(plugin_read_config WORKDIR)" ]] ; then
-  run_params+=("--workdir=$(plugin_read_config WORKDIR)")
+if [[ -n "$(plugin_read_config WORKDIR)" ]] || [[ "${mount_checkout}" == "true" ]]; then
+  workdir="$(plugin_read_config WORKDIR "$workdir_default")"
+fi
+
+if [[ -n "${workdir}" ]] ; then
+  run_params+=("--workdir=${workdir}")
+fi
+
+if [[ "${mount_checkout}" == "true" ]]; then
+  run_params+=("-v" "${pwd_default}:${workdir}")
+elif [[ "${mount_checkout}" =~ ^/.*$ ]]; then
+  run_params+=("-v" "${pwd_default}:${mount_checkout}")
+elif [[ "${mount_checkout}" != "false" ]]; then
+  echo -n "🚨 mount-checkout should be either true or an absolute path to use as a mountpoint"
+  exit 1
 fi
 
 # Can't set both user and propagate-uid-gid
@@ -163,23 +219,26 @@ if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
 fi
 
 # Mount ssh-agent socket and known_hosts
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-$mount_ssh_agent}" =~ ^(true|on|1)$ ]] ; then
+if [[ ! "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-false}" = 'false' ]] ; then
   if [[ -z "${SSH_AUTH_SOCK:-}" ]] ; then
     echo "+++ 🚨 \$SSH_AUTH_SOCK isn't set, has ssh-agent started?"
     exit 1
   fi
   if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
-    echo "+++ 🚨 There isn't any file at ${SSH_AUTH_SOCK}, has ssh-agent started?"
+    echo "+++ 🚨 The file at ${SSH_AUTH_SOCK} does not exist or is not a socket, was ssh-agent started?"
     exit 1
   fi
-  if [[ ! -S "${SSH_AUTH_SOCK}" ]] ; then
-    echo "+++ 🚨 The file at ${SSH_AUTH_SOCK} isn't a socket, has ssh-agent started?"
-    exit 1
+
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT:-''}" =~ ^(true|on|1)$ ]]; then
+    MOUNT_PATH=/root
+  else
+    MOUNT_PATH="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT}"
   fi
+
   run_params+=(
     "-e" "SSH_AUTH_SOCK=/ssh-agent"
     "-v" "${SSH_AUTH_SOCK}:/ssh-agent"
-    "-v" "${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts"
+    "-v" "${HOME}/.ssh/known_hosts:${MOUNT_PATH}/.ssh/known_hosts"
   )
 fi
 
@@ -205,9 +264,19 @@ if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
   )
 fi
 
+# Optionally expose service ports
+if [[ "$(plugin_read_config SERVICE_PORTS "false")" == "true" ]]; then
+  run_params+=(--service-ports)
+fi
+
 run_params+=("$run_service")
 
-build_params=(--pull)
+build_params=()
+
+# Only pull if SKIP_PULL is not true
+if [[ ! "$(plugin_read_config SKIP_PULL "false")" == "true" ]] ; then
+  build_params+=(--pull)
+fi
 
 if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
   build_params+=(--no-cache)
@@ -234,24 +303,23 @@ elif [[ ! -f "$override_file" ]]; then
   # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
   # pull an image that doesn't exist
   run_docker_compose build "${build_params[@]}" "$run_service"
+fi
 
-  # Sometimes docker-compose pull leaves unfinished ansi codes
-  echo
+up_params+=("up")  # this ensures that the array has elements to avoid issues with bash 4.3
+
+if [[ "$(plugin_read_config WAIT "false")" == "true" ]] ; then
+  up_params+=("--wait")
+fi
+
+if [[ "$(plugin_read_config QUIET_PULL "false")" == "true" ]] ; then
+  up_params+=("--quiet-pull")
 fi
 
 dependency_exitcode=0
-if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
-
+if [[ "${run_dependencies}" == "true" ]] ; then
   # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
-  if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
-  else
-    run_docker_compose up -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
-  fi
-
-  # Sometimes docker-compose leaves unfinished ansi codes
-  echo
+  run_docker_compose "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
 fi
 
 if [[ $dependency_exitcode -ne 0 ]] ; then
@@ -354,21 +422,36 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
-# Disable -e outside of the subshell; since the subshell returning a failure
-# would exit the parent shell (here) early.
-set +e
+ensure_stopped() {
+  echo '+++ :warning: Signal received, stopping container'
+  docker stop "${container_name}" || true
+  echo '~~~ Last log lines that may be missing above (if container was not already removed)'
+  docker logs "${container_name}" || true
+  exitcode='TRAP'
+}
 
-(
-  echo "+++ :docker: Running ${display_command[*]:-} in service $run_service" >&2
+trap ensure_stopped SIGINT SIGTERM SIGQUIT
+
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_RUN_LOG_GROUP:-false}" = "true" ]]; then
+  group_type="---"
+else
+  group_type="+++"
+fi
+# Disable -e to prevent cancelling step if the command fails for whatever reason
+set +e
+( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)
+  echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
   run_docker_compose "${run_params[@]}"
 )
-
 exitcode=$?
 
 # Restore -e as an option.
 set -e
 
-if [[ $exitcode -ne 0 ]] ; then
+if [[ $exitcode = "TRAP" ]]; then
+  # command failed due to cancellation signal, make sure there is an error but no further output
+  exitcode=-1
+elif [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
   echo "${run_params[@]}"
@@ -382,4 +465,4 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   fi
 fi
 
-return $exitcode
+return "$exitcode"

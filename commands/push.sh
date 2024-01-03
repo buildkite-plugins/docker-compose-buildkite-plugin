@@ -21,6 +21,15 @@ for line in $(plugin_read_list PUSH) ; do
   service_name=${tokens[0]}
   service_image=$(compose_image_for_service "$service_name")
 
+  # push in the form of service:repo:tag
+  # if the registry contains a port this means that the tag is mandatory
+  if [[ ${#tokens[@]} -gt 2 ]]; then 
+    if ! validate_tag "${tokens[-1]}"; then
+      echo "🚨 specified image to push ${line} has an invalid tag so it will be ignored"
+      continue
+    fi
+  fi
+
   # Pull down prebuilt image if one exists
   if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
 

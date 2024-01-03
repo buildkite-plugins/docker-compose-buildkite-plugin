@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 load '../lib/run'
 
@@ -19,9 +19,9 @@ load '../lib/run'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 kill : echo killing containers" \
     "-f docker-compose.yml -p buildkite1111 rm --force -v : echo removing stopped containers" \
-    "-f docker-compose.yml -p buildkite1111 down --volumes : echo removing everything"
+    "-f docker-compose.yml -p buildkite1111 down --remove-orphans --volumes : echo removing everything"
 
-  run $PWD/hooks/pre-exit
+  run "$PWD"/hooks/pre-exit
 
   assert_success
   assert_output --partial "Cleaning up after docker-compose"

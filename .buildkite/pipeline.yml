@@ -15,7 +15,7 @@ steps:
 
   - label: ":sparkles: Lint"
     plugins:
-      plugin-linter#v3.0.0:
+      plugin-linter#v3.2.0:
         id: docker-compose
 
   - label: ":bash: Tests"

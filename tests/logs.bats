@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/run'
 load '../lib/shared'
 
@@ -8,16 +8,20 @@ load '../lib/shared'
 # export CHECK_LINKED_CONTAINERS_AND_SAVE_LOGS_STUB_DEBUG=/dev/tty
 # export DOCKER_STUB_DEBUG=/dev/tty
 
-@test "Upload log settings: on-error" {
-  export LOG_DIR="docker-compose-logs"
-
+setup () {
   function docker_ps_by_project() {
+    # shellcheck disable=2317 # funtion used by loaded scripts
     cat tests/fixtures/id-service-multiple-services.txt
   }
 
   function plugin_prompt_and_run() {
+    # shellcheck disable=2317 # funtion used by loaded scripts
     echo "ran plugin_prompt_and_run"
   }
+}
+
+@test "Upload log settings: on-error" {
+  export LOG_DIR="docker-compose-logs"
 
   stub docker \
     "inspect --format={{.State.ExitCode}} 456456 : echo 1" \
@@ -36,14 +40,6 @@ load '../lib/shared'
 @test "Upload log settings: always" {
   export LOG_DIR="docker-compose-logs"
 
-  function docker_ps_by_project() {
-    cat tests/fixtures/id-service-multiple-services.txt
-  }
-
-  function plugin_prompt_and_run() {
-    echo "ran plugin_prompt_and_run"
-  }
-
   stub docker \
     "inspect --format={{.State.ExitCode}} 456456 : echo 1" \
     "logs -t 456456 : echo got logs for failed" \
@@ -61,14 +57,6 @@ load '../lib/shared'
 
 @test "Upload log settings: never" {
   export LOG_DIR="docker-compose-logs"
-
-  function docker_ps_by_project() {
-    cat tests/fixtures/id-service-multiple-services.txt
-  }
-
-  function plugin_prompt_and_run() {
-    echo "ran plugin_prompt_and_run"
-  }
 
   run check_linked_containers_and_save_logs \
     "main" "/tmp/docker-compose-logs" "never"

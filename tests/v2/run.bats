@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../../lib/shared'
 load '../../lib/run'
 
@@ -10,6 +10,7 @@ load '../../lib/run'
 
 setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
 }
 
 @test "Run without a prebuilt image" {
@@ -23,13 +24,13 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -49,13 +50,13 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -76,13 +77,13 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --workdir=/test_workdir --rm myservice : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -102,13 +103,13 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c $'sh -c \'echo hello world\'' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -130,13 +131,13 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c $'cmd1\ncmd2\ncmd3' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -158,13 +159,13 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -189,13 +190,13 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV -e ANOTHER=this\ is\ a\ long\ string\ with\ spaces\;\ and\ semi-colons --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -215,13 +216,13 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull --no-cache myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -243,19 +244,106 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
   unstub docker
   unstub buildkite-agent
+}
+
+@test "Run without a prebuilt image without pulling" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "ran myservice"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with a prebuilt image and propagate environment but no BUILDKITE_ENV_FILE" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROPAGATE_ENVIRONMENT=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Running /bin/sh -e -c 'pwd' in service myservice"
+  assert_output --partial "Not propagating environment variables to container"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with a prebuilt image and propagate environment" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_ENV_FILE=/tmp/test_env
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROPAGATE_ENVIRONMENT=true
+
+  echo "VAR0=1" > "${BUILDKITE_ENV_FILE}"
+  echo "VAR2=lalala" >> "${BUILDKITE_ENV_FILE}"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -e \* -e \* --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with vars \${12} and \${14}"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Running /bin/sh -e -c 'pwd' in service myservice"
+  assert_output --partial "ran myservice with vars VAR0 and VAR2"
+
+  unstub docker
+  unstub buildkite-agent
+
+  rm "${BUILDKITE_ENV_FILE}"
 }
 
 @test "Run with a prebuilt image" {
@@ -269,14 +357,14 @@ cmd3"
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -296,14 +384,14 @@ cmd3"
 
   stub docker \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -324,14 +412,14 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo pulled myservice" \
+    "compose -f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo pulled myservice" \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml-tests/composefiles/docker-compose.v2.1.yml : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml-tests/composefiles/docker-compose.v2.1.yml : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -351,14 +439,14 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice-tests/composefiles/docker-compose.v2.0.yml : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice"
@@ -382,7 +470,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "Exited with 2"
@@ -410,7 +498,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled myservice"
@@ -438,7 +526,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice without tty"
@@ -464,10 +552,37 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice without dependencies"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with dependencies but in a single step" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PRE_RUN_DEPENDENCIES=false
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with dependencies"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with dependencies"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -483,15 +598,15 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ANSI=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml --no-ansi run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice without ansi output"
+    "compose --no-ansi -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose --no-ansi -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose --no-ansi -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice without ansi output"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice without ansi output"
@@ -518,7 +633,35 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with use aliases output"
+  unstub docker
+  unstub buildkite-agent
+}
+
+
+@test "Run with compatibility mode" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMPATIBILITY=true
+
+  stub docker \
+    "compose --compatibility -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose --compatibility -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose --compatibility -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with use aliases output"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with use aliases output"
@@ -546,7 +689,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -573,7 +716,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -603,7 +746,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -630,7 +773,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice with volumes"
@@ -658,7 +801,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice-llamas1.yml-llamas2.yml-llamas3.yml : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -684,7 +827,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "^^^ +++"
@@ -715,7 +858,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice2 : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice2 : echo myimage2"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pulled myservice1 and myservice2"
@@ -742,7 +885,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -769,7 +912,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -792,7 +935,7 @@ export BUILDKITE_JOB_ID=1111
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "Error"
@@ -820,7 +963,7 @@ export BUILDKITE_JOB_ID=1111
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : echo myimage" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "ran myservice without tty"
@@ -838,17 +981,15 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENTRYPOINT="my custom entrypoint"
 
-  ENTRYPOINT='--entrypoint\ \"my\ custom\ entrypoint\"'
-
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm --entrypoint 'my custom entrypoint' myservice : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -869,13 +1010,13 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm -e BUILDKITE_JOB_ID -e BUILDKITE_BUILD_ID -e BUILDKITE_AGENT_ACCESS_TOKEN -v $BATS_MOCK_TMPDIR/bin/buildkite-agent:/usr/bin/buildkite-agent myservice : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -897,13 +1038,13 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull --no-cache --parallel myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -924,13 +1065,13 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -v /tmp/sample-mirror:/tmp/sample-mirror:ro --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -952,7 +1093,7 @@ export BUILDKITE_JOB_ID=1111
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm -e SSH_AUTH_SOCK=/ssh-agent -v /tmp/ssh_auth_sock:/ssh-agent -v /root/.ssh/known_hosts:/root/.ssh/known_hosts myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
   stub buildkite-agent \
@@ -961,7 +1102,7 @@ export BUILDKITE_JOB_ID=1111
   apk add netcat-openbsd
   nc -lkvU $SSH_AUTH_SOCK &
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   kill %1
 
@@ -969,5 +1110,373 @@ export BUILDKITE_JOB_ID=1111
   assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
   unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with mount-ssh-agent on particular folder" {
+  export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT=/tmp/test
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm -e SSH_AUTH_SOCK=/ssh-agent -v /tmp/ssh_auth_sock:/ssh-agent -v /root/.ssh/known_hosts:/tmp/test/.ssh/known_hosts myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  apk add netcat-openbsd
+  nc -lkvU $SSH_AUTH_SOCK &
+
+  run "$PWD"/hooks/command
+
+  kill %1
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "ran myservice"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run without mount-checkout doesn't set volume" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT=false
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice without mount-checkout"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice without mount-checkout"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set to true" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* run --name buildkite1111_myservice_build_1 --workdir=/workdir -v /plugin:/workdir --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with mount-checkout"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with mount-checkout"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set to true with custom workdir" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WORKDIR="/custom_workdir"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* run --name buildkite1111_myservice_build_1 \* -v \* --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with mount-checkout on \${13}"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with mount-checkout on /plugin:/custom_workdir"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set to specific path" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT="/special"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* run --name buildkite1111_myservice_build_1 -v \* --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with mount-checkout on \${12}"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with mount-checkout on /plugin:/special"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set to specific path and workdir set" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT="/special"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WORKDIR="/custom_workdir"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* run --name buildkite1111_myservice_build_1 \* -v \* --rm myservice /bin/sh -e -c 'pwd' : echo echo ran myservice with mount-checkout on \${13}"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with mount-checkout on /plugin:/special"
+  assert_output --partial "--workdir=/custom_workdir"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set something else" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT="not_absolute"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "mount-checkout should be either true or an absolute path to use as a mountpoint"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with mount-checkout set something else and workdir set" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_CHECKOUT="not-absolute"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WORKDIR="/custom_workdir"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f \* pull myservice : echo pulled myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "mount-checkout should be either true or an absolute path to use as a mountpoint"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run waiting for dependencies" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WAIT=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 up --wait -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "ran myservice"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with --service-ports" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SERVICE_PORTS=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --rm --service-ports myservice /bin/sh -e -c $'pwd' : echo ran myservice without tty"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : echo myimage" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice without tty"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with --quiet-pull" {
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_QUIET_PULL=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 up --quiet-pull -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  refute_output --partial "Pulling"
+  assert_output --partial "ran myservice"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with a list of propagated env vars" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_PROPAGATION_LIST="LIST_OF_VARS"
+  export LIST_OF_VARS="VAR_A VAR_B VAR_C"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e VAR_A -e VAR_B -e VAR_C --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "ran myservice"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with a list of propagated env vars - unless you forgot to define the variable" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_PROPAGATION_LIST="LIST_OF_VARS"
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "env-propagation-list desired, but LIST_OF_VARS is not defined!"
   unstub buildkite-agent
 }

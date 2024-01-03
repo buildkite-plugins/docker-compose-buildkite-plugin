@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 load '../lib/run'
 
@@ -9,6 +9,9 @@ load '../lib/run'
 # export DOCKER_STUB_DEBUG=/dev/tty
 # export BATS_MOCK_TMPDIR=$PWD
 
+setup_file() {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
+}
 
 @test "Logs: Detect some containers KO" {
   export BUILDKITE_AGENT_ACCESS_TOKEN="123123"
@@ -42,7 +45,7 @@ load '../lib/run'
     "logs -t 456456 : exit 0" \
     "inspect --format={{.State.ExitCode}} 789789 : echo 0"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -86,7 +89,7 @@ load '../lib/run'
     "logs -t 456456 : exit 0" \
     "inspect --format={{.State.ExitCode}} 789789 : echo 0"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_failure
   assert_output --partial "built myservice"
@@ -125,7 +128,7 @@ load '../lib/run'
     "inspect --format={{.State.ExitCode}} 456456 : echo 0" \
     "inspect --format={{.State.ExitCode}} 789789 : echo 0"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
@@ -165,7 +168,7 @@ load '../lib/run'
     "ps -a --filter label=com.docker.compose.project=buildkite1111 -q : echo" \
     "ps -a --filter label=com.docker.compose.project=buildkite1111 --format '{{.ID}}\\t{{.Label \"com.docker.compose.service\"}}' : cat tests/fixtures/id-service-no-services.txt"
 
-  run $PWD/hooks/command
+  run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
