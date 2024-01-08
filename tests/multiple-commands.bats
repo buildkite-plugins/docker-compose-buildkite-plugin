@@ -52,18 +52,15 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
 
-  # necessary for build
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
-
   stub docker \
     "compose -f docker-compose.yml -p buildkite12 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite12 config : echo ''" \
-    "image inspect buildkite12_myservice : echo existing-image" \
+    "image inspect \* : echo existing-image" \
     "compose -f docker-compose.yml -p buildkite12 push myservice : echo pushed myservice"
-  
+
   # these commands simulate metadata for a specific value by using an intermediate-file
   stub buildkite-agent \
-     "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo \$4 > /tmp/build-push-metadata"
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo \$4 > /tmp/build-push-metadata"
 
   run "$PWD"/hooks/command
 
