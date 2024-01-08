@@ -19,10 +19,17 @@ steps:
           run: app
 ```
 
-:warning: Warning: you should not use this plugin with an array of commands at the step level. Execute a script in your repository, a single command separated by `;` or the plugin's [`command` option](#command-optional-run-only-array) instead.
+:warning: Warning: you should not use this plugin with an array of commands at the step level. Execute a script in your repository, a single command separated by `;` or the plugin's [`command` option](#command-optional-run-only-array) instead:
 
-You can also specify a custom Docker Compose config file and what environment to pass
-through if you need:
+```yml
+steps:
+  - plugins:
+      - docker-compose#v4.16.0:
+          run: app
+          command: ["custom", "command", "values"]
+```
+
+The plugin will honor the value of the `COMPOSE_FILE` environment variable if one exists (for example, at the pipeline or step level). But you can also specify custom Docker Compose config files with the `config` option:
 
 ```yml
 steps:
@@ -33,41 +40,6 @@ steps:
           config: docker-compose.tests.yml
           env:
             - BUILDKITE_BUILD_NUMBER
-```
-
-or multiple config files:
-
-```yml
-steps:
-  - command: test.sh
-    plugins:
-      - docker-compose#v4.16.0:
-          run: app
-          config:
-            - docker-compose.yml
-            - docker-compose.test.yml
-```
-
-You can also specify the Docker Compose config file with [`$COMPOSE_FILE`](https://docs.docker.com/compose/reference/envvars/#compose_file):
-
-```yml
-env:
-  COMPOSE_FILE: docker-compose.yml
-steps:
-  - command: test.sh
-    plugins:
-      - docker-compose#v4.16.0:
-          run: app
-```
-
-If you want to control how your command is passed to docker-compose, you can use the command parameter on the plugin directly:
-
-```yml
-steps:
-  - plugins:
-      - docker-compose#v4.16.0:
-          run: app
-          command: ["custom", "command", "values"]
 ```
 
 ## Authenticated registries
@@ -81,7 +53,7 @@ steps:
           username: xyz
       - docker-compose#v4.16.0:
           build: app
-          image-repository: index.docker.io/myorg/myrepo
+          push: app:index.docker.io/myorg/myrepo:tag
   - wait
   - command: test.sh
     plugins:
@@ -97,25 +69,7 @@ Note, you will need to add the configuration to all steps in which you use this 
 
 If you’re generating artifacts in the build step, you’ll need to ensure your Docker Compose configuration volume mounts the host machine directory into the container where those artifacts are created.
 
-For example, if you had the following step:
-
-```yml
-steps:
-  - command: generate-dist.sh
-    artifact_paths: "dist/*"
-    plugins:
-      - docker-compose#v4.16.0:
-          run: app
-```
-
-Assuming your application’s directory inside the container was `/app`, you would need to ensure your `app` service in your Docker Compose config has the following host volume mount:
-
-```yml
-volumes:
-  - "./dist:/app/dist"
-```
-
-You can also use the `volumes` plugin option to add or override a volume, for example:
+For example, if your `app` service generates information that you want as artifacts in the `/folder/dist` folder, you would need to ensure the `app` service in your Docker Compose config has a host volume mount defined as `./dist:/folder/dist` or specify it in the plugin's configuration:
 
 ```yml
 steps:
@@ -125,10 +79,10 @@ steps:
       - docker-compose#v4.16.0:
           run: app
           volumes:
-            - "./dist:/app/dist"
+            - "./dist:/folder/dist"
 ```
 
-If you want to use environment variables in the `volumes` element, you will need to activate the (unsafe) option `expand-volume-vars` (and most likely escape it using `$$VARIABLE_NAME`).
+If you want to use environment variables in the `volumes` element, you will need to activate the (unsafe) option `expand-volume-vars` (and most likely escape it using `$$VARIABLE_NAME` to ensure they are not interpolated when the pipeline is uploaded).
 
 ## Environment
 
@@ -201,9 +155,9 @@ steps:
     plugins:
       - docker-compose#v4.16.0:
           build: app
-          image-repository: index.docker.io/myorg/myrepo
           args:
             - MY_CUSTOM_ARG=panda
+          push: app
 ```
 
 Note that the values in the list must be a `KEY=VALUE` pair.
@@ -218,7 +172,7 @@ steps:
     plugins:
       - docker-compose#v4.16.0:
           build: app
-          image-repository: index.docker.io/myorg/myrepo
+          push: app
 
   - wait
 
@@ -246,7 +200,9 @@ steps:
           build:
             - app
             - tests
-          image-repository: index.docker.io/myorg/myrepo
+          push:
+            - app
+            - tests
 
   - wait
 
@@ -304,14 +260,13 @@ steps:
     plugins:
       - docker-compose#v4.16.0:
           build: app
-          image-repository: index.docker.io/myorg/myrepo
+          push: app:index.docker.io/myorg/myrepo:dev-${BUILDKITE_BUILD_NUMBER}
           cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
   - wait
   - label: ":docker: Push to final repository"
     plugins:
       - docker-compose#v4.16.0:
           push:
-            - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
 
@@ -329,7 +284,7 @@ steps:
     plugins:
       - docker-compose#v4.16.0:
           build: app
-          image-repository: index.docker.io/myorg/myrepo
+          push: app:index.docker.io/myorg/myrepo:my-branch
           separator-cache-from: "#"
           cache-from:
             - "app#myregistry:port/myrepo/myapp#my-branch"
@@ -339,7 +294,6 @@ steps:
     plugins:
       - docker-compose#v4.16.0:
           push:
-            - app:myregistry:port/myrepo/myapp:my-branch
             - app:myregistry:port/myrepo/myapp:latest
 ```
 
@@ -352,8 +306,7 @@ steps:
     plugins:
       - docker-compose#v4.16.0:
           build: myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
-          image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
-          image-repository: index.docker.io/myorg/myrepo/myservice_intermediate
+          push: intermediate_service:index.docker.io/myorg/myrepo/myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}
           cache-from:
             - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:${BUILDKITE_BRANCH}
             - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:latest
@@ -362,13 +315,20 @@ steps:
     plugins:
       - docker-compose#v4.16.0:
           build: myservice
-          image-name: buildkite-build-${BUILDKITE_BUILD_NUMBER}
-          image-repository: index.docker.io/myorg/myrepo
+          push: myservice:index.docker.io/myorg/myrepo:buildkite-build-${BUILDKITE_BUILD_NUMBER}
           cache-from:
             - myservice:index.docker.io/myorg/myrepo/myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}:intermediate  # built in step above
             - myservice:index.docker.io/myorg/myrepo/myservice:${BUILDKITE_BRANCH}
             - myservice:index.docker.io/myorg/myrepo/myservice:latest
-
+  - block: ":rocket: Ready to be the latest and greatest?" 
+  - label: ":docker: Build and Push Final Image"
+    plugins:
+      - docker-compose#v4.16.0:
+          build: myservice
+          push: myservice:index.docker.io/myorg/myrepo:buildkite-build-latest
+          cache-from:
+            - myservice:index.docker.io/myorg/myrepo/myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}:intermediate  # built in step above
+            - myservice:index.docker.io/myorg/myrepo/myservice:${BUILDKITE_BRANCH}
 ```
 
 In the example above, the `myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}` is one group named "intermediate", and `myservice:${BUILDKITE_BRANCH}` and `myservice:latest`
@@ -446,9 +406,9 @@ Default: `docker-compose.yml`
 
 ### `build-alias` (optional, build only)
 
-Other docker-compose services that should be aliased to the service that was built. This is to have a pre-built image set for different services based off a single definitio.
+Other docker-compose services that should be aliased to the service that was built. This is to have a pre-built image set for different services based off a single definition.
 
-Important: this only works when building a single service, an error will be generated otherwise
+Important: this only works when building a single service, an error will be generated otherwise.
 
 ### `args` (optional, build and run only)
 
