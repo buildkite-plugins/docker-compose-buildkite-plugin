@@ -85,10 +85,6 @@ configuration:
       type: boolean
     run-labels:
       type: boolean
-    separator-cache-from:
-      type: string
-      minLength: 1
-      maxLength: 1
     service-ports:
       type: boolean
     skip-checkout:
@@ -128,13 +124,10 @@ configuration:
     ansi: [ run ]
     buildkit: [ build ]
     cache-from: [ build ]
-    cache-from-separator: [ cache-from ]
     dependencies: [ run ]
     env: [ run ]
     environment: [ run ]
     expand-volume-vars: [ volumes ]
-    image-repository: [ build ]
-    image-name: [ build ]
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
     mount-checkout: [ run ]

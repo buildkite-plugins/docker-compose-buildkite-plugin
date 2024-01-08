@@ -502,16 +502,9 @@ This option can also be configured on the agent machine using the environment va
 
 ### `cache-from` (optional, build only)
 
-A list of images to attempt pulling before building in the format `service:index.docker.io/myorg/myrepo/myapp:tag:group`, ignoring any failures, to allow docker to re-use layers. The parameters `service` and `image-repo` are mandatory, without them it won't work. For each combination of service and group, it will attempt to pull each in order until one is successful (the rest will be ignored). Those elements that don't have a group specified will use a `:default:` group.
-Requires docker-compose file version `3.2+`.
+A list of images to attempt pulling before building in the format `service:CACHE-SPEC` to allow for layer re-use. Will be ignored if `no-cache` is turned on.
 
-### `separator-cache-from` (optional, build only, single character)
-
-A single character that specifies the character to use for splitting elements in the `cache-from` option.
-
-By default it is `:` which should not be a problem unless your registry's URL contains a port, in which case you will have to use this option to specify a different character.
-
-**Important**: the tag to use is its own field, so you will have to specify elements like `service#registry:port/myrepo/myapp#tag#group`
+They will be mapped directly to `cache-from` elements in the build according to the spec so any valid format there should be allowed.
 
 ### `target` (optional, build only)
 
