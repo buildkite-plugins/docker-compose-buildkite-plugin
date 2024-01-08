@@ -5,6 +5,7 @@ pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 separator="$(plugin_read_config SEPARATOR_CACHE_FROM ":")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
+build_params=()
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
   group_type="---"
@@ -48,6 +49,11 @@ if [[ "$(plugin_read_config BUILDKIT "false")" == "true" ]]; then
   export DOCKER_BUILDKIT=1
   export COMPOSE_DOCKER_CLI_BUILD=1
   export BUILDKIT_PROGRESS=plain
+fi
+
+if [[ -n "$(plugin_read_config TARGET "")" ]] && [[ -z "$(plugin_read_config BUILD "")" ]]; then
+  echo "+++ 🚨 You can not use target if you are not building a single service"
+  exit 1
 fi
 
 # Read any cache-from parameters provided and pull down those images first
@@ -107,6 +113,7 @@ fi
 service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
   service_idx=$((service_idx+1))
+  target="$(plugin_read_config TARGET "")"
   image_name="" # no longer used here
 
   cache_from_var="$(service_name_cache_from_var "${service_name}")"
@@ -116,8 +123,8 @@ for service_name in $(plugin_read_list BUILD) ; do
     cache_from_length=0
   fi
 
-  if [[ "${cache_from_length:-0}" -gt 0 ]]; then
-    build_images+=("$service_name" "${image_name}" "${cache_from_length}")
+  if [[ -n "${target}" ]] || [[ "${cache_from_length:-0}" -gt 0 ]]; then
+    build_images+=("$service_name" "${image_name}" "${target}" "${cache_from_length}")
 
     for i in $(seq 0 "$((cache_from_length-1))"); do
       cache_from_group_var="$(service_name_group_name_cache_from_var "$service_name" "$i")"
@@ -138,7 +145,11 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
-build_params=(build)
+if [[ -f "${override_file}" ]]; then
+  build_params+=(-f "${override_file}")
+fi
+
+build_params+=(build)
 
 if [[ ! "$(plugin_read_config SKIP_PULL "false")" == "true" ]] ; then
   build_params+=(--pull)
@@ -169,11 +180,6 @@ if [[ "$(plugin_read_config SSH "false")" != "false" ]] ; then
     SSH_CONTEXT='default'
   fi
   build_params+=(--ssh "${SSH_CONTEXT}")
-fi
-
-target="$(plugin_read_config TARGET "")"
-if [[ -n "$target" ]] ; then
-  build_params+=(--target "$target")
 fi
 
 while read -r arg ; do
