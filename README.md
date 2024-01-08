@@ -508,7 +508,7 @@ They will be mapped directly to `cache-from` elements in the build according to 
 
 ### `target` (optional, build only)
 
-Allow for intermediate builds with `--target VALUE` options.
+Allow for intermediate builds as if building with docker's `--target VALUE` options.
 
 Note that there is a single build command run for all services so the target value will apply to all of them.
 
