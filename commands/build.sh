@@ -1,9 +1,7 @@
 #!/bin/bash
 set -ueo pipefail
 
-image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
-push_retries="$(plugin_read_config PUSH_RETRIES "0")"
 separator="$(plugin_read_config SEPARATOR_CACHE_FROM ":")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
@@ -45,11 +43,6 @@ named_array_values() {
   local copy=( "${!tmp}" )
   echo "${copy[@]}"
 }
-
-if [[ -z "$image_repository" ]] ; then
-  echo "+++ ⚠️ Build step missing image-repository setting"
-  echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
-fi
 
 if [[ "$(plugin_read_config BUILDKIT "false")" == "true" ]]; then
   export DOCKER_BUILDKIT=1
@@ -113,32 +106,23 @@ fi
 # write into a docker-compose override file
 service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
-  image_name=$(build_image_name "${service_name}" "${service_idx}")
-
-  if ! validate_tag "$image_name"; then
-    echo "🚨 ${image_name} is not a valid tag name"
-    exit 1
-  fi
-
   service_idx=$((service_idx+1))
-
-  if [[ -n "$image_repository" ]] ; then
-    image_name="${image_repository}:${image_name}"
-  fi
-
-  build_images+=("$service_name" "$image_name")
+  image_name="" # no longer used here
 
   cache_from_var="$(service_name_cache_from_var "${service_name}")"
   if [[ -n "${!cache_from_var-}" ]]; then
     cache_from_length="$(count_of_named_array "${cache_from_var}")"
-    build_images+=("${cache_from_length}")
+  else
+    cache_from_length=0
+  fi
+
+  if [[ "${cache_from_length:-0}" -gt 0 ]]; then
+    build_images+=("$service_name" "${image_name}" "${cache_from_length}")
 
     for i in $(seq 0 "$((cache_from_length-1))"); do
       cache_from_group_var="$(service_name_group_name_cache_from_var "$service_name" "$i")"
       build_images+=("${!cache_from_group_var}")
     done
-  else
-    build_images+=(0)
   fi
 done
 
@@ -197,23 +181,4 @@ while read -r arg ; do
 done <<< "$(plugin_read_list ARGS)"
 
 echo "${group_type} :docker: Building services ${services[*]}"
-run_docker_compose -f "$override_file" "${build_params[@]}" "${services[@]}"
-
-if [[ -n "$image_repository" ]] ; then
-  echo "~~~ :docker: Pushing built images to $image_repository"
-  retry "$push_retries" run_docker_compose -f "$override_file" push "${services[@]}"
-
-  # iterate over build images
-  while [[ ${#build_images[@]} -gt 0 ]] ; do
-    set_prebuilt_image "${build_images[0]}" "${build_images[1]}"
-
-    # set aliases
-    for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
-      set_prebuilt_image "$service_alias" "${build_images[1]}"
-    done
-
-    # pop-off the last build image
-    # 3 for service, image, num_cache_from; plus num_cache_from
-    build_images=("${build_images[@]:(3 + ${build_images[2]})}")
-  done
-fi
+run_docker_compose "${build_params[@]}" "${services[@]}"

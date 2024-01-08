@@ -444,21 +444,11 @@ The file name of the Docker Compose configuration file to use. Can also be a lis
 
 Default: `docker-compose.yml`
 
-### `image-repository` (optional, build only)
-
-The repository for pushing and pulling pre-built images, same as the repository location you would use for a `docker push`, for example `"index.docker.io/myorg/myrepo"`. Each image is tagged to the specific build so you can safely share the same image repository for any number of projects and builds.
-
-The default is `""` which only builds images on the local Docker host doing the build.
-
-This option can also be configured on the agent machine using the environment variable `BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY`.
-
-### `image-name` (optional, build only)
-
-The name to use when tagging pre-built images. If multiple images are built in the build phase, you must provide an array of image names.
-
 ### `build-alias` (optional, build only)
 
-Other docker-compose services that should be aliased to the main service that was built. This is for when different docker-compose services share the same prebuilt image.
+Other docker-compose services that should be aliased to the service that was built. This is to have a pre-built image set for different services based off a single definitio.
+
+Important: this only works when building a single service, an error will be generated otherwise
 
 ### `args` (optional, build and run only)
 
