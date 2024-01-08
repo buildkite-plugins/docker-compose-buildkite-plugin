@@ -229,7 +229,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -249,37 +249,11 @@ teardown() {
   unstub docker-compose
 }
 
-@test "Build with a cache-from image and custom separator" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_PIPELINE_SLUG=test
-
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0='helloworld#my.repository:port/myservice_cache#latest'
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SEPARATOR_CACHE_FROM='#'
-
-  stub docker \
-    "pull my.repository:port/myservice_cache:latest : echo pulled cache image"
-
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "pulled cache image"
-  assert_output --partial "- my.repository:port/myservice_cache:latest"
-  assert_output --partial "built helloworld"
-  unstub docker
-  unstub docker-compose
-}
-
 @test "Build with a cache-from image with no-cache also set" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_NO_CACHE=true
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
@@ -300,21 +274,26 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:-latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache:-latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
     "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 build --pull helloworld : echo built helloworld"
 
+  stub docker \
+    "pull my.repository/myservice_cache:-latest : exit 1"
+
   run "$PWD"/hooks/command
 
   assert_success
   refute_output --partial "pulled cache image"
   refute_output --partial "- my.repository/myservice_cache:-latest"
-  assert_output --partial "invalid tag so it will be ignored"
+  assert_output --partial "Pull failed"
   assert_output --partial "built helloworld"
+
   unstub docker-compose
+  unstub docker
 }
 
 @test "Build with a cache-from image with no tag" {
@@ -323,7 +302,7 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
 
   stub docker \
@@ -346,8 +325,8 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:branch-name
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache:branch-name
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -372,11 +351,11 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:build-target-build-1:target1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld:my.repository/myservice_cache:build-target-latest:target1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_2=helloworld:my.repository/myservice_cache:install-target-build-1:target2
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_3=helloworld:my.repository/myservice_cache:branch-name
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_4=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:target1:my.repository/myservice_cache:build-target-build-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld:target1:my.repository/myservice_cache:build-target-latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_2=helloworld:target2:my.repository/myservice_cache:install-target-build-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_3=helloworld::my.repository/myservice_cache:branch-name
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_4=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -408,11 +387,11 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:build-target-build-1:target1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld:my.repository/myservice_cache:build-target-latest:target1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_2=helloworld:my.repository/myservice_cache:install-target-build-1:target2
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_3=helloworld:my.repository/myservice_cache:branch-name
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_4=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:target1:my.repository/myservice_cache:build-target-build-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld:target1:my.repository/myservice_cache:build-target-latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_2=helloworld:target2:my.repository/myservice_cache:install-target-build-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_3=helloworld::my.repository/myservice_cache:branch-name
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_4=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -441,55 +420,15 @@ teardown() {
   unstub docker-compose
 }
 
-@test "Build with several cache-from image groups for one service with failures and separator" {
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
-
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld#my.repository:port/myservice_cache#build-target-build-1#target1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld#my.repository:port/myservice_cache#build-target-latest#target1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_2=helloworld#my.repository:port/myservice_cache#install-target-build-1#target2
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_3=helloworld#my.repository:port/myservice_cache#branch-name
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_4=helloworld#my.repository:port/myservice_cache#latest
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SEPARATOR_CACHE_FROM='#'
-
-  stub docker \
-    "pull my.repository:port/myservice_cache:build-target-build-1 : exit 1" \
-    "pull my.repository:port/myservice_cache:build-target-latest : echo pulled cache image build-target-latest" \
-    "pull my.repository:port/myservice_cache:install-target-build-1 : echo pulled cache image install-target" \
-    "pull my.repository:port/myservice_cache:branch-name : echo pulled cache image branch-name"
-
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "pulled cache image build-target-latest"
-  assert_output --partial "pulled cache image install-target"
-  assert_output --partial "pulled cache image branch-name"
-  assert_output --partial "- my.repository:port/myservice_cache:build-target-latest"
-  assert_output --partial "- my.repository:port/myservice_cache:build-target-latest"
-  assert_output --partial "- my.repository:port/myservice_cache:install-target-build-1"
-  assert_output --partial "- my.repository:port/myservice_cache:branch-name"
-  refute_output --partial "- my.repository:port/myservice_cache:latest"
-  assert_output --partial "built helloworld"
-  
-  unstub docker
-  unstub docker-compose
-}
-
 @test "Build with several cache-from image groups out of order" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:branch-name
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld:my.repository/myservice_cache:build-target-build-1:target1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_2=helloworld:my.repository/myservice_cache:install-target-build-1:target2
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_3=helloworld:my.repository/myservice_cache:build-target-latest:target1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_4=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache:branch-name
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld:target1:my.repository/myservice_cache:build-target-build-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_2=helloworld:target2:my.repository/myservice_cache:install-target-build-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_3=helloworld:target1:my.repository/myservice_cache:build-target-latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_4=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -524,8 +463,8 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:branch-name
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache:branch-name
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_1=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -551,7 +490,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -575,7 +514,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=hello-world
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=hello-world:my.repository/my-service_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=hello-world::my.repository/my-service_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -599,7 +538,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=hello.world
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=hello.world:my.repository/my-service_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=hello.world::my.repository/my-service_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
@@ -624,7 +563,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld::my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_RETRIES=3
