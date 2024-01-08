@@ -3,7 +3,7 @@
 load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 
- export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
+# export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
 # export BATS_MOCK_TMPDIR=$PWD
 
 teardown() {
@@ -83,24 +83,6 @@ teardown() {
   unstub docker
 }
 
-@test "Build with docker-compose and v1 is set explicitly " {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=2
-
-  stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-
-  unstub docker
-}
-
 @test "Build with a repository and multiple build aliases" {
   skip 'move to push'
   export BUILDKITE_JOB_ID=1111
@@ -121,40 +103,19 @@ teardown() {
   unstub docker
 }
 
-@test "Build with a repository and push retries" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES=3
-
-  stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-
-  unstub docker
-}
-
-@test "Build with a docker-compose v1.0 configuration file" {
+@test "Build with an override file and docker-compose v1.0 configuration file" {
   export BUILDKITE_JOB_ID=1112
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v1.0.yml"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker \
-    "compose -f tests/composefiles/docker-compose.v1.0.yml -p buildkite1112 build --pull helloworld : echo built service"
-
   run "$PWD"/hooks/command
 
-  assert_success
-  assert_output --partial "built service"
-
-  unstub docker
+  assert_failure
+  assert_output --partial "versions 2.0 and above"
+  refute_output --partial "built service"
 }
 
 @test "Build with a cache-from image" {
@@ -212,6 +173,7 @@ teardown() {
   run "$PWD"/hooks/command
 
   assert_success
+  refute_output --partial "pulled cache image"
   assert_output --partial "- my.repository/myservice_cache:-latest"
   assert_output --partial "built helloworld"
 

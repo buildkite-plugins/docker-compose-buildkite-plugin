@@ -23,7 +23,7 @@ setup_file() {
     "meta-data set docker-compose-plugin-built-image-tag-app \* : echo \$4 > ${BATS_TEST_TMPDIR}/build-push-metadata"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config --images app : echo app-image" \
+    "-f docker-compose.yml -p buildkite1111 config : echo app-image" \
     "-f docker-compose.yml -p buildkite1111 push app : echo pushed app"
 
   stub docker \
