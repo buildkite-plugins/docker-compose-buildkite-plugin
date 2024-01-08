@@ -15,14 +15,15 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
-    "meta-data exists docker-compose-plugin-built-image-tag-app : exit 1"
+    "meta-data exists docker-compose-plugin-built-image-tag-app : exit 1" \
+    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo \$4 > ${BATS_TEST_TMPDIR}/build-push-metadata"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "-f docker-compose.yml -p buildkite1111 config --images app : echo app-image" \
     "-f docker-compose.yml -p buildkite1111 push app : echo pushed app"
 
   stub docker \
-    "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0"
+    "image inspect app-image : exit 0"
 
   run "$PWD"/hooks/command
 
@@ -45,11 +46,12 @@ load '../lib/shared'
     "push my.repository/myservice:llamas : echo pushed myservice"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah"
+    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo \$4 > ${BATS_TEST_TMPDIR}/build-push-metadata"
 
   run "$PWD"/hooks/command
 
@@ -69,7 +71,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah"
+    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''"
 
   run "$PWD"/hooks/command
 
@@ -98,17 +100,20 @@ load '../lib/shared'
     "push my.repository/myservice:alpacas : echo pushed myservice3"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah" \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah" \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah"
+    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''" \
+    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''" \
+    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo \$4" \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo \$4" \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt"
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo \$4" \
 
   run "$PWD"/hooks/command
 
@@ -135,10 +140,10 @@ load '../lib/shared'
     "meta-data exists docker-compose-plugin-built-image-tag-helper : exit 1"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml"
+    "-f docker-compose.yml -p buildkite1111 config --images helper : echo ''"
 
   stub docker \
-    "image inspect buildkite1111_helper : exit 1"
+    "image inspect \* : exit 1"
 
   run "$PWD"/hooks/command
 
@@ -158,10 +163,10 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah "
+    "-f docker-compose.yml -p buildkite1111 config --images myservice1 : echo ''"
 
   stub docker \
-    "image inspect buildkite1111_myservice1 : exit 1"
+    "image inspect \* : exit 1"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice1 : exit 1"
@@ -185,8 +190,8 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah " \
-    "-f docker-compose.yml -p buildkite1111 config : echo blah " \
+    "-f docker-compose.yml -p buildkite1111 config --images myservice1 : echo ''" \
+    "-f docker-compose.yml -p buildkite1111 config --images myservice2 : echo ''" \
 
   stub docker \
     "pull myservice1 : exit 0" \
@@ -199,8 +204,10 @@ load '../lib/shared'
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice1 : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice1 : echo myservice1" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice1 \* : echo \$4" \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice2 : exit 0" \
-    "meta-data get docker-compose-plugin-built-image-tag-myservice2 : echo myservice2"
+    "meta-data get docker-compose-plugin-built-image-tag-myservice2 : echo myservice2" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice2 \* : echo \$4" \
 
   run "$PWD"/hooks/command
 
