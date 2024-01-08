@@ -606,11 +606,11 @@ The default is `on-error`.
 
 ### `cli-version` (optional, string or integer)
 
-If set to `2`, plugin will use `docker compose` to execute commands; otherwise it will default to version `1`, using `docker-compose` instead.
+If set to `1`, plugin will use `docker-compose` (that is deprecated and unsupported) to execute commands; otherwise it will default to version `2`, using `docker compose` instead.
 
 ### `buildkit` (optional, build only, boolean)
 
-Assuming you have a compatible docker installation and configuration in the agent, activating this option would setup the environment for the `docker-compose build` call to use BuildKit. Note that if you are using `cli-version` 2, you are already using buildkit by default.
+Assuming you have a compatible docker installation and configuration in the agent, activating this option would setup the environment for the `docker compose build` call to use BuildKit. Note that this should only be necessary if you are using `cli-version` 1 (version 2 already uses buildkit by default).
 
 You may want to also add `BUILDKIT_INLINE_CACHE=1` to your build arguments (`args` option in this plugin), but know that [there are known issues with it](https://github.com/moby/buildkit/issues/2274).
 
