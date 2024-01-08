@@ -2,7 +2,6 @@
 set -ueo pipefail
 
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
-separator="$(plugin_read_config SEPARATOR_CACHE_FROM ":")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 build_params=()
@@ -55,24 +54,16 @@ fi
 # If no-cache is set skip pulling the cache-from images
 if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
   for line in $(plugin_read_list CACHE_FROM) ; do
-    IFS="${separator}" read -r -a tokens <<< "$line"
+    IFS=':' read -r -a tokens <<< "$line"
     service_name=${tokens[0]}
-    service_image=$(IFS=':'; echo "${tokens[*]:1:2}")
-    if [ ${#tokens[@]} -gt 2 ]; then
-      service_tag=${tokens[2]}
-    else
-      service_tag="latest"
-    fi
+    cache_from_group_name=${tokens[1]}
 
-    if ! validate_tag "$service_tag"; then
-      echo "🚨 cache-from ${service_image} has an invalid tag so it will be ignored"
-      continue
-    fi
-
-    cache_from_group_name=$(IFS=':'; echo "${tokens[*]:3}")
     if [[ -z "$cache_from_group_name" ]]; then
       cache_from_group_name=":default:"
     fi
+
+    service_image=$(IFS=':'; echo "${tokens[*]:2}")
+
     # The variable with this name will hold an array of group names:
     cache_image_name="$(service_name_cache_from_var "$service_name")"
 
