@@ -3,8 +3,12 @@
 load "${BATS_PLUGIN_PATH}/load.bash"
 load '../../lib/shared.bash'
 
- export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
+# export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
 # export BATS_MOCK_TMPDIR=$PWD
+
+setup_file() {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
+}
 
 teardown() {
   # some test failures may leave this file around
