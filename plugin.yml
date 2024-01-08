@@ -56,10 +56,6 @@ configuration:
       type: string
     expand-volume-vars:
       type: boolean
-    image-repository:
-      type: string
-    image-name:
-      type: [ string, array ]
     leave-volumes:
       type: boolean
     mount-buildkite-agent:
