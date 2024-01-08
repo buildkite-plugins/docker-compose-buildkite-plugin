@@ -51,11 +51,6 @@ if [[ "$(plugin_read_config BUILDKIT "false")" == "true" ]]; then
   export BUILDKIT_PROGRESS=plain
 fi
 
-if [[ -n "$(plugin_read_config TARGET "")" ]] && [[ -z "$(plugin_read_config BUILD "")" ]]; then
-  echo "+++ 🚨 You can not use target if you are not building a single service"
-  exit 1
-fi
-
 # Read any cache-from parameters provided and pull down those images first
 # If no-cache is set skip pulling the cache-from images
 if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
