@@ -161,10 +161,32 @@ function build_image_override_file_with_version() {
 
   shift
   while test ${#} -gt 0 ; do
-    printf "  %s:\\n" "$1"
-    printf "    image: %s\\n" "$2"
+    service_name=$1
+    image_name=$2
+    target=$3
+    cache_from_amt=$4
+    shift 4
 
-    if [[ "$3" -gt 0 ]] ; then
+    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]]; then
+      # should not print out an empty service
+      continue
+    fi
+
+    printf "  %s:\\n" "$service_name"
+
+    if [[ -n "$image_name" ]]; then
+      printf "    image: %s\\n" "$image_name"
+    fi
+
+    if [[ "$cache_from_amt" -gt 0 ]] || [[ -n "$target" ]]; then
+      printf "    build:\\n"
+    fi
+
+    if [[ -n "$target" ]]; then
+      printf "      target: %s\\n" "$target"
+    fi
+
+    if [[ "$cache_from_amt" -gt 0 ]] ; then
       if ! docker_compose_supports_cache_from "$version" ; then
         echo "Unsupported Docker Compose config file version: $version"
         echo "The 'cache_from' option can only be used with Compose file versions 2.2 or 3.2 and above."
@@ -173,15 +195,12 @@ function build_image_override_file_with_version() {
         exit 1
       fi
 
-      printf "    build:\\n"
       printf "      cache_from:\\n"
-      for cache_from_i in $(seq 4 "$((3 + $3))"); do
+      for cache_from_i in $(seq 1 "$cache_from_amt"); do
         printf "        - %s\\n" "${!cache_from_i}"
       done
-      shift "$3"
+      shift "$cache_from_amt"
     fi
-
-    shift 3
   done
 }
 
