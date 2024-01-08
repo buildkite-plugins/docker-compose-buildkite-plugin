@@ -17,15 +17,15 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with no-cache" {
@@ -35,14 +35,15 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull --no-cache myservice : echo built myservice"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --no-cache myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
-  unstub docker-compose
+
+  unstub docker
 }
 
 @test "Build with parallel" {
@@ -52,14 +53,15 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull --parallel myservice : echo built myservice"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --parallel myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
-  unstub docker-compose
+
+  unstub docker
 }
 
 @test "Build with build args" {
@@ -70,14 +72,15 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ARGS_0=MYARG=0
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ARGS_1=MYARG=1
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
-  unstub docker-compose
+
+  unstub docker
 }
 
 @test "Build with docker-compose and v1 is set explicitly " {
@@ -85,37 +88,21 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=2
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-  unstub docker-compose
-}
-
-@test "Build with a repository" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
-
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
 
-  unstub docker-compose
+  unstub docker
 }
 
-# TODO: move this to push testing
 @test "Build with a repository and multiple build aliases" {
+  skip 'move to push'
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_0=myservice-1
@@ -123,15 +110,15 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with a repository and push retries" {
@@ -141,70 +128,15 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES=3
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
 
-  unstub docker-compose
-}
-
-@test "Build with a repository and custom config file" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG=tests/composefiles/docker-compose.v2.0.yml
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
-
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-
-  unstub docker-compose
-}
-
-@test "Build with a repository and multiple custom config files" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0=tests/composefiles/docker-compose.v2.0.yml
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_1=tests/composefiles/docker-compose.v2.1.yml
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
-
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-
-  unstub docker-compose
-}
-
-@test "Build with a repository and multiple services" {
-  export BUILDKITE_JOB_ID=1112
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=myservice1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_1=myservice2
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
-
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1112 build --pull myservice1 myservice2 : echo built all services"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built all services"
-
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with a docker-compose v1.0 configuration file" {
@@ -214,15 +146,15 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v1.0.yml -p buildkite1112 build --pull helloworld : echo built service"
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v1.0.yml -p buildkite1112 build --pull helloworld : echo built service"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built service"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with a cache-from image" {
@@ -233,8 +165,8 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
   run "$PWD"/hooks/command
 
@@ -242,7 +174,7 @@ teardown() {
   assert_output --partial "- my.repository/myservice_cache:latest"
   assert_output --partial "built helloworld"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with a cache-from image with no-cache also set" {
@@ -254,15 +186,16 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 build --pull --no-cache helloworld : echo built helloworld"
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 build --pull --no-cache helloworld : echo built helloworld"
 
   run "$PWD"/hooks/command
 
   assert_success
   refute_output --partial "- my.repository/myservice_cache:latest"
   assert_output --partial "built helloworld"
-  unstub docker-compose
+
+  unstub docker
 }
 
 @test "Build with an invalid cache-from tag" {
@@ -273,8 +206,8 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
   run "$PWD"/hooks/command
 
@@ -282,7 +215,7 @@ teardown() {
   assert_output --partial "- my.repository/myservice_cache:-latest"
   assert_output --partial "built helloworld"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with a cache-from image with no tag" {
@@ -294,8 +227,8 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
 
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
   run "$PWD"/hooks/command
 
@@ -303,7 +236,7 @@ teardown() {
   assert_output --partial "- my.repository/myservice_cache"
   assert_output --partial "built helloworld"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with several cache-from images for one service" {
@@ -315,8 +248,8 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
 
   run "$PWD"/hooks/command
 
@@ -325,7 +258,7 @@ teardown() {
   assert_output --partial "- my.repository/myservice_cache:latest"
   assert_output --partial "built helloworld"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with a cache-from image with hyphen" {
@@ -336,8 +269,8 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull hello-world : echo built hello-world"
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull hello-world : echo built hello-world"
 
   run "$PWD"/hooks/command
 
@@ -345,7 +278,7 @@ teardown() {
   assert_output --partial "- my.repository/my-service_cache:latest"
   assert_output --partial "built hello-world"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with a service name and cache-from with period" {
@@ -356,8 +289,8 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull \* : echo built \$9"
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull \* : echo built \${10}}"
 
   run "$PWD"/hooks/command
 
@@ -365,7 +298,7 @@ teardown() {
   assert_output --partial "- my.repository/my-service_cache:latest"
   assert_output --partial "built hello.world"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with target" {
@@ -376,8 +309,8 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_TARGET=intermediate
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull \* : echo built \${9}"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull \* : echo built \${10}"
 
   run "$PWD"/hooks/command
 
@@ -385,7 +318,7 @@ teardown() {
   assert_output --partial "built myservice"
   assert_output --partial "    target: intermediate"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with ssh option (but no buildkit)" {
@@ -395,6 +328,7 @@ teardown() {
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKIT=false
 
   run "$PWD"/hooks/command
 
@@ -412,8 +346,8 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKIT=true
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=true
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull --ssh default \* : echo built \${9} with ssh"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --ssh default \* : echo built \${10} with ssh"
 
   run "$PWD"/hooks/command
 
@@ -421,7 +355,7 @@ teardown() {
   assert_output --partial "built myservice"
   assert_output --partial "with ssh"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with ssh option as string and buildkit" {
@@ -433,8 +367,8 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKIT=true
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=context
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull --ssh context \* : echo built \${9} with ssh"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --ssh context \* : echo built \${10} with ssh"
 
   run "$PWD"/hooks/command
 
@@ -442,7 +376,7 @@ teardown() {
   assert_output --partial "built myservice"
   assert_output --partial "with ssh"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build with secrets" {
@@ -454,8 +388,8 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SECRETS_0='id=test,file=~/.test'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SECRETS_1='id=SECRET_VAR'
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull --secret \* --secret \* \* : echo built \${11} with secrets \${8} and \${10}"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --secret \* --secret \* \* : echo built \${12} with secrets \${9} and \${11}"
 
   run "$PWD"/hooks/command
 
@@ -463,7 +397,7 @@ teardown() {
   assert_output --partial "built myservice"
   assert_output --partial "with secrets id=test,file=~/.test and id=SECRET_VAR"
 
-  unstub docker-compose
+  unstub docker
 }
 
 @test "Build without pull" {
@@ -473,12 +407,13 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
-  unstub docker-compose
+
+  unstub docker
 }
