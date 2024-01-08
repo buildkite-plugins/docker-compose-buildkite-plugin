@@ -26,11 +26,10 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice" \
-    "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran dependencies" \
-    "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
+    "-f docker-compose.yml -p buildkite12 build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite12 up -d --scale myservice=0 myservice : echo ran dependencies" \
+    "-f docker-compose.yml -p buildkite12 run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
-  # these commands simulate metadata for a specific value by using an intermediate-file
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : test -f /tmp/build-run-metadata"
 
@@ -53,7 +52,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_REPOSITORY=my.repository/llamas
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice" \
+    "-f docker-compose.yml -p buildkite12 build --pull myservice : echo built myservice" \
     "-f docker-compose.yml -p buildkite12 config --images myservice : echo 'myservice'" \
     "-f docker-compose.yml -p buildkite12 push myservice : echo pushed myservice"
   

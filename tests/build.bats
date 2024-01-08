@@ -18,13 +18,14 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
-  unstub docker-compose
   assert_success
   assert_output --partial "built myservice"
+
+  unstub docker-compose
 }
 
 @test "Build with no-cache" {
@@ -35,7 +36,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --no-cache myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull --no-cache myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -52,7 +53,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --parallel myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull --parallel myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -70,7 +71,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ARGS_1=MYARG=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -87,7 +88,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -103,7 +104,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -113,6 +114,7 @@ teardown() {
   unstub docker-compose
 }
 
+# TODO: move this to push testing
 @test "Build with a repository and multiple build aliases" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
@@ -122,7 +124,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -140,7 +142,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES=3
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -158,7 +160,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
+    "-f tests/composefiles/docker-compose.v2.0.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -177,7 +179,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull myservice : echo built myservice"
+    "-f tests/composefiles/docker-compose.v2.0.yml -f tests/composefiles/docker-compose.v2.1.yml -p buildkite1111 build --pull myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
@@ -212,10 +214,15 @@ teardown() {
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
+  stub docker-compose \
+    "-f tests/composefiles/docker-compose.v1.0.yml -p buildkite1112 build --pull helloworld : echo built service"
+
   run "$PWD"/hooks/command
 
-  assert_failure
-  assert_output --partial "Compose file versions 2.0 and above"
+  assert_success
+  assert_output --partial "built service"
+
+  unstub docker-compose
 }
 
 @test "Build with a cache-from image" {
@@ -278,7 +285,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --no-cache helloworld : echo built helloworld"
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 build --pull --no-cache helloworld : echo built helloworld"
 
   run "$PWD"/hooks/command
 
@@ -298,7 +305,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 build --pull helloworld : echo built helloworld"
 
   run "$PWD"/hooks/command
 
@@ -552,7 +559,7 @@ teardown() {
     "pull my.repository/myservice_cache:latest : exit 1"
 
   stub docker-compose \
-    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+    "-f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 build --pull helloworld : echo built helloworld"
 
   run "$PWD"/hooks/command
 
@@ -650,13 +657,13 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_TARGET=intermediate
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --target \* \* : echo built \${11} with target \${10}"
+    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull \* : echo built \${9}"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "built myservice"
-  assert_output --partial "with target intermediate"
+  assert_output --partial "    target: intermediate"
 
   unstub docker-compose
 }
@@ -686,7 +693,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=true
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh default \* : echo built \${11} with ssh"
+    "-f docker-compose.yml -p buildkite1111 build --pull --ssh default \* : echo built \${9} with ssh"
 
   run "$PWD"/hooks/command
 
@@ -707,7 +714,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=context
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --ssh context \* : echo built \${11} with ssh"
+    "-f docker-compose.yml -p buildkite1111 build --pull --ssh context \* : echo built \${9} with ssh"
 
   run "$PWD"/hooks/command
 
@@ -728,7 +735,7 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SECRETS_1='id=SECRET_VAR'
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --secret \* --secret \* \* : echo built \${13} with secrets \${10} and \${12}"
+    "-f docker-compose.yml -p buildkite1111 build --pull --secret \* --secret \* \* : echo built \${11} with secrets \${8} and \${10}"
 
   run "$PWD"/hooks/command
 
@@ -747,7 +754,7 @@ teardown() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build myservice : echo built myservice"
+    "-f docker-compose.yml -p buildkite1111 build myservice : echo built myservice"
 
   run "$PWD"/hooks/command
 
