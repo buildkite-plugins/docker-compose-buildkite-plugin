@@ -32,7 +32,7 @@ setup_file() {
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
-    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice command"
+    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -T --rm myservice echo 'hello world' : echo ran myservice command"
 
   stub docker \
     "ps -a --filter label=com.docker.compose.project=buildkite1111 -q : cat tests/fixtures/id-multiple-services.txt" \
@@ -114,7 +114,7 @@ setup_file() {
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
-    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice command"
+    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -T --rm myservice echo 'hello world' : echo ran myservice command"
 
   stub docker \
     "ps -a --filter label=com.docker.compose.project=buildkite1111 -q : cat tests/fixtures/id-multiple-services.txt" \
@@ -155,7 +155,7 @@ setup_file() {
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
-    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice command"
+    "-f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -T --rm myservice echo 'hello world' : echo ran myservice command"
 
   stub docker \
     "ps -a --filter label=com.docker.compose.project=buildkite1111 -q : echo" \
