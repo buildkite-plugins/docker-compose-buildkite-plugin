@@ -8,6 +8,12 @@ separator="$(plugin_read_config SEPARATOR_CACHE_FROM ":")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
+  group_type="---"
+else
+  group_type="+++"
+fi
+
 normalize_var_name() {
   local orig_value="$1"
   # POSIX variable names should match [a-zA-Z_][a-zA-Z0-9_]*
@@ -190,7 +196,7 @@ while read -r arg ; do
   [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
 done <<< "$(plugin_read_list ARGS)"
 
-echo "+++ :docker: Building services ${services[*]}"
+echo "${group_type} :docker: Building services ${services[*]}"
 run_docker_compose -f "$override_file" "${build_params[@]}" "${services[@]}"
 
 if [[ -n "$image_repository" ]] ; then

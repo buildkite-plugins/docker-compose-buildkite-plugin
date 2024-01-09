@@ -430,9 +430,9 @@ Will cause the image to be pushed twice (once by the build step and another by t
 
 Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images. Note that pulling will be skipped if the `skip-pull` option is activated.
 
-### `collapse-run-log-group` (optional, boolean, run only)
+### `collapse-logs` (optional, boolean)
 
-Whether to collapse or expand the log group that is created for the output of `docker-compose run`. When this setting is `true`, the output is collected into a `---` group, when `false` the output is collected into a `+++` group. Setting this to `true` can be useful to de-emphasize plugin output if your command creates its own `+++` group.
+Whether to collapse or expand the log group that is created for the output of the main commands (`run`, `build` and `push`). When this setting is `true`, the output is collected into a `---` group, when `false` the output is collected into a `+++` group. Setting this to `true` can be useful to de-emphasize plugin output if your command creates its own `+++` group.
 
 For more information see [Managing log output](https://buildkite.com/docs/pipelines/managing-log-output).
 

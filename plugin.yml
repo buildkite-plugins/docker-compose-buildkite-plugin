@@ -37,7 +37,7 @@ configuration:
           enum: [ 1, 2 ]
     command:
       type: array
-    collapse-run-log-group:
+    collapse-logs:
       type: boolean
     config:
       type: [ string, array ]

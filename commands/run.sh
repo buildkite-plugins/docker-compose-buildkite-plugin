@@ -155,7 +155,7 @@ if is_windows ; then
   pwd_default="$(cmd.exe //C "echo %CD%")"
 fi
 
-# Optionally disable allocating a TTY
+# Disable allocating a TTY
 if [[ "$(plugin_read_config TTY "$tty_default")" == "false" ]] ; then
   run_params+=(-T)
 fi
@@ -406,11 +406,12 @@ ensure_stopped() {
 
 trap ensure_stopped SIGINT SIGTERM SIGQUIT
 
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_RUN_LOG_GROUP:-false}" = "true" ]]; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
   group_type="---"
 else
   group_type="+++"
 fi
+
 # Disable -e to prevent cancelling step if the command fails for whatever reason
 set +e
 ( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)

@@ -3,6 +3,12 @@ set -ueo pipefail
 
 push_retries="$(plugin_read_config PUSH_RETRIES "0")"
 
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
+  group_type="---"
+else
+  group_type="+++"
+fi
+
 # Targets for pushing come in a variety of forms:
 
 # service <- just a service name
@@ -55,7 +61,7 @@ for line in $(plugin_read_list PUSH) ; do
   # push: "service-name:repo:tag"
   else
     target_image="$(IFS=:; echo "${tokens[*]:1}")"
-    echo "~~~ :docker: Pushing image $target_image" >&2;
+    echo "${group_type} :docker: Pushing image $target_image" >&2;
     plugin_prompt_and_run docker tag "$service_image" "$target_image"
     retry "$push_retries" plugin_prompt_and_run docker push "$target_image"
   fi
