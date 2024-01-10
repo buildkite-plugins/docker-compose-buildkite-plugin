@@ -21,9 +21,9 @@ compose_image_for_service() {
 default_compose_image_for_service() {
   local service="$1"
   
-  local separator="_"
-  if [[ "$(plugin_read_config CLI_VERSION "1")" == "2" ]] && [[ "$(plugin_read_config COMPATIBILITY "false")" != "true" ]] ; then
-    separator="-"
+  local separator="-"
+  if [[ "$(plugin_read_config CLI_VERSION "2")" == "1" ]] || [[ "$(plugin_read_config COMPATIBILITY "false")" == "true" ]] ; then
+    separator="_"
   fi
 
   printf '%s%s%s\n' "$(docker_compose_project_name)" "$separator" "$service"
