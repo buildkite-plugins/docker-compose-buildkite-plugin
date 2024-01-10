@@ -1,7 +1,6 @@
 #!/bin/bash
 set -ueo pipefail
 
-pull_retries="$(plugin_read_config PULL_RETRIES "0")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
 build_params=()
@@ -12,93 +11,51 @@ else
   group_type="+++"
 fi
 
-normalize_var_name() {
-  local orig_value="$1"
-  # POSIX variable names should match [a-zA-Z_][a-zA-Z0-9_]*
-  # service names and the like also allow periods and dashes
-  no_periods="${orig_value//./_}"
-  no_dashes="${no_periods//-/_}"
-  echo "${no_dashes}"
-}
-
-service_name_cache_from_var() {
-  local service_name="$1"
-  echo "cache_from__$(normalize_var_name "${service_name}")"
-}
-
-service_name_group_name_cache_from_var() {
-  local service_name="$1"
-  local group_index="$2"
-  echo "group_cache_from__$(normalize_var_name "${service_name}")__$(normalize_var_name "${group_index}")"
-}
-
-count_of_named_array() {
-  local tmp="$1[@]"
-  local copy=( "${!tmp}" )
-  echo "${#copy[@]}"
-}
-
-named_array_values() {
-  local tmp="$1[@]"
-  local copy=( "${!tmp}" )
-  echo "${copy[@]}"
-}
-
 if [[ "$(plugin_read_config BUILDKIT "false")" == "true" ]]; then
   export DOCKER_BUILDKIT=1
   export COMPOSE_DOCKER_CLI_BUILD=1
   export BUILDKIT_PROGRESS=plain
 fi
 
-# Read any cache-from parameters provided and pull down those images first
-# If no-cache is set skip pulling the cache-from images
-if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
-  for line in $(plugin_read_list CACHE_FROM) ; do
-    IFS=':' read -r -a tokens <<< "$line"
-    service_name=${tokens[0]}
-    service_image=$(IFS=':'; echo "${tokens[*]:1}")
+get_caches_for_service() {
+  local service="$1"
 
-    # The variable with this name will hold an array of group names:
-    cache_image_name="$(service_name_cache_from_var "$service_name")"
+  # Read any cache-from parameters provided
+  # If no-cache is set skip pulling the cache-from images
+  if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
+    for line in $(plugin_read_list CACHE_FROM) ; do
+      IFS=':' read -r -a tokens <<< "$line"
+      service_name=${tokens[0]}
+      service_image=$(IFS=':'; echo "${tokens[*]:1}")
 
-    if [[ -z "${!cache_image_name+x}" ]]; then
-      declare -a "$cache_image_name"
-      cache_image_length=0
-    else
-      cache_image_length="$(count_of_named_array "${cache_image_name}")"
-    fi
-
-    declare "$cache_image_name+=( $cache_from_group_name )"
-    # The variable with this name will hold the image for the this group
-    # (based on index into the array of group names):
-    cache_from_group_var="$(service_name_group_name_cache_from_var "$service_name" "${cache_image_length}")"
-    printf -v "$cache_from_group_var" "%s" "$service_image"
-  done
-fi
+      if [ "${service_name}" == "${service}" ]; then
+        echo "$service_image"
+      fi
+    done
+  fi
+}
 
 # Run through all images in the build property, either a single item or a list
 # and build up a list of service name, image name and optional cache-froms to
 # write into a docker-compose override file
-service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
-  service_idx=$((service_idx+1))
   target="$(plugin_read_config TARGET "")"
   image_name="" # no longer used here
 
-  cache_from_var="$(service_name_cache_from_var "${service_name}")"
-  if [[ -n "${!cache_from_var-}" ]]; then
-    cache_from_length="$(count_of_named_array "${cache_from_var}")"
-  else
-    cache_from_length=0
-  fi
+  cache_from=()
+  cache_length=0
+  
+  for cache_line in $(get_caches_for_service "$service_name"); do
+    cache_from+=("$cache_line")
+    cache_length=$((cache_length + 1))
+  done
 
-  if [[ -n "${target}" ]] || [[ "${cache_from_length:-0}" -gt 0 ]]; then
-    build_images+=("$service_name" "${image_name}" "${target}" "${cache_from_length}")
+  if [[ -n "${target}" ]] || [[ "${cache_length:-0}" -gt 0 ]]; then
+    build_images+=("$service_name" "${image_name}" "${target}" "${cache_length}")
 
-    for i in $(seq 0 "$((cache_from_length-1))"); do
-      cache_from_group_var="$(service_name_group_name_cache_from_var "$service_name" "$i")"
-      build_images+=("${!cache_from_group_var}")
-    done
+    if [[ "${cache_length:-0}" -gt 0 ]]; then
+      build_images+=("${cache_from[@]}")
+    fi
   fi
 done
 
