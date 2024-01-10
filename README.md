@@ -354,11 +354,11 @@ A list of KEY=VALUE that are passed through as build arguments when image is bei
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
 
-#### `env-propagation-list` (string)
+#### `env-propagation-list` (run only, string)
 
 If you set this to `VALUE`, and `VALUE` is an environment variable containing a space-separated list of environment variables such as `A B C D`, then A, B, C, and D will all be propagated to the container. This is helpful when you've set up an `environment` hook to export secrets as environment variables, and you'd also like to programmatically ensure that secrets get propagated to containers, instead of listing them all out.
 
-#### `propagate-environment` (boolean)
+#### `propagate-environment` (run only, boolean)
 
 Whether or not to automatically propagate all pipeline environment variables into the run container. Avoiding the need to be specified with environment.
 
@@ -378,7 +378,7 @@ Set the shell to use for the command. Set it to `false` to pass the command dire
 
 Example: `[ "powershell", "-Command" ]`
 
-#### `skip-checkout` (run only)
+#### `skip-checkout`
 
 Whether to skip the repository checkout phase. This is useful for steps that use a pre-built image and will fail if there is no pre-built image.
 
@@ -398,25 +398,25 @@ Example: `/app`
 
 Run as specified username or uid via `docker-compose run --user`.
 
-#### `propagate-uid-gid` (run-only, boolean)
+#### `propagate-uid-gid` (run only, boolean)
 
 Whether to match the user ID and group ID for the container user to the user ID and group ID for the host user. It is similar to specifying user: 1000:1000, except it avoids hardcoding a particular user/group ID.
 
 Using this option ensures that any files created on shared mounts from within the container will be accessible to the host user. It is otherwise common to accidentally create root-owned files that Buildkite will be unable to remove, since containers by default run as the root user.
 
-#### `mount-ssh-agent` (run-only, boolean or string)
+#### `mount-ssh-agent` (run only, boolean or string)
 
 Whether to mount the ssh-agent socket (at `/ssh-agent`) from the host agent machine into the container or not. Instead of just `true` or `false`, you can specify absolute path in the container for the home directory of the user used to run on which the agent's `.ssh/known_hosts` will be mounted (by default, `/root`).
 
 Default: `false`
 
-#### `mount-buildkite-agent` (run-only, boolean)
+#### `mount-buildkite-agent` (run only, boolean)
 
 Whether to automatically mount the `buildkite-agent` binary and associated environment variables from the host agent machine into the container.
 
 Default: `false`
 
-#### `mount-checkout` (run-only, string or boolean)
+#### `mount-checkout` (run only, string or boolean)
 
 The absolute path where to mount the current working directory which contains your checked out codebase.
 
@@ -424,11 +424,11 @@ If set to `true` it will mount onto `/workdir`, unless `workdir` is set, in whic
 
 Default: `false`
 
-#### `pull-retries`
+#### `pull-retries` (run only, integer)
 
 A number of times to retry failed docker pull. Defaults to 0.
 
-#### `push-retries`
+#### `push-retries` (push only, integer)
 
 A number of times to retry failed docker push. Defaults to 0.
 
@@ -450,7 +450,7 @@ A list of volumes to mount into the container. If a matching volume exists in th
 
 Additionally, volumes may be specified via the agent environment variable `BUILDKITE_DOCKER_DEFAULT_VOLUMES`, a `;` (semicolon)  delimited list of mounts in the `-v` syntax. (Ex. `buildkite:/buildkite;./app:/app`).
 
-#### `expand-volume-vars` (boolean, run only, unsafe)
+#### `expand-volume-vars` (run only, boolean, unsafe)
 
 When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
 
@@ -476,71 +476,71 @@ Build with `--no-cache`, causing Docker Compose to not use any caches when build
 
 The default is `false`.
 
-#### `build-parallel` (build only)
+#### `build-parallel` (build only, boolean)
 
 Build with `--parallel`, causing Docker Compose to run builds in parallel. Requires docker-compose `1.23+`.
 
 The default is `false`.
 
-#### `tty` (run only)
+#### `tty` (run only, boolean)
 
 If set to true, allocates a TTY. This is useful in some situations TTYs are required.
 
 The default is `false`.
 
-#### `dependencies` (run only)
+#### `dependencies` (run only, boolean)
 
 If set to false, runs with `--no-deps` and doesn't start linked services.
 
 The default is `true`.
 
-#### `pre-run-dependencies` (run only)
+#### `pre-run-dependencies` (run only, boolean)
 
 If `dependencies` are activated (which is the default), you can skip starting them up before the main container by setting this option to `false`. This is useful if you want compose to take care of that on its own at the expense of messier output in the run step.
 
-#### `wait` (run only)
+#### `wait` (run only, boolean)
 
 Whether to wait for dependencies to be up (and healthy if possible) when starting them up. It translates to using [`--wait` in the docker-compose up] command.
 
 Defaults to `false`.
 
-#### `ansi` (run only)
+#### `ansi` (run only, boolean)
 
 If set to false, disables the ansi output from containers.
 
 The default is `true`.
 
-#### `use-aliases` (run only)
+#### `use-aliases` (run only, boolean)
 
 If set to true, docker compose will use the service's network aliases in the network(s) the container connects to.
 
 The default is `false`.
 
-#### `verbose`
+#### `verbose` (boolean)
 
 Sets `docker-compose` to run with `--verbose`
 
 The default is `false`.
 
-#### `quiet-pull` (run only)
+#### `quiet-pull` (run only, boolean)
 
 Start up dependencies with `--quiet-pull` to prevent even more logs during that portion of the execution.
 
 The default is `false`.
 
-#### `rm` (run only)
+#### `rm` (run only, boolean)
 
 If set to true, docker compose will remove the primary container after run. Equivalent to `--rm` in docker-compose.
 
 The default is `true`.
 
-#### `run-labels` (run only)
+#### `run-labels` (run only, boolean)
 
 If set to true, adds useful Docker labels to the primary container. See [Container Labels](#container-labels) for more info.
 
 The default is `true`.
 
-#### `compatibility` (run only)
+#### `compatibility` (boolean)
 
 If set to true, all docker compose commands will rum with compatibility mode. Equivalent to `--compatibility` in docker compose.
 
@@ -556,7 +556,7 @@ Note that [the effect of this option changes depending on your docker compose CL
 
 Sets the `--entrypoint` argument when running `docker compose`.
 
-#### `service-ports` (run only)
+#### `service-ports` (run only, boolean)
 
 If set to true, docker compose will run with the service ports enabled and mapped to the host. Equivalent to `--service-ports` in docker-compose.
 
