@@ -122,6 +122,7 @@ configuration:
   additionalProperties: false
   dependencies:
     ansi: [ run ]
+    args: [ build ]
     buildkit: [ build ]
     cache-from: [ build ]
     dependencies: [ run ]
