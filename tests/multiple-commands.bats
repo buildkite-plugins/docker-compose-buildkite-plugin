@@ -67,7 +67,7 @@ teardown() {
   assert_success
 
   assert_output --partial "Building services myservice"
-  assert_output --partial "Using service image buildkite12_myservice from Docker Compose config"
+  assert_output --partial "Using service image buildkite12-myservice from Docker Compose config"
   assert_output --partial "Pushing images for myservice"
 
   unstub docker
@@ -82,7 +82,7 @@ teardown() {
     "compose -f docker-compose.yml -p buildkite12 up -d --scale myservice=0 myservice : echo ran dependencies" \
     "compose -f docker-compose.yml -p buildkite12 run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
     "compose -f docker-compose.yml -p buildkite12 config : echo ''" \
-    "image inspect buildkite12_myservice : exit 1"
+    "image inspect \* : exit 1"
   
   # these make sure that the image is not pre-built
   stub buildkite-agent \
@@ -140,7 +140,7 @@ teardown() {
     "compose -f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran dependencies" \
     "compose -f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
     "compose -f docker-compose.yml -p buildkite12 config : echo ''" \
-    "image inspect buildkite12_myservice : exit 1" \
+    "image inspect \* : exit 1" \
     "pull myservice-tag : echo pulled pre-built image" \
     "compose -f docker-compose.yml -p buildkite12 push myservice : echo pushed myservice"
   

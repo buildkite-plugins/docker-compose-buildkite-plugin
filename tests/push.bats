@@ -176,8 +176,8 @@ load '../lib/shared.bash'
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
-    "image inspect buildkite1111_helper : exit 0" \
-    "tag buildkite1111_helper my.repository/helper:llamas : echo tagged helper" \
+    "image inspect buildkite1111-helper : exit 0" \
+    "tag buildkite1111-helper my.repository/helper:llamas : echo tagged helper" \
     "push my.repository/helper:llamas : echo pushed helper"
 
   run "$PWD"/hooks/command
@@ -201,7 +201,7 @@ load '../lib/shared.bash'
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
-    "image inspect buildkite1111_helper : exit 1" 
+    "image inspect buildkite1111-helper : exit 1" 
 
   run "$PWD"/hooks/command
 
@@ -221,12 +221,12 @@ load '../lib/shared.bash'
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah " \
-    "image inspect buildkite1111_myservice1 : exit 1" \
+    "image inspect buildkite1111-myservice1 : exit 1" \
     "pull prebuilt1 : exit 0" \
     "tag prebuilt1 my.repository/myservice1 : echo tagging image1" \
     "push my.repository/myservice1 : echo pushing myservice1 image" \
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah " \
-    "image inspect buildkite1111_myservice2 : exit 1" \
+    "image inspect buildkite1111-myservice2 : exit 1" \
     "pull prebuilt2 : exit 0" \
     "tag prebuilt2 my.repository/myservice2:llamas : echo tagging image2" \
     "push my.repository/myservice2:llamas : echo pushing myservice2 image"
