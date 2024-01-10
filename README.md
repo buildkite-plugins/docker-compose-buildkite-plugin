@@ -7,7 +7,7 @@ A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) that lets you 
 * Supports pre-building of images, allowing for fast parallel builds across distributed agents
 * Supports pushing tagged images to a repository
 
-## Example
+## Examples
 
 The following pipeline will run `test.sh` inside a `app` service container using Docker Compose, the equivalent to running `docker-compose run app test.sh`:
 
@@ -42,7 +42,7 @@ steps:
             - BUILDKITE_BUILD_NUMBER
 ```
 
-## Authenticated registries
+### Authenticated registries
 
 You can leverage the [docker-login plugin](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) in tandem for authenticating with a registry. For example, the following will build and push an image to a private repo, and pull from that private repo in subsequent run commands:
 
@@ -65,7 +65,7 @@ steps:
 
 Note, you will need to add the configuration to all steps in which you use this plugin.
 
-## Artifacts
+### Artifacts
 
 If you’re generating artifacts in the build step, you’ll need to ensure your Docker Compose configuration volume mounts the host machine directory into the container where those artifacts are created.
 
@@ -84,7 +84,7 @@ steps:
 
 If you want to use environment variables in the `volumes` element, you will need to activate the (unsafe) option `expand-volume-vars` (and most likely escape it using `$$VARIABLE_NAME` to ensure they are not interpolated when the pipeline is uploaded).
 
-## Environment
+### Environment
 
 By default, docker-compose makes whatever environment variables it gets available for
 interpolation of docker-compose.yml, but it doesn't pass them in to your containers.
@@ -123,7 +123,7 @@ steps:
           propagate-environment: true
 ```
 
-## Container Labels
+### Container Labels
 
 When running a command, the plugin will automatically add the following Docker labels to the container specified in the `run` option:
 - `com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}`
@@ -143,7 +143,7 @@ docker ps --filter "label=com.buildkite.job_label=Run tests"
 
 This behaviour can be disabled with the `run-labels: false` option.
 
-## Build Arguments
+### Build Arguments
 
 You can use the [build args key in docker-compose.yml](https://docs.docker.com/compose/compose-file/build/#args) to set specific build arguments when building an image.
 
@@ -162,7 +162,7 @@ steps:
 
 Note that the values in the list must be a `KEY=VALUE` pair.
 
-## Pre-building the image
+### Pre-building the image
 
 If you have multiple steps that use the same service/image (such as steps that run in parallel), you can use this plugin in a specific `build` step to your pipeline. That will set specific metadata in the pipeline for this plugin to use in `run` steps afterwards:
 
@@ -186,7 +186,7 @@ steps:
 
 All `run` steps for the service `app` will automatically pull and use the pre-built image. Without this, each `Test %n` job would build its own instead.
 
-## Building multiple images
+### Building multiple images
 
 Sometimes your compose file has multiple services that need building. The example below will build images for the `app` and `tests` service and then the run step will pull them down and use them for the run as needed.
 
@@ -214,7 +214,7 @@ steps:
           run: tests
 ```
 
-## Pushing Tagged Images
+### Pushing Tagged Images
 
 If you want to push your Docker images ready for deployment, you can use the `push` configuration (which operates similar to [docker-compose push](https://docs.docker.com/compose/reference/push/):
 
@@ -250,7 +250,7 @@ steps:
             - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
 
-## Reusing caches from images
+### Reusing caches from images
 
 A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a previously built image (if it was pushed from a previous build):
 
