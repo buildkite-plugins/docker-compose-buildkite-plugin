@@ -19,16 +19,17 @@ load '../lib/shared'
     "meta-data set docker-compose-plugin-built-image-tag-app \* : echo \$4 > ${BATS_TEST_TMPDIR}/build-push-metadata"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config --images app : echo app-image" \
+    "-f docker-compose.yml -p buildkite1111 config : cat ${PWD}/tests/composefiles/docker-compose.config.v3.2.yml" \
     "-f docker-compose.yml -p buildkite1111 push app : echo pushed app"
 
   stub docker \
-    "image inspect app-image : exit 0"
+    "image inspect \* : exit 0"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "pushed app"
+
   unstub docker-compose
   unstub buildkite-agent
   unstub docker
@@ -46,7 +47,7 @@ load '../lib/shared'
     "push my.repository/myservice:llamas : echo pushed myservice"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''"
+    "-f docker-compose.yml -p buildkite1111 config : echo ''"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
@@ -59,6 +60,7 @@ load '../lib/shared'
   assert_output --partial "pulled prebuilt image"
   assert_output --partial "tagged image"
   assert_output --partial "pushed myservice"
+
   unstub docker-compose
   unstub docker
   unstub buildkite-agent
@@ -70,16 +72,28 @@ load '../lib/shared'
   export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_BUILD_NUMBER=1
 
+
+  stub docker \
+    "pull prebuilt : echo 'pulled prebuilt image'" \
+    "tag prebuilt \* : echo 'invalid tag'; exit 1"
+
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''"
+    "-f docker-compose.yml -p buildkite1111 config : echo ''"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo prebuilt" \
 
   run "$PWD"/hooks/command
 
-  assert_success
-  refute_output --partial "pulled prebuilt image"
+  assert_failure
+  assert_output --partial "Pulling pre-built service"
   refute_output --partial "tagged image"
   assert_output --partial "invalid tag"
+
+  unstub docker
   unstub docker-compose
+  unstub buildkite-agent
 }
 
 @test "Push a prebuilt image to multiple tags" {
@@ -100,9 +114,9 @@ load '../lib/shared'
     "push my.repository/myservice:alpacas : echo pushed myservice3"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''" \
-    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''" \
-    "-f docker-compose.yml -p buildkite1111 config --images myservice : echo ''"
+    "-f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "-f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "-f docker-compose.yml -p buildkite1111 config : echo ''"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
@@ -125,6 +139,7 @@ load '../lib/shared'
   assert_output --partial "pushed myservice2"
   assert_output --partial "tagged image3"
   assert_output --partial "pushed myservice3"
+
   unstub docker-compose
   unstub docker
   unstub buildkite-agent
@@ -140,7 +155,7 @@ load '../lib/shared'
     "meta-data exists docker-compose-plugin-built-image-tag-helper : exit 1"
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config --images helper : echo ''"
+    "-f docker-compose.yml -p buildkite1111 config : echo ''"
 
   stub docker \
     "image inspect \* : exit 1"
@@ -150,6 +165,7 @@ load '../lib/shared'
   assert_failure
 
   assert_output --partial 'No prebuilt-image nor service image found for service to push'
+
   unstub docker-compose
   unstub docker
   unstub buildkite-agent
@@ -163,7 +179,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config --images myservice1 : echo ''"
+    "-f docker-compose.yml -p buildkite1111 config : echo ''"
 
   stub docker \
     "image inspect \* : exit 1"
@@ -190,8 +206,8 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 config --images myservice1 : echo ''" \
-    "-f docker-compose.yml -p buildkite1111 config --images myservice2 : echo ''" \
+    "-f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "-f docker-compose.yml -p buildkite1111 config : echo ''" \
 
   stub docker \
     "pull myservice1 : exit 0" \
@@ -216,6 +232,7 @@ load '../lib/shared'
   assert_output --partial "pushing myservice1 image"
   assert_output --partial "tagging image2"
   assert_output --partial "pushing myservice2 image"
+
   unstub docker-compose
   unstub buildkite-agent
   unstub docker

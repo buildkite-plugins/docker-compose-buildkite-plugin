@@ -12,6 +12,11 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
 }
 
+teardown() {
+  # some test failures may leave this file around
+  rm -f docker-compose.buildkite-1-override.yml
+}
+
 @test "Run without a prebuilt image" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
