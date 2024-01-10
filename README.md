@@ -256,27 +256,27 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 
 ```yaml
 steps:
-  - label: ":docker: Build an image"
+  - label: ":docker Build an image"
     plugins:
       - docker-compose#v4.16.0:
           build: app
-          push: app:index.docker.io/myorg/myrepo:dev-${BUILDKITE_BUILD_NUMBER}
-          cache-from: app:index.docker.io/myorg/myrepo/myapp:latest
+          push: app:index.docker.io/myorg/myrepo:my-branch
+          cache-from:
+            - "app:myregistry:port/myrepo/myapp:my-branch"
+            - "app:myregistry:port/myrepo/myapp:latest"
+
   - wait
+
   - label: ":docker: Push to final repository"
     plugins:
       - docker-compose#v4.16.0:
           push:
-            - app:index.docker.io/myorg/myrepo/myapp:latest
+            - app:myregistry:port/myrepo/myapp:latest
 ```
 
-**Important**: if your registry URL contains a port, you will need to take the following into account:
-* specify the `separator-cache-from` option to change the colon character to something else (like `#`)
-* you will have to specify tags in the `push` elements (or the plugin will try to validate everything after the port as a tag)
+For images to be pulled and used as a cache they [need to be built with the `BUILDKIT_INLINE_CACHE=1` build argument](https://docs.docker.com/engine/reference/commandline/build/#cache-from).
 
-#### Multiple cache-from values
-
-This plugin allows for the value of `cache-from` to be a string or a list. If it's a list, as below, then the first successfully pulled image will be used.
+The values you add in the `cache-from` will be mapped to the corresponding service's configuration. That means that you can use any valid cache type your environment supports:
 
 ```yaml
 steps:
@@ -285,54 +285,18 @@ steps:
       - docker-compose#v4.16.0:
           build: app
           push: app:index.docker.io/myorg/myrepo:my-branch
-          separator-cache-from: "#"
           cache-from:
-            - "app#myregistry:port/myrepo/myapp#my-branch"
-            - "app#myregistry:port/myrepo/myapp#latest"
+            - "app:type=registry,ref=myregistry:port/myrepo/myapp:my-branch"
+            - "app:myregistry:port/myrepo/myapp:latest"
+
   - wait
+
   - label: ":docker: Push to final repository"
     plugins:
       - docker-compose#v4.16.0:
           push:
             - app:myregistry:port/myrepo/myapp:latest
 ```
-
-You may actually want to build your image with multiple cache-from values, for instance, with the cached images of multiple stages in a multi-stage build.
-Adding a grouping tag to the end of a cache-from list item allows this plugin to differentiate between groups within which only the first successfully downloaded image should be used (those elements that don't have a group specified will make a separate `:default:` group of its own). This way, not all images need to be downloaded and used as cache, not just the first.
-
-```yaml
-steps:
-  - label: ":docker: Build Intermediate Image"
-    plugins:
-      - docker-compose#v4.16.0:
-          build: myservice_intermediate  # docker-compose.yml is the same as myservice but has `target: intermediate`
-          push: intermediate_service:index.docker.io/myorg/myrepo/myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}
-          cache-from:
-            - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:${BUILDKITE_BRANCH}
-            - myservice_intermediate:index.docker.io/myorg/myrepo/myservice_intermediate:latest
-  - wait
-  - label: ":docker: Build Final Image"
-    plugins:
-      - docker-compose#v4.16.0:
-          build: myservice
-          push: myservice:index.docker.io/myorg/myrepo:buildkite-build-${BUILDKITE_BUILD_NUMBER}
-          cache-from:
-            - myservice:index.docker.io/myorg/myrepo/myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}:intermediate  # built in step above
-            - myservice:index.docker.io/myorg/myrepo/myservice:${BUILDKITE_BRANCH}
-            - myservice:index.docker.io/myorg/myrepo/myservice:latest
-  - block: ":rocket: Ready to be the latest and greatest?" 
-  - label: ":docker: Build and Push Final Image"
-    plugins:
-      - docker-compose#v4.16.0:
-          build: myservice
-          push: myservice:index.docker.io/myorg/myrepo:buildkite-build-latest
-          cache-from:
-            - myservice:index.docker.io/myorg/myrepo/myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}:intermediate  # built in step above
-            - myservice:index.docker.io/myorg/myrepo/myservice:${BUILDKITE_BRANCH}
-```
-
-In the example above, the `myservice_intermediate:buildkite-build-${BUILDKITE_BUILD_NUMBER}` is one group named "intermediate", and `myservice:${BUILDKITE_BRANCH}` and `myservice:latest`
-are another (with a default name). The first successfully downloaded image in each group will be used as a cache.
 
 ## Configuration
 
