@@ -11,7 +11,7 @@ else
   group_type="+++"
 fi
 
-if [[ "$(plugin_read_config BUILDKIT "false")" == "true" ]]; then
+if [[ "$(plugin_read_config BUILDKIT "true")" == "true" ]]; then
   export DOCKER_BUILDKIT=1
   export COMPOSE_DOCKER_CLI_BUILD=1
   export BUILDKIT_PROGRESS=plain
