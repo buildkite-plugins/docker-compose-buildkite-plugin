@@ -27,7 +27,9 @@ for line in $(plugin_read_list PUSH) ; do
   service_name=${tokens[0]}
   service_image=$(compose_image_for_service "$service_name")
 
-  if prebuilt_image="$(get_prebuilt_image "$service_name")"; then
+  if docker_image_exists "${service_image}"; then
+    echo "~~~ :docker: Using service image ${service_image} from Docker Compose config"
+  elif prebuilt_image="$(get_prebuilt_image "$service_name")"; then
     echo "~~~ :docker: Using pre-built image ${prebuilt_image}"
 
     # Only pull it down once
@@ -38,8 +40,6 @@ for line in $(plugin_read_list PUSH) ; do
     fi
 
     service_image="${prebuilt_image}"
-  elif docker_image_exists "${service_image}"; then
-    echo "~~~ :docker: Using service image ${service_image} from Docker Compose config"
   else
     echo "+++ 🚨 No prebuilt-image nor service image found for service to push"
     exit 1
