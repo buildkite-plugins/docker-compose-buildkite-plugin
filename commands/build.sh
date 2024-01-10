@@ -56,40 +56,23 @@ if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
   for line in $(plugin_read_list CACHE_FROM) ; do
     IFS=':' read -r -a tokens <<< "$line"
     service_name=${tokens[0]}
-    cache_from_group_name=${tokens[1]}
-
-    if [[ -z "$cache_from_group_name" ]]; then
-      cache_from_group_name=":default:"
-    fi
-
-    service_image=$(IFS=':'; echo "${tokens[*]:2}")
+    service_image=$(IFS=':'; echo "${tokens[*]:1}")
 
     # The variable with this name will hold an array of group names:
     cache_image_name="$(service_name_cache_from_var "$service_name")"
 
-    if [[ -n ${!cache_image_name+x} ]]; then
-      if [[ "$(named_array_values "${cache_image_name}")" =~ ${cache_from_group_name} ]]; then
-        continue # skipping since there's already a pulled cache image for this service+group
-      fi
-    fi
-
-    echo "~~~ :docker: Pulling cache image for $service_name (group ${cache_from_group_name})"
-    if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
-      if [[ -z "${!cache_image_name+x}" ]]; then
-        declare -a "$cache_image_name"
-        cache_image_length=0
-      else
-        cache_image_length="$(count_of_named_array "${cache_image_name}")"
-      fi
-
-      declare "$cache_image_name+=( $cache_from_group_name )"
-      # The variable with this name will hold the image for the this group
-      # (based on index into the array of group names):
-      cache_from_group_var="$(service_name_group_name_cache_from_var "$service_name" "${cache_image_length}")"
-      printf -v "$cache_from_group_var" "%s" "$service_image"
+    if [[ -z "${!cache_image_name+x}" ]]; then
+      declare -a "$cache_image_name"
+      cache_image_length=0
     else
-      echo "!!! :docker: Pull failed. $service_image will not be used as a cache for $service_name"
+      cache_image_length="$(count_of_named_array "${cache_image_name}")"
     fi
+
+    declare "$cache_image_name+=( $cache_from_group_name )"
+    # The variable with this name will hold the image for the this group
+    # (based on index into the array of group names):
+    cache_from_group_var="$(service_name_group_name_cache_from_var "$service_name" "${cache_image_length}")"
+    printf -v "$cache_from_group_var" "%s" "$service_image"
   done
 fi
 
