@@ -292,11 +292,16 @@ teardown() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=true
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKIT=false
 
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --ssh default \* : echo built \${10} with ssh"
+
   run "$PWD"/hooks/command
 
-  assert_failure
-  assert_output --partial "You can not use the ssh option if you are not using buildkit"
-  refute_output --partial "built myservice"
+  assert_success
+  assert_output --partial "built myservice"
+  assert_output --partial "with ssh"
+
+  unstub docker
 }
 
 @test "Build with ssh option as true and buildkit" {
