@@ -15,8 +15,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
-    "meta-data exists docker-compose-plugin-built-image-tag-app : exit 1" \
-    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo \$4 > ${BATS_TEST_TMPDIR}/build-push-metadata"
+    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo setting metadata to \$4"
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : cat ${PWD}/tests/composefiles/docker-compose.config.v3.2.yml" \
@@ -42,6 +41,7 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
+    "image inspect \* : exit 1" \
     "pull myimage : echo pulled prebuilt image" \
     "tag myimage my.repository/myservice:llamas : echo tagged image" \
     "push my.repository/myservice:llamas : echo pushed myservice"
@@ -74,6 +74,7 @@ load '../lib/shared'
 
 
   stub docker \
+    "image inspect \* : exit 1" \
     "pull prebuilt : echo 'pulled prebuilt image'" \
     "tag prebuilt \* : echo 'invalid tag'; exit 1"
 
@@ -105,11 +106,14 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
+    "image inspect \* : exit 1" \
     "pull prebuilt : echo pulled prebuilt image" \
     "tag prebuilt my.repository/myservice:llamas : echo tagged image1" \
     "push my.repository/myservice:llamas : echo pushed myservice1" \
+    "image inspect \* : exit 1" \
     "tag prebuilt my.repository/myservice:latest : echo tagged image2" \
     "push my.repository/myservice:latest : echo pushed myservice2" \
+    "image inspect \* : exit 1" \
     "tag prebuilt my.repository/myservice:alpacas : echo tagged image3" \
     "push my.repository/myservice:alpacas : echo pushed myservice3"
 
@@ -210,9 +214,11 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 config : echo ''" \
 
   stub docker \
+    "image inspect \* : exit 1" \
     "pull myservice1 : exit 0" \
     "tag myservice1 my.repository/myservice1 : echo tagging image1" \
     "push my.repository/myservice1 : echo pushing myservice1 image" \
+    "image inspect \* : exit 1" \
     "pull myservice2 : exit 0" \
     "tag myservice2 my.repository/myservice2:llamas : echo tagging image2" \
     "push my.repository/myservice2:llamas : echo pushing myservice2 image"

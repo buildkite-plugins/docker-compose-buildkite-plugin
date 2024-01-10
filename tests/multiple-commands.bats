@@ -63,7 +63,6 @@ teardown() {
   
   # these commands simulate metadata for a specific value by using an intermediate-file
   stub buildkite-agent \
-     "meta-data exists docker-compose-plugin-built-image-tag-myservice : test -f /tmp/build-push-metadata" \
      "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo \$4 > /tmp/build-push-metadata"
 
   stub docker \
@@ -125,7 +124,6 @@ teardown() {
   # these make sure that the image is not pre-built
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
-    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
     "meta-data set docker-compose-plugin-built-image-tag-myservice \* : set pre-built image metadata to \$4"
 
   run "$PWD"/hooks/command
@@ -162,6 +160,7 @@ teardown() {
     "meta-data set docker-compose-plugin-built-image-tag-myservice \* : set pre-built image metadata to \$4"
 
   stub docker \
+    "image inspect buildkite12_myservice : exit 1" \
     "pull myservice-tag : echo pulled pre-built image"
 
   run "$PWD"/hooks/command

@@ -19,7 +19,6 @@ setup_file() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
-    "meta-data exists docker-compose-plugin-built-image-tag-app : exit 1" \
     "meta-data set docker-compose-plugin-built-image-tag-app \* : echo \$4"
 
   stub docker \
@@ -43,6 +42,7 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect \* : exit 1" \
     "pull myimage : echo pulled prebuilt image" \
     "tag myimage my.repository/myservice:llamas : echo tagged image" \
     "push my.repository/myservice:llamas : echo pushed myservice"
@@ -72,6 +72,7 @@ setup_file() {
 
   stub docker \
     "compose --compatibility -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect \* : exit 1" \
     "pull myimage : echo pulled prebuilt image" \
     "tag myimage my.repository/myservice:llamas : echo tagged image" \
     "push my.repository/myservice:llamas : echo pushed myservice"
@@ -100,6 +101,7 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect \* : exit 1" \
     "pull prebuilt : echo ''" \
     "tag prebuilt \* : echo 'invalid tag'; exit 1"
 
@@ -129,13 +131,16 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect \* : exit 1" \
     "pull prebuilt : echo pulled prebuilt image" \
     "tag prebuilt my.repository/myservice:llamas : echo tagged image1" \
     "push my.repository/myservice:llamas : echo pushed myservice1" \
     "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect \* : exit 1" \
     "tag prebuilt2 my.repository/myservice:latest : echo tagged image2" \
     "push my.repository/myservice:latest : echo pushed myservice2" \
     "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect \* : exit 1" \
     "tag prebuilt3 my.repository/myservice:alpacas : echo tagged image3" \
     "push my.repository/myservice:alpacas : echo pushed myservice3"
 
@@ -171,7 +176,6 @@ setup_file() {
   export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
-    "meta-data exists docker-compose-plugin-built-image-tag-helper : exit 1" \
     "meta-data set docker-compose-plugin-built-image-tag-helper \* : echo \$4"
 
   stub docker \
@@ -220,10 +224,12 @@ setup_file() {
 
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect buildkite1111-myservice1 : exit 1" \
     "pull prebuilt1 : exit 0" \
     "tag prebuilt1 my.repository/myservice1 : echo tagging image1" \
     "push my.repository/myservice1 : echo pushing myservice1 image" \
     "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect buildkite1111-myservice2 : exit 1" \
     "pull prebuilt2 : exit 0" \
     "tag prebuilt2 my.repository/myservice2:llamas : echo tagging image2" \
     "push my.repository/myservice2:llamas : echo pushing myservice2 image"
