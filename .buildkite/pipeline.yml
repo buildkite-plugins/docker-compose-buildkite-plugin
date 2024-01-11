@@ -17,6 +17,7 @@ steps:
     plugins:
       plugin-linter#v3.2.0:
         id: docker-compose
+        readme: docs/examples.md
 
   - label: ":bash: Tests"
     plugins:
