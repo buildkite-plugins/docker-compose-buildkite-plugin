@@ -110,6 +110,7 @@ steps:
 
   - label: run after prebuild with custom tag
     depends_on: prebuild-custom-image-name
+    key: run-custom-image-name
     env:
       RESTORE_REGISTRY_FROM: prebuild-custom-image-name
     plugins:
@@ -120,7 +121,7 @@ steps:
         commmand: ["/hello"]
 
   - label: push after build with custom tag
-    depends_on: prebuild-custom-image-name
+    depends_on: run-custom-image-name
     env:
       RESTORE_REGISTRY_FROM: prebuild-custom-image-name
     plugins:
