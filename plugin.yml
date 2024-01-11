@@ -146,8 +146,7 @@ configuration:
     mount-buildkite-agent: [ run ]
     mount-checkout: [ run ]
     mount-ssh-agent: [ run ]
-    no-cache:
-      oneOf: [ build, run ]
+    no-cache: [ build, run ]
     pre-run-dependencies: [ run ]
     propagate-environment: [ run ]
     propagate-uid-gid: [ run ]
@@ -158,8 +157,7 @@ configuration:
     rm: [ run ]
     run-labels: [ run ]
     service-ports: [ run ]
-    skip-pull:
-      oneOf: [ build, run ]
+    skip-pull: [ build, run ]
     secrets: [ buildkit, build ]
     shell: [ run ]
     ssh: [ build ]
