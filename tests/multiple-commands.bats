@@ -20,7 +20,7 @@ setup_file() {
 
 teardown() {
   # some test failures may leave this file around
-  rm -f docker-compose.buildkite-1-override.yml
+  rm -f docker-compose.buildkite*-override.yml
 }
 
 @test "Build and run" {
