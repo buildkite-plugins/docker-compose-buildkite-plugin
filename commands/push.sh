@@ -47,9 +47,10 @@ for line in $(plugin_read_list PUSH) ; do
 
   # push: "service-name"
   if [[ ${#tokens[@]} -eq 1 ]] ; then
-    echo "~~~ :docker: Pushing images for ${service_name}" >&2;
+    echo "${group_type} :docker: Pushing images for ${service_name}" >&2;
     retry "$push_retries" run_docker_compose push "${service_name}"
     set_prebuilt_image "${service_name}" "${service_image}"
+    target_image="${service_image}" # necessary for build-alias
   # push: "service-name:repo:tag"
   else
     target_image="$(IFS=:; echo "${tokens[*]:1}")"
@@ -62,8 +63,8 @@ done
 
 # single image build
 for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
-  if [ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD}" ]; then
-    echo "+++ 🚨 You can not use build-alias if you are not building a single service"
+  if [ -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH}" ]; then
+    echo "+++ 🚨 You can not use build-alias if you are not pushing a single service"
     exit 1
   fi
 
