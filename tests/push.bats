@@ -243,3 +243,70 @@ load '../lib/shared'
   unstub buildkite-agent
   unstub docker
 }
+
+@test "Push pre-built image with aliases" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_0=myservice-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_1=myservice-2
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "-f docker-compose.yml -p buildkite1111 push myservice : echo pushed myservice"
+
+  stub docker \
+    "image inspect \* : exit 1" \
+    "pull myservice-tag : exit 0" \
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myservice-tag" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo \$4" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-1 \* : echo myservice-1:\$4" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-2 \* : echo myservice-2:\$4"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Using pre-built image myservice-tag"
+  assert_output --partial "myservice-1:myservice-tag"
+  assert_output --partial "myservice-2:myservice-tag"
+
+  unstub docker
+  unstub docker-compose
+  unstub buildkite-agent
+}
+
+@test "Push service with image with aliases" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_0=myservice-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_1=myservice-2
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker-compose \
+    "-f docker-compose.yml -p buildkite1111 config : cat ${PWD}/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "-f docker-compose.yml -p buildkite1111 push app : echo pushed myservice"
+
+  stub docker \
+    "image inspect \* : exit 0"
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo \$4" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-1 \* : echo myservice-1:\$4" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-2 \* : echo myservice-2:\$4"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Using service image somewhere.dkr.ecr.some-region.amazonaws.com/blah"
+  assert_output --partial "myservice-1:somewhere.dkr.ecr.some-region.amazonaws.com/blah"
+  assert_output --partial "myservice-2:somewhere.dkr.ecr.some-region.amazonaws.com/blah"
+
+  unstub docker
+  unstub docker-compose
+  unstub buildkite-agent
+}

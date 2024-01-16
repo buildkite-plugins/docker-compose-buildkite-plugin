@@ -114,26 +114,6 @@ teardown() {
   unstub docker-compose
 }
 
-# TODO: move this to push testing
-@test "Build with a repository and multiple build aliases" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_0=myservice-1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_1=myservice-2
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
-
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-
-  unstub docker-compose
-}
-
 @test "Build with a repository and push retries" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice

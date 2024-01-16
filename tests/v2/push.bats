@@ -252,3 +252,37 @@ setup_file() {
   unstub docker
   unstub buildkite-agent
 }
+
+@test "Push a pre-built service with multiple build aliases" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_0=myservice-1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_1=myservice-2
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "image inspect buildkite1111-myservice : exit 1" \
+    "pull \* : echo pulled \$2" \
+    "compose -f docker-compose.yml -p buildkite1111 push myservice : echo pushed myservice" \
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo 'myservice-tag'" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo set image metadata for myservice to \$4" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-1 \* : echo set image metadata for myservice-1 to \$4" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice-2 \* : echo set image metadata for myservice-2 to \$4"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "pulled myservice-tag"
+  assert_output --partial "pushed myservice"
+  assert_output --partial "set image metadata for myservice"
+  assert_output --partial "set image metadata for myservice-1"
+  assert_output --partial "set image metadata for myservice-2"
+
+  unstub docker
+  unstub buildkite-agent
+}
