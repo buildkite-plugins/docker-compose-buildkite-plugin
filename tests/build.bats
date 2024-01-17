@@ -3,7 +3,7 @@
 load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 
- export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
+# export DOCKER_COMPOSE_STUB_DEBUG=/dev/stdout
 # export BATS_MOCK_TMPDIR=$PWD
 
 teardown() {

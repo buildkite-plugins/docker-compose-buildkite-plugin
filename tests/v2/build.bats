@@ -3,8 +3,8 @@
 load "${BATS_PLUGIN_PATH}/load.bash"
 load '../../lib/shared'
 
- export DOCKER_STUB_DEBUG=/dev/stdout
- export BUILDKITE_AGENT_STUB_DEBUG=/dev/stdout
+# export DOCKER_STUB_DEBUG=/dev/stdout
+# export BUILDKITE_AGENT_STUB_DEBUG=/dev/stdout
 # export BATS_MOCK_TMPDIR=$PWD
 
 setup_file() {
