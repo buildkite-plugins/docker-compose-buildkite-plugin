@@ -36,12 +36,7 @@ for line in $(plugin_read_list PUSH) ; do
     echo "~~~ :docker: Service has an image configuration: ${service_image}"
   elif in_array "${service_name}" "${build_services[@]}"; then
     echo "~~~ :docker: Service was built in this step, using that image"
-    service_image="$(default_compose_image_for_service)"
-    if ! docker_image_exists "${service_image}"; then
-      echo '+++ 🚨 Could not find service image for service to push'
-      echo 'If you are using Docker Compose CLI v1, please ensure it is not a wrapper for v2'
-      exit 1
-    fi
+    service_image="$(default_compose_image_for_service "${service_name}")"
   elif prebuilt_image="$(get_prebuilt_image "$service_name")"; then
     echo "~~~ :docker: Using pre-built image ${prebuilt_image}"
 
@@ -55,6 +50,12 @@ for line in $(plugin_read_list PUSH) ; do
     service_image="${prebuilt_image}"
   else
     echo "+++ 🚨 No prebuilt-image nor built image found for service to push"
+    exit 1
+  fi
+
+  if ! docker_image_exists "${service_image}"; then
+    echo "+++ 🚨 Could not find image for service to push: ${service_image}"
+    echo 'If you are using Docker Compose CLI v1, please ensure it is not a wrapper for v2'
     exit 1
   fi
 
