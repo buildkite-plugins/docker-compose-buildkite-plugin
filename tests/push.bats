@@ -41,8 +41,8 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
-    "image inspect \* : exit 1" \
     "pull myimage : echo pulled prebuilt image" \
+    "image inspect myimage : exit 0" \
     "tag myimage my.repository/myservice:llamas : echo tagged image" \
     "push my.repository/myservice:llamas : echo pushed myservice"
 
@@ -74,8 +74,8 @@ load '../lib/shared'
 
 
   stub docker \
-    "image inspect \* : exit 1" \
     "pull prebuilt : echo 'pulled prebuilt image'" \
+    "image inspect prebuilt : exit 0" \
     "tag prebuilt \* : echo 'invalid tag'; exit 1"
 
   stub docker-compose \
@@ -106,14 +106,14 @@ load '../lib/shared'
   export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
-    "image inspect \* : exit 1" \
     "pull prebuilt : echo pulled prebuilt image" \
+    "image inspect prebuilt : exit 0" \
     "tag prebuilt my.repository/myservice:llamas : echo tagged image1" \
     "push my.repository/myservice:llamas : echo pushed myservice1" \
-    "image inspect \* : exit 1" \
+    "image inspect prebuilt : exit 0" \
     "tag prebuilt my.repository/myservice:latest : echo tagged image2" \
     "push my.repository/myservice:latest : echo pushed myservice2" \
-    "image inspect \* : exit 1" \
+    "image inspect prebuilt : exit 0" \
     "tag prebuilt my.repository/myservice:alpacas : echo tagged image3" \
     "push my.repository/myservice:alpacas : echo pushed myservice3"
 
@@ -161,17 +161,13 @@ load '../lib/shared'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : echo ''"
 
-  stub docker \
-    "image inspect \* : exit 1"
-
   run "$PWD"/hooks/command
 
   assert_failure
 
-  assert_output --partial 'No prebuilt-image nor service image found for service to push'
+  assert_output --partial 'No prebuilt-image nor built image found for service to push'
 
   unstub docker-compose
-  unstub docker
   unstub buildkite-agent
 }
 
@@ -185,9 +181,6 @@ load '../lib/shared'
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : echo ''"
 
-  stub docker \
-    "image inspect \* : exit 1"
-
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice1 : exit 1"
 
@@ -195,11 +188,10 @@ load '../lib/shared'
 
   assert_failure
 
-  assert_output --partial 'No prebuilt-image nor service image found for service to push'
+  assert_output --partial 'No prebuilt-image nor built image found for service to push'
 
   unstub docker-compose
   unstub buildkite-agent
-  unstub docker
 }
 
 @test "Push two pre-built services with target repositories and tags" {
@@ -214,12 +206,12 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 config : echo ''" \
 
   stub docker \
-    "image inspect \* : exit 1" \
     "pull myservice1 : exit 0" \
+    "image inspect myservice1 : exit 0" \
     "tag myservice1 my.repository/myservice1 : echo tagging image1" \
     "push my.repository/myservice1 : echo pushing myservice1 image" \
-    "image inspect \* : exit 1" \
     "pull myservice2 : exit 0" \
+    "image inspect myservice2 : exit 0" \
     "tag myservice2 my.repository/myservice2:llamas : echo tagging image2" \
     "push my.repository/myservice2:llamas : echo pushing myservice2 image"
 
@@ -257,8 +249,8 @@ load '../lib/shared'
     "-f docker-compose.yml -p buildkite1111 push myservice : echo pushed myservice"
 
   stub docker \
-    "image inspect \* : exit 1" \
     "pull myservice-tag : exit 0" \
+    "image inspect \* : exit 0"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
@@ -302,7 +294,7 @@ load '../lib/shared'
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "Using service image somewhere.dkr.ecr.some-region.amazonaws.com/blah"
+  assert_output --partial "Service has an image configuration: somewhere.dkr.ecr.some-region.amazonaws.com/blah"
   assert_output --partial "myservice-1:somewhere.dkr.ecr.some-region.amazonaws.com/blah"
   assert_output --partial "myservice-2:somewhere.dkr.ecr.some-region.amazonaws.com/blah"
 
