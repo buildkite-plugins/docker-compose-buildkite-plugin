@@ -20,15 +20,28 @@ fi
 # 2. The default projectname_service image format that docker-compose uses
 
 pulled_services=("")
+build_services=("")
+
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD; then
+  build_services=("${result[@]}")
+fi
 
 # Then we figure out what to push, and where
 for line in $(plugin_read_list PUSH) ; do
   IFS=':' read -r -a tokens <<< "$line"
   service_name=${tokens[0]}
-  service_image=$(compose_image_for_service "$service_name")
+  service_image="$(compose_image_for_service "$service_name")"
 
-  if docker_image_exists "${service_image}"; then
-    echo "~~~ :docker: Using service image ${service_image} from Docker Compose config"
+  if [ -n "${service_image}" ]; then # service has an image
+    echo "~~~ :docker: Service has an image configuration: ${service_image}"
+  elif in_array "${service_name}" "${build_services[@]}"; then
+    echo "~~~ :docker: Service was built in this step, using that image"
+    service_image="$(default_compose_image_for_service)"
+    if ! docker_image_exists "${service_image}"; then
+      echo '+++ 🚨 Could not find service image for service to push'
+      echo 'If you are using Docker Compose CLI v1, please ensure it is not a wrapper for v2'
+      exit 1
+    fi
   elif prebuilt_image="$(get_prebuilt_image "$service_name")"; then
     echo "~~~ :docker: Using pre-built image ${prebuilt_image}"
 
@@ -41,7 +54,7 @@ for line in $(plugin_read_list PUSH) ; do
 
     service_image="${prebuilt_image}"
   else
-    echo "+++ 🚨 No prebuilt-image nor service image found for service to push"
+    echo "+++ 🚨 No prebuilt-image nor built image found for service to push"
     exit 1
   fi
 

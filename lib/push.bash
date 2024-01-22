@@ -10,11 +10,6 @@ compose_image_for_service() {
     | grep -oE '  image: (.+)' \
     | awk '{print $2}')
 
-  if [[ -z "$image" ]] ; then
-    default_compose_image_for_service "$service"
-    return
-  fi
-
   echo "$image"
 }
 
