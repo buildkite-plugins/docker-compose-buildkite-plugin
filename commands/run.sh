@@ -116,35 +116,55 @@ fi
 if [[ "$(plugin_read_config PROPAGATE_AWS_AUTH_TOKENS "false")" =~ ^(true|on|1)$ ]] ; then
   if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]] ; then
       run_params+=( --env "AWS_ACCESS_KEY_ID" )
+  else
+      echo "🚨 AWS_ACCESS_KEY_ID is not set, not propagating"
   fi
   if [[ -n "${AWS_SECRET_ACCESS_KEY:-}" ]] ; then
       run_params+=( --env "AWS_SECRET_ACCESS_KEY" )
+  else
+      echo "🚨 AWS_SECRET_ACCESS_KEY is not set, not propagating"
   fi
   if [[ -n "${AWS_SESSION_TOKEN:-}" ]] ; then
       run_params+=( --env "AWS_SESSION_TOKEN" )
+  else
+      echo "🚨 AWS_SESSION_TOKEN is not set, not propagating"
   fi
   if [[ -n "${AWS_REGION:-}" ]] ; then
       run_params+=( --env "AWS_REGION" )
+  else
+      echo "🚨 AWS_REGION is not set, not propagating"
   fi
   if [[ -n "${AWS_DEFAULT_REGION:-}" ]] ; then
       run_params+=( --env "AWS_DEFAULT_REGION" )
+  else
+      echo "🚨 AWS_DEFAULT_REGION is not set, not propagating"
   fi
   if [[ -n "${AWS_ROLE_ARN:-}" ]] ; then
       run_params+=( --env "AWS_ROLE_ARN" )
+  else
+      echo "🚨 AWS_ROLE_ARN is not set, not propagating"
   fi
   if [[ -n "${AWS_STS_REGIONAL_ENDPOINTS:-}" ]] ; then
       run_params+=( --env "AWS_STS_REGIONAL_ENDPOINTS" )
+  else
+      echo "🚨 AWS_STS_REGIONAL_ENDPOINTS is not set, not propagating"
   fi
   # Pass ECS variables when the agent is running in ECS
   # https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html
   if [[ -n "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]] ; then
       run_params+=( --env "AWS_CONTAINER_CREDENTIALS_FULL_URI" )
+  else
+      echo "🚨 AWS_CONTAINER_CREDENTIALS_FULL_URI is not set, not propagating"
   fi
   if [[ -n "${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-}" ]] ; then
       run_params+=( --env "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" )
+  else
+      echo "🚨 AWS_CONTAINER_CREDENTIALS_RELATIVE_URI is not set, not propagating"
   fi
   if [[ -n "${AWS_CONTAINER_AUTHORIZATION_TOKEN:-}" ]] ; then
       run_params+=( --env "AWS_CONTAINER_AUTHORIZATION_TOKEN" )
+  else
+      echo "🚨 AWS_CONTAINER_AUTHORIZATION_TOKEN is not set, not propagating"
   fi
   # Pass EKS variables when the agent is running in EKS
   # https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
@@ -152,9 +172,11 @@ if [[ "$(plugin_read_config PROPAGATE_AWS_AUTH_TOKENS "false")" =~ ^(true|on|1)$
       run_params+=( --env "AWS_WEB_IDENTITY_TOKEN_FILE" )
       # Add the token file as a volume
       run_params+=( --volume "${AWS_WEB_IDENTITY_TOKEN_FILE}:${AWS_WEB_IDENTITY_TOKEN_FILE}" )
+  else
+      echo "🚨 AWS_WEB_IDENTITY_TOKEN_FILE is not set, not propagating"
   fi
 else
-  echo -n "🚨 Not propagating aws auth tokens"
+  echo "🚨 Not propagating AWS credentials to container as PROPAGATE_AWS_AUTH_TOKENS is not set to true"
 fi
 
 # If requested, propagate a set of env vars as listed in a given env var to the
