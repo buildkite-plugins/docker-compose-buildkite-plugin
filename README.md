@@ -256,11 +256,11 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 
 ```yaml
 steps:
-  - label: ":docker Build an image"
+  - label: ":docker: Build an image"
     plugins:
       - docker-compose#v4.16.0:
           build: app
-          push: app:index.docker.io/myorg/myrepo:my-branch
+          push: app:myregistry:port/myrepo/myapp:my-branch
           cache-from:
             - "app:myregistry:port/myrepo/myapp:my-branch"
             - "app:myregistry:port/myrepo/myapp:latest"
@@ -280,7 +280,7 @@ The values you add in the `cache-from` will be mapped to the corresponding servi
 
 ```yaml
 steps:
-  - label: ":docker Build an image"
+  - label: ":docker: Build an image"
     plugins:
       - docker-compose#v4.16.0:
           build: app
