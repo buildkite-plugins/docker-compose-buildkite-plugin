@@ -153,6 +153,8 @@ if [[ "$(plugin_read_config PROPAGATE_AWS_AUTH_TOKENS "false")" =~ ^(true|on|1)$
       # Add the token file as a volume
       run_params+=( --volume "${AWS_WEB_IDENTITY_TOKEN_FILE}:${AWS_WEB_IDENTITY_TOKEN_FILE}" )
   fi
+else
+  echo -n "🚨 Not propagating aws auth tokens"
 fi
 
 # If requested, propagate a set of env vars as listed in a given env var to the
