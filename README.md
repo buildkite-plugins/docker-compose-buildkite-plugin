@@ -36,7 +36,7 @@ A list of services to push.  You can specify just the service name to push or th
 
 None of the following are mandatory.
 
-#### `pull` (run only)
+#### `pull` (run only, string or array)
 
 Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images. Note that pulling will be skipped if the `skip-pull` option is activated.
 
@@ -54,21 +54,21 @@ The file name of the Docker Compose configuration file to use. Can also be a lis
 
 Default: `docker-compose.yml`
 
-#### `build-alias` (push only)
+#### `build-alias` (push only, string or array)
 
 Other docker-compose services that should be aliased to the service that was built. This is to have a pre-built image set for different services based off a single definition.
 
 Important: this only works when building a single service, an error will be generated otherwise.
 
-#### `args` (build only)
+#### `args` (build only, string or array)
 
 A list of KEY=VALUE that are passed through as build arguments when image is being built.
 
-#### `env` or `environment` (run only)
+#### `env` or `environment` (run only, string or array)
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
 
-#### `env-propagation-list` (run only, string)
+#### `env-propagation-list` (run only)
 
 If you set this to `VALUE`, and `VALUE` is an environment variable containing a space-separated list of environment variables such as `A B C D`, then A, B, C, and D will all be propagated to the container. This is helpful when you've set up an `environment` hook to export secrets as environment variables, and you'd also like to programmatically ensure that secrets get propagated to containers, instead of listing them all out.
 
@@ -92,13 +92,13 @@ Set the shell to use for the command. Set it to `false` to pass the command dire
 
 Example: `[ "powershell", "-Command" ]`
 
-#### `skip-checkout`
+#### `skip-checkout` (boolean)
 
 Whether to skip the repository checkout phase. This is useful for steps that use a pre-built image and will fail if there is no pre-built image.
 
 **Important**: as the code repository will not be available in the step, you need to ensure that any files used (like the docker compose files or scripts to be executed) are present in some other way (like using artifacts or pre-baked into the images used).
 
-#### `skip-pull` (build and run only)
+#### `skip-pull` (build and run only, boolean)
 
 Completely avoid running any `pull` command. Images being used will need to be present in the machine from before or have been built in the same step. Could be useful to avoid hitting rate limits when you can be sure the operation is unnecessary. Note that it is possible other commands run in the plugin's lifecycle will trigger a pull of necessary images.
 
@@ -130,7 +130,7 @@ Whether to automatically mount the `buildkite-agent` binary and associated envir
 
 Default: `false`
 
-#### `mount-checkout` (run only, string or boolean)
+#### `mount-checkout` (run only, boolean or string)
 
 The absolute path where to mount the current working directory which contains your checked out codebase.
 
@@ -146,7 +146,7 @@ A number of times to retry failed docker pull. Defaults to 0.
 
 A number of times to retry failed docker push. Defaults to 0.
 
-#### `cache-from` (build only)
+#### `cache-from` (build only, string or array)
 
 A list of images to attempt pulling before building in the format `service:CACHE-SPEC` to allow for layer re-use. Will be ignored if `no-cache` is turned on.
 
@@ -158,7 +158,7 @@ Allow for intermediate builds as if building with docker's `--target VALUE` opti
 
 Note that there is a single build command run for all services so the target value will apply to all of them.
 
-#### `volumes` (run only)
+#### `volumes` (run only, string or array)
 
 A list of volumes to mount into the container. If a matching volume exists in the Docker Compose config file, this option will override that definition.
 
@@ -172,19 +172,19 @@ When set to true, it will activate interpolation of variables in the elements of
 
 Note that rules regarding [environment variable interpolation](https://buildkite.com/docs/pipelines/environment-variables#runtime-variable-interpolation) apply here. That means that `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` will be at run time. All things being equal, you likely want to use `$$VARIABLE_NAME` on the variables mentioned in this option.
 
-#### `graceful-shutdown` (run only)
+#### `graceful-shutdown` (run only, boolean)
 
 Gracefully shuts down all containers via 'docker-compose stop`.
 
 The default is `false`.
 
-#### `leave-volumes` (run only)
+#### `leave-volumes` (run only, boolean)
 
 Prevent the removal of volumes after the command has been run.
 
 The default is `false`.
 
-#### `no-cache` (build and run only)
+#### `no-cache` (build and run only, boolean)
 
 Build with `--no-cache`, causing Docker Compose to not use any caches when building the image. This will also avoid creating an override with any `cache-from` entries.
 
