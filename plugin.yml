@@ -90,26 +90,31 @@ configuration:
       type: boolean
     run-labels:
       type: boolean
+    secrets:
+      type: array
+      items:
+        type: string
     service-ports:
       type: boolean
+    shell:
+      type: [ boolean, array ]
     skip-checkout:
       type: boolean
     skip-pull:
       type: boolean
     ssh:
       type: [ boolean, string ]
-    secrets:
-      type: array
-      items:
-        type: string
     target:
       type: string
     tty:
       type: boolean
     upload-container-logs:
       type: string
+      enum: [ "always", "never", "on-error" ]
     use-aliases:
       type: boolean
+    user:
+      type: string
     verbose:
       type: boolean
     volumes:
