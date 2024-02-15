@@ -9,6 +9,10 @@ load '../../lib/run.bash'
 # export BATS_MOCK_TMPDIR=$PWD
 
 setup_file() {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
 }
@@ -19,10 +23,7 @@ teardown() {
 }
 
 @test "Run without a prebuilt image" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -43,10 +44,7 @@ teardown() {
 }
 
 @test "Run without a prebuilt image and an empty command" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=""
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -68,10 +66,7 @@ teardown() {
 }
 
 @test "Run without a prebuilt image and a custom workdir" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=""
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WORKDIR=/test_workdir
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
@@ -93,10 +88,7 @@ teardown() {
 }
 
 @test "Run without a prebuilt image with a quoted command" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="sh -c 'echo hello world'"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -117,10 +109,7 @@ teardown() {
 }
 
 @test "Run without a prebuilt image with a multi-line command" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="cmd1
 cmd2
 cmd3"
@@ -144,10 +133,7 @@ cmd3"
 }
 
 @test "Run without a prebuilt image with a command config" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=""
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND_0=echo
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND_1="hello world"
@@ -171,10 +157,7 @@ cmd3"
 }
 
 @test "Run without a prebuilt image with custom env" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -200,11 +183,8 @@ cmd3"
 }
 
 @test "Run without a prebuilt image with no-cache" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_NO_CACHE=true
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -225,9 +205,6 @@ cmd3"
 }
 
 @test "Run with a prebuilt image and propagate environment but no BUILDKITE_ENV_FILE" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROPAGATE_ENVIRONMENT=true
@@ -252,9 +229,6 @@ cmd3"
 }
 
 @test "Run with a prebuilt image and propagate environment" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_ENV_FILE=/tmp/test_env
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
@@ -285,10 +259,7 @@ cmd3"
 }
 
 @test "Run with a prebuilt image" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -311,11 +282,8 @@ cmd3"
 }
 
 @test "Run with a prebuilt image and custom config file" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG=tests/composefiles/docker-compose.v2.0.yml
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -338,12 +306,9 @@ cmd3"
 }
 
 @test "Run with a prebuilt image and multiple custom config files" {
-export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0=tests/composefiles/docker-compose.v2.0.yml
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_1=tests/composefiles/docker-compose.v2.1.yml
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -367,10 +332,7 @@ export BUILDKITE_JOB_ID=1111
 
 @test "Run with a prebuilt image and custom config file set from COMPOSE_FILE" {
   export COMPOSE_FILE=tests/composefiles/docker-compose.v2.0.yml
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -393,10 +355,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with a single prebuilt image, no retry on failed pull" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -417,10 +376,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with a single prebuilt image, retry on failed pull" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -446,10 +402,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with a TTY" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -473,10 +426,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run without dependencies" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -499,10 +449,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with dependencies but in a single step" {
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -525,10 +472,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run without ansi output" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -551,11 +495,7 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
-
 @test "Run without pull" {
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL=true
@@ -579,10 +519,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with use aliases" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -606,10 +543,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with compatibility mode" {
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -633,10 +567,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with a volumes option" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -661,10 +592,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with an external volume" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -691,10 +619,7 @@ export BUILDKITE_JOB_ID=1111
   # Tests introduction of extra delimiters, as would occur if
   # EXPORT BUILDKITE_DOCKER_DEFAULT_VOLUMES="new:mount; ${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
   # was used with no existing value
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -718,10 +643,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with volumes with variables" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -750,12 +672,8 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
-
 @test "Run with volumes with variables but option turned off" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -787,10 +705,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with volumes with variables and option turned on" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=true
@@ -798,7 +713,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_0="\$SUPER_VARIABLE:/mnt"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_1="/:\$OTHER_VARIABLE"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_VOLUMES_2="\$RELATIVE_VARIABLE:/srv"
-
 
   export SUPER_VARIABLE='/test/path'
   export OTHER_VARIABLE='/path/tested'
@@ -822,10 +736,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with default volumes" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -849,10 +760,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with multiple config files" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -876,10 +784,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with a failure should expand previous group" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -901,12 +806,9 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with multiple prebuilt images and multiple pulls" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_0=myservice1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_1=myservice2
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -932,10 +834,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run without a prebuilt image and a custom user" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="sh -c 'whoami'"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -957,10 +856,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run without a prebuilt image and a custom user and group" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="sh -c 'whoami'"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -982,10 +878,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Fail with custom user and propagate UIDs" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="sh -c 'whoami'"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1003,12 +896,8 @@ export BUILDKITE_JOB_ID=1111
   unstub buildkite-agent
 }
 
-
 @test "Run without -T --rm" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1033,10 +922,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with custom entrypoint" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=""
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1058,10 +944,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with mount-buildkite-agent enabled" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=""
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1083,10 +966,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with various build arguments" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1109,10 +989,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with git-mirrors" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1135,10 +1012,7 @@ export BUILDKITE_JOB_ID=1111
 
 @test "Run with mount-ssh-agent" {
   export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1167,10 +1041,7 @@ export BUILDKITE_JOB_ID=1111
 
 @test "Run with mount-ssh-agent on particular folder" {
   export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1198,10 +1069,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run without mount-checkout doesn't set volume" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1225,10 +1093,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with mount-checkout set to true" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1252,10 +1117,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with mount-checkout set to true with custom workdir" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1280,9 +1142,6 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with mount-checkout set to specific path" {
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_COMMAND=pwd
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
@@ -1309,9 +1168,6 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with mount-checkout set to specific path and workdir set" {
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_COMMAND=pwd
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
@@ -1340,9 +1196,6 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with mount-checkout set something else" {
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_COMMAND=pwd
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
@@ -1367,9 +1220,6 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with mount-checkout set something else and workdir set" {
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_COMMAND=pwd
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
@@ -1395,11 +1245,8 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run waiting for dependencies" {
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
-
+  
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WAIT=true
@@ -1422,10 +1269,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with --service-ports" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1452,12 +1296,9 @@ export BUILDKITE_JOB_ID=1111
   # Pipeline vars
   export BUILDKITE_AGENT_ID="1234"
   export BUILDKITE_AGENT_NAME="agent"
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND=pwd
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_LABEL="Testjob"
   export BUILDKITE_PIPELINE_NAME="label-test"
-  export BUILDKITE_PIPELINE_SLUG=test
   export BUILDKITE_STEP_KEY="test-job"
 
   # Plugin config
@@ -1491,10 +1332,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with --quiet-pull" {
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
 
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
@@ -1520,10 +1358,7 @@ export BUILDKITE_JOB_ID=1111
 @test "Run with a list of propagated env vars" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_PROPAGATION_LIST="LIST_OF_VARS"
   export LIST_OF_VARS="VAR_A VAR_B VAR_C"
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1545,10 +1380,7 @@ export BUILDKITE_JOB_ID=1111
 
 @test "Run with a list of propagated env vars - unless you forgot to define the variable" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_PROPAGATION_LIST="LIST_OF_VARS"
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1564,10 +1396,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with expanded run log group by default" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
@@ -1588,10 +1417,7 @@ export BUILDKITE_JOB_ID=1111
 }
 
 @test "Run with collapsed run log group" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false

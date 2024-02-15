@@ -8,14 +8,15 @@ load '../../lib/shared'
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 
 setup_file() {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
 }
 
 @test "Push a single service with an image in its config" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-app \* : echo setting metadata to \$4"
@@ -38,10 +39,7 @@ setup_file() {
 }
 
 @test "Push a prebuilt image with a repository and a tag" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
     "pull myimage : echo pulled prebuilt image" \
@@ -70,10 +68,6 @@ setup_file() {
 }
 
 @test "Push a prebuilt image with a repository and a tag in compatibility mode" {
-  export BUILDKITE_BUILD_NUMBER=1
-  export BUILDKITE_JOB_ID=1111
-  export BUILDKITE_PIPELINE_SLUG=test
-
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMPATIBILITY=true
 
@@ -100,10 +94,7 @@ setup_file() {
 }
 
 @test "Push a prebuilt image with an invalid tag" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:-llamas
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
     "pull prebuilt : echo 'pulled prebuilt image'" \
@@ -130,12 +121,9 @@ setup_file() {
 }
 
 @test "Push a prebuilt image to multiple tags" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_0=myservice:my.repository/myservice:llamas
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice:my.repository/myservice:latest
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_2=myservice:my.repository/myservice:alpacas
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
 
   stub docker \
     "pull prebuilt : echo pulled prebuilt image" \
@@ -182,10 +170,7 @@ setup_file() {
 }
 
 @test "Push a single service without prebuilt nor service image" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=helper:my.repository/helper:llamas
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-helper : exit 1"
@@ -204,11 +189,8 @@ setup_file() {
 }
 
 @test "Push two services without pre-built nor service image (second one is never tried)" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_0=myservice1:my.repository/myservice1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice2:my.repository/myservice2:llamas
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : echo ''"
@@ -227,11 +209,8 @@ setup_file() {
 }
 
 @test "Push two pre-built services with target repositories and tags" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_0=myservice1:my.repository/myservice1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice2:my.repository/myservice2:llamas
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : echo ''" \
@@ -269,12 +248,9 @@ setup_file() {
 }
 
 @test "Push a pre-built service with multiple build aliases" {
-  export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_0=myservice-1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_1=myservice-2
-  export BUILDKITE_PIPELINE_SLUG=test
-  export BUILDKITE_BUILD_NUMBER=1
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite1111 config : cat ${PWD}/tests/composefiles/docker-compose.config.v3.2.yml" \
