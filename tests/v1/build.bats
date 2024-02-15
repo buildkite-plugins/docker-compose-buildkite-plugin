@@ -18,7 +18,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
 }
 
-@test "Build without a repository" {
+@test "Build single service" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
 
   stub docker-compose \
@@ -75,66 +75,6 @@ setup_file() {
   unstub docker-compose
 }
 
-@test "Build with docker-compose and v1 is set explicitly " {
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
-
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-  unstub docker-compose
-}
-
-@test "Build with a repository" {
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-
-  unstub docker-compose
-}
-
-# TODO: move this to push testing
-@test "Build with a repository and multiple build aliases" {
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_0=myservice-1
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_ALIAS_1=myservice-2
-
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-
-  unstub docker-compose
-}
-
-@test "Build with a repository and push retries" {
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_RETRIES=3
-
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-
-  unstub docker-compose
-}
-
 @test "Build with a custom config file" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG=tests/composefiles/docker-compose.v2.0.yml
@@ -150,7 +90,7 @@ setup_file() {
   unstub docker-compose
 }
 
-@test "Build with a repository and multiple custom config files" {
+@test "Build with multiple custom config files" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_0=tests/composefiles/docker-compose.v2.0.yml
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_1=tests/composefiles/docker-compose.v2.1.yml
@@ -166,7 +106,7 @@ setup_file() {
   unstub docker-compose
 }
 
-@test "Build with a repository and multiple services" {
+@test "Build multiple services" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=myservice1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_1=myservice2
 
