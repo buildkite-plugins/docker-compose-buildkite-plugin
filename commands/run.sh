@@ -271,38 +271,13 @@ fi
 
 run_params+=("$run_service")
 
-build_params=()
-
-# Only pull if SKIP_PULL is not true
-if [[ ! "$(plugin_read_config SKIP_PULL "false")" == "true" ]] ; then
-  build_params+=(--pull)
-fi
-
-if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
-  build_params+=(--no-cache)
-fi
-
-if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
-  build_params+=(--parallel)
-fi
-
-while read -r arg ; do
-  [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
-done <<< "$(plugin_read_list ARGS)"
-
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
+if [[ ! -f "$override_file" ]] ; then
   echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
-  echo "The step specified that it was required"
-  exit 1
 
-elif [[ ! -f "$override_file" ]]; then
-  echo "~~~ :docker: Building Docker Compose Service: $run_service" >&2
-  echo "⚠️ No pre-built image found from a previous 'build' step for this service and config file. Building image..."
-
-  # Ideally we'd do a pull with a retry first here, but we need the conditional pull behaviour here
-  # for when an image and a build is defined in the docker-compose.ymk file, otherwise we try and
-  # pull an image that doesn't exist
-  run_docker_compose build "${build_params[@]}" "$run_service"
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]]; then
+    echo "The step specified that it was required"
+    exit 1
+  fi
 fi
 
 up_params+=("up")  # this ensures that the array has elements to avoid issues with bash 4.3

@@ -23,7 +23,6 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -33,8 +32,8 @@ setup_file() {
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -49,7 +48,6 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice : echo ran myservice"
 
@@ -59,8 +57,8 @@ setup_file() {
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -76,7 +74,6 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --workdir=/test_workdir --rm myservice : echo ran myservice"
 
@@ -86,8 +83,8 @@ setup_file() {
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -102,7 +99,6 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c $'sh -c \'echo hello world\'' : echo ran myservice"
 
@@ -112,8 +108,8 @@ setup_file() {
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -130,7 +126,6 @@ cmd3"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c $'cmd1\ncmd2\ncmd3' : echo ran myservice"
 
@@ -140,8 +135,8 @@ cmd3"
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -158,7 +153,6 @@ cmd3"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice echo 'hello world' : echo ran myservice"
 
@@ -168,8 +162,8 @@ cmd3"
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -189,7 +183,6 @@ cmd3"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENVIRONMENT_2=ANOTHER="this is a long string with spaces; and semi-colons"
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e MYENV=0 -e MYENV -e MYENV=2 -e MYENV -e ANOTHER=this\ is\ a\ long\ string\ with\ spaces\;\ and\ semi-colons --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
@@ -200,6 +193,7 @@ cmd3"
 
   assert_success
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -215,7 +209,6 @@ cmd3"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull --no-cache myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -225,8 +218,8 @@ cmd3"
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -243,7 +236,6 @@ cmd3"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -253,8 +245,8 @@ cmd3"
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -270,7 +262,6 @@ cmd3"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL=true
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -280,8 +271,8 @@ cmd3"
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -794,7 +785,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG_2="llamas3.yml"
 
   stub docker \
-    "compose -f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
     "compose -f llamas1.yml -f llamas2.yml -f llamas3.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -804,8 +794,8 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -820,7 +810,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : exit 2"
 
@@ -878,7 +867,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER="1000"
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --user=1000 --rm myservice /bin/sh -e -c $'sh -c \'whoami\'' : echo ran myservice"
 
@@ -888,8 +876,8 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -905,7 +893,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_USER="1000:1001"
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --user=1000:1001 --rm myservice /bin/sh -e -c $'sh -c \'whoami\'' : echo ran myservice"
 
@@ -915,8 +902,8 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -982,7 +969,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENTRYPOINT="my custom entrypoint"
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm --entrypoint 'my custom entrypoint' myservice : echo ran myservice"
 
@@ -992,8 +978,8 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -1009,7 +995,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_BUILDKITE_AGENT=true
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm -e BUILDKITE_JOB_ID -e BUILDKITE_BUILD_ID -e BUILDKITE_AGENT_ACCESS_TOKEN -v $BATS_MOCK_TMPDIR/bin/buildkite-agent:/usr/bin/buildkite-agent myservice : echo ran myservice"
 
@@ -1019,8 +1004,8 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -1037,7 +1022,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_PARALLEL=true
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull --no-cache --parallel myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -1047,8 +1031,8 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -1064,7 +1048,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_REPO_MIRROR=/tmp/sample-mirror
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -v /tmp/sample-mirror:/tmp/sample-mirror:ro --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -1074,8 +1057,8 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -1092,7 +1075,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT=true
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm -e SSH_AUTH_SOCK=/ssh-agent -v /tmp/ssh_auth_sock:/ssh-agent -v /root/.ssh/known_hosts:/root/.ssh/known_hosts myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -1107,8 +1089,8 @@ export BUILDKITE_JOB_ID=1111
   kill %1
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -1125,7 +1107,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT=/tmp/test
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm -e SSH_AUTH_SOCK=/ssh-agent -v /tmp/ssh_auth_sock:/ssh-agent -v /root/.ssh/known_hosts:/tmp/test/.ssh/known_hosts myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -1140,8 +1121,8 @@ export BUILDKITE_JOB_ID=1111
   kill %1
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
+
   unstub docker
   unstub buildkite-agent
 }
@@ -1360,7 +1341,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WAIT=true
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up --wait -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -1370,7 +1350,6 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
 
   unstub docker
@@ -1415,7 +1394,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_QUIET_PULL=true
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up --quiet-pull -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -1425,7 +1403,6 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   refute_output --partial "Pulling"
   assert_output --partial "ran myservice"
 
@@ -1445,7 +1422,6 @@ export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo built myservice" \
     "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
     "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -e VAR_A -e VAR_B -e VAR_C --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
 
@@ -1455,7 +1431,6 @@ export BUILDKITE_JOB_ID=1111
   run "$PWD"/hooks/command
 
   assert_success
-  assert_output --partial "built myservice"
   assert_output --partial "ran myservice"
   unstub docker
   unstub buildkite-agent
