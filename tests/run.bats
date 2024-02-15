@@ -13,7 +13,7 @@ setup_file() {
 }
 
 teardown() {
-  # plugin leaves override files around
+  # some test failures may leave this file around
   rm -f docker-compose.buildkite*-override.yml
 }
 

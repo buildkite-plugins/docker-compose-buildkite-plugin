@@ -155,7 +155,7 @@ setup_file() {
   unstub docker-compose
 }
 
-@test "Build with a repository and custom config file" {
+@test "Build with a custom config file" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG=tests/composefiles/docker-compose.v2.0.yml

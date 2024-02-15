@@ -19,7 +19,7 @@ setup_file() {
 
 teardown() {
   # some test failures may leave this file around
-  rm -f docker-compose.buildkite-1-override.yml
+  rm -f docker-compose.buildkite*-override.yml
 }
 
 @test "Build and run" {
@@ -67,7 +67,7 @@ teardown() {
   assert_success
 
   assert_output --partial "Building services myservice"
-  assert_output --partial "Using service image buildkite12-myservice from Docker Compose config"
+  assert_output --partial "Service was built in this step, using that image"
   assert_output --partial "Pushing images for myservice"
 
   unstub docker
@@ -81,8 +81,7 @@ teardown() {
   stub docker \
     "compose -f docker-compose.yml -p buildkite12 up -d --scale myservice=0 myservice : echo ran dependencies" \
     "compose -f docker-compose.yml -p buildkite12 run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
-    "compose -f docker-compose.yml -p buildkite12 config : echo ''" \
-    "image inspect \* : exit 1"
+    "compose -f docker-compose.yml -p buildkite12 config : echo ''"
   
   # these make sure that the image is not pre-built
   stub buildkite-agent \
@@ -96,27 +95,27 @@ teardown() {
   assert_output --partial "No pre-built image found from a previous "
   assert_output --partial "Starting dependencies"
   assert_output --partial "ran myservice" 
-  assert_output --partial "No prebuilt-image nor service image found for service to push"
+  assert_output --partial "No prebuilt-image nor built image found for service to push"
 
   unstub docker
   unstub buildkite-agent
 }
 
 @test "Run and push without pre-built image with service image" {
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=helloworldimage
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=helloworldimage
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite12 up -d --scale myservice=0 myservice : echo ran dependencies" \
-    "compose -f docker-compose.yml -p buildkite12 run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
-    "compose -f docker-compose.yml -p buildkite12 config : echo ''" \
+    "compose -f docker-compose.yml -p buildkite12 up -d --scale helloworldimage=0 helloworldimage : echo ran dependencies" \
+    "compose -f docker-compose.yml -p buildkite12 run --name buildkite12_helloworldimage_build_1 -T --rm helloworldimage /bin/sh -e -c 'pwd' : echo ran helloworldimage" \
+    "compose -f docker-compose.yml -p buildkite12 config : cat ${PWD}/tests/composefiles/docker-compose.v3.2.yml" \
     "image inspect \* : echo found image \$3" \
-    "compose -f docker-compose.yml -p buildkite12 push myservice : echo pushed myservice"
+    "compose -f docker-compose.yml -p buildkite12 push helloworldimage : echo pushed helloworldimage"
 
   # these make sure that the image is not pre-built
   stub buildkite-agent \
-    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
-    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : set pre-built image metadata to \$4"
+    "meta-data exists docker-compose-plugin-built-image-tag-helloworldimage : exit 1" \
+    "meta-data set docker-compose-plugin-built-image-tag-helloworldimage \* : set pre-built image metadata to \$4"
 
   run "$PWD"/hooks/command
 
@@ -124,8 +123,8 @@ teardown() {
 
   assert_output --partial "No pre-built image found from a previous "
   assert_output --partial "Starting dependencies"
-  assert_output --partial "ran myservice" 
-  assert_output --partial "Using service image"
+  assert_output --partial "ran helloworldimage"
+  assert_output --partial 'Service has an image configuration: myhelloworld'
 
   unstub docker
   unstub buildkite-agent
@@ -140,8 +139,8 @@ teardown() {
     "compose -f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran dependencies" \
     "compose -f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
     "compose -f docker-compose.yml -p buildkite12 config : echo ''" \
-    "image inspect \* : exit 1" \
     "pull myservice-tag : echo pulled pre-built image" \
+    "image inspect \* : echo found image \$3" \
     "compose -f docker-compose.yml -p buildkite12 push myservice : echo pushed myservice"
   
   # these make sure that the image is not pre-built

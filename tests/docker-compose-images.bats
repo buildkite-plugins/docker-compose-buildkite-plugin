@@ -42,9 +42,7 @@ setup() {
   run compose_image_for_service "helper"
 
   assert_success
-  assert_output "buildkite-helper"
-
-  unstub docker
+  assert_output ""
 }
 
 @test "Image for compose v1 service without an image in config" {
@@ -56,7 +54,7 @@ setup() {
   run compose_image_for_service "helper"
 
   assert_success
-  assert_output "buildkite_helper"
+  assert_output ""
 
   unstub docker-compose
 }
@@ -64,28 +62,18 @@ setup() {
 @test "Image for compose service without an image in config using compatibility" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMPATIBILITY=true
 
-  stub docker \
-    "compose --compatibility -f docker-compose.yml -p buildkite config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml"
-
-  run compose_image_for_service "helper"
+  run default_compose_image_for_service "helper"
 
   assert_success
   assert_output "buildkite_helper"
-
-  unstub docker
 }
 
 @test "Image for compose v1 service without an image in config using compatibility" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMPATIBILITY=true
 
-  stub docker-compose \
-    "--compatibility -f docker-compose.yml -p buildkite config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml"
-
-  run compose_image_for_service "helper"
+  run default_compose_image_for_service "helper"
 
   assert_success
   assert_output "buildkite_helper"
-
-  unstub docker-compose
 }
