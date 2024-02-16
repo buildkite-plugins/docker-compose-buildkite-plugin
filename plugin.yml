@@ -14,6 +14,7 @@ configuration:
     push:
       type: [ string, array ]
       minimum: 1
+
     ansi:
       type: boolean
     args:
@@ -22,22 +23,24 @@ configuration:
     build-alias:
       type: [ string, array ]
       minimum: 1
+    build-parallel:
+      type: boolean
     buildkit:
       type: boolean
     cache-from:
       type: [ string, array ]
       minimum: 1
-    compatibility:
-      type: boolean
     cli-version:
       oneOf:
         - type: string
           enum: [ "1", "2" ]
         - type: integer
           enum: [ 1, 2 ]
+    collapse-logs:
+      type: boolean
     command:
       type: array
-    collapse-logs:
+    compatibility:
       type: boolean
     config:
       type: [ string, array ]
@@ -55,6 +58,8 @@ configuration:
     env-propagation-list:
       type: string
     expand-volume-vars:
+      type: boolean
+    graceful-shutdown:
       type: boolean
     leave-volumes:
       type: boolean
@@ -85,35 +90,38 @@ configuration:
       type: boolean
     run-labels:
       type: boolean
-    separator-cache-from:
-      type: string
-      minLength: 1
-      maxLength: 1
+    secrets:
+      type: array
+      items:
+        type: string
     service-ports:
       type: boolean
+    shell:
+      type: [ boolean, array ]
     skip-checkout:
       type: boolean
     skip-pull:
       type: boolean
     ssh:
       type: [ boolean, string ]
-    secrets:
-      type: array
-      items:
-        type: string
     target:
       type: string
     tty:
       type: boolean
     upload-container-logs:
       type: string
+      enum: [ "always", "never", "on-error" ]
     use-aliases:
       type: boolean
+    user:
+      type: string
     verbose:
       type: boolean
     volumes:
       type: [ string, array ]
       minimum: 1
+    wait:
+      type: boolean
     workdir:
       type: string
   anyOf:
@@ -126,29 +134,41 @@ configuration:
   additionalProperties: false
   dependencies:
     ansi: [ run ]
+    args: [ build ]
+    build-alias: [ push ]
+    build-parallel: [ build ]
     buildkit: [ build ]
     cache-from: [ build ]
-    cache-from-separator: [ cache-from ]
+    command: [ run ]
     dependencies: [ run ]
+    entrypoint: [ run ]
     env: [ run ]
+    env-propagation-list: [ run ]
     environment: [ run ]
     expand-volume-vars: [ volumes ]
-    image-repository: [ build ]
-    image-name: [ build ]
+    graceful-shutdown: [ run ]
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
     mount-checkout: [ run ]
+    mount-ssh-agent: [ run ]
+    no-cache: [ build, run ]
     pre-run-dependencies: [ run ]
+    propagate-environment: [ run ]
     propagate-uid-gid: [ run ]
     pull: [ run ]
+    pull-retries: [ run ]
     push-retries: [ push ]
     quiet-pull: [ run ]
+    rm: [ run ]
+    run-labels: [ run ]
     service-ports: [ run ]
     skip-pull: [ build, run ]
     secrets: [ buildkit, build ]
-    ssh: [ buildkit ]
+    shell: [ run ]
+    ssh: [ build ]
     target: [ build ]
     tty: [ run ]
+    upload-container-logs: [ run ]
     use-aliases: [ run ]
     user: [ run ]
     volumes: [ run ]
