@@ -61,7 +61,7 @@ steps:
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: "$IMAGE_REPO"
+        push: "helloworld:${IMAGE_REPO}"
         config: tests/composefiles/docker-compose.v2.0.yml
 
   - label: run after build with v2.0
@@ -83,7 +83,7 @@ steps:
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: "$IMAGE_REPO"
+        push: "helloworld:${IMAGE_REPO}"
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - label: run with default command
@@ -95,42 +95,19 @@ steps:
         run: helloworld
         config: tests/composefiles/docker-compose.v2.1.yml
 
-  - label: prebuild, where service has build and image-repo
-    key: prebuild-2-1-build-image-repo
-    env:
-      PERSIST_REGISTRY: true
-    plugins:
-      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        build: helloworldimage
-        image-repository: "$IMAGE_REPO"
-        config: tests/composefiles/docker-compose.v2.1.yml
-        commmand: ["/hello"]
-
-  - label: run after prebuild
-    depends_on: prebuild-2-1-build-image-repo
-    env:
-      RESTORE_REGISTRY_FROM: prebuild-2-1-build-image-repo
-    plugins:
-      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        run: helloworldimage
-        require-prebuild: true
-        config: tests/composefiles/docker-compose.v2.1.yml
-        commmand: ["/hello"]
-
   - wait: ~
 
-  - label: prebuild with custom image-name
+  - label: prebuild with custom tag
     key: prebuild-custom-image-name
     env:
       PERSIST_REGISTRY: true
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
-        image-repository: "$IMAGE_REPO"
-        image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
+        push: "helloworld:${IMAGE_REPO}:llamas-build-${BUILDKITE_BUILD_NUMBER}"
         config: tests/composefiles/docker-compose.v2.1.yml
 
-  - label: run after prebuild with custom image-name
+  - label: run after prebuild with custom tag
     depends_on: prebuild-custom-image-name
     env:
       RESTORE_REGISTRY_FROM: prebuild-custom-image-name
@@ -141,12 +118,11 @@ steps:
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
 
-  - label: push after build with custom image-name
+  - label: push after build with custom tag
     depends_on: prebuild-custom-image-name
     env:
       RESTORE_REGISTRY_FROM: prebuild-custom-image-name
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        push: helloworld
-        image-name: llamas-build-${BUILDKITE_BUILD_NUMBER}
+        push: helloworld:${IMAGE_REPO}:llamas-build-${BUILDKITE_BUILD_NUMBER}-push
         config: tests/composefiles/docker-compose.v2.1.yml

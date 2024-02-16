@@ -13,6 +13,11 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS="false"
 }
 
+teardown() {
+  # plugin leaves override files around
+  rm -f docker-compose.buildkite*-override.yml
+}
+
 @test "Run without a prebuilt image" {
   export BUILDKITE_JOB_ID=1111
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
