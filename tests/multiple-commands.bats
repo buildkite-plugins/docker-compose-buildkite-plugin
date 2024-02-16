@@ -30,7 +30,7 @@ setup_file() {
      "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml push myservice : echo pushed myservice" \
      "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
      "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran dependencies" \
-     "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml run --name buildkite12_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
+     "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice"
 
   # these commands simulate metadata for a specific value by using an intermediate-file
   stub buildkite-agent \
@@ -93,7 +93,7 @@ setup_file() {
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite12 up -d --scale myservice=0 myservice : echo ran dependencies" \
-    "-f docker-compose.yml -p buildkite12 run --name buildkite12_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
+    "-f docker-compose.yml -p buildkite12 run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
     "-f docker-compose.yml -p buildkite12 config : echo ''" 
   
   # these make sure that the image is not pre-built
@@ -120,7 +120,7 @@ setup_file() {
 
   stub docker-compose \
     "-f docker-compose.yml -p buildkite12 up -d --scale myservice=0 myservice : echo ran dependencies" \
-    "-f docker-compose.yml -p buildkite12 run --name buildkite12_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
+    "-f docker-compose.yml -p buildkite12 run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
     "-f docker-compose.yml -p buildkite12 config : echo ''" \
     "-f docker-compose.yml -p buildkite12 push myservice : echo pushed myservice"
      
@@ -154,7 +154,7 @@ setup_file() {
   stub docker-compose \
      "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
      "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran dependencies" \
-     "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml run --name buildkite12_myservice_build_1 --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
+     "-f docker-compose.yml -p buildkite12 -f docker-compose.buildkite-1-override.yml run --name buildkite12_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice" \
      "-f docker-compose.yml -p buildkite12 config : echo ''" \
      "-f docker-compose.yml -p buildkite12 push myservice : echo pushed myservice"
   
@@ -183,4 +183,3 @@ setup_file() {
   unstub docker-compose
   unstub buildkite-agent
 }
-

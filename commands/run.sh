@@ -142,21 +142,20 @@ if [[ -n "${BUILDKITE_REPO_MIRROR:-}" ]]; then
   run_params+=("-v" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro")
 fi
 
-tty_default='true'
+tty_default='false'
 workdir_default="/workdir"
 pwd_default="$PWD"
 run_dependencies="true"
 
 # Set operating system specific defaults
 if is_windows ; then
-  tty_default='false'
   workdir_default="C:\\workdir"
   # escaping /C is a necessary workaround for an issue with Git for Windows 2.24.1.2
   # https://github.com/git-for-windows/git/issues/2442
   pwd_default="$(cmd.exe //C "echo %CD%")"
 fi
 
-# Optionally disable allocating a TTY
+# Disable allocating a TTY
 if [[ "$(plugin_read_config TTY "$tty_default")" == "false" ]] ; then
   run_params+=(-T)
 fi
@@ -407,11 +406,12 @@ ensure_stopped() {
 
 trap ensure_stopped SIGINT SIGTERM SIGQUIT
 
-if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_RUN_LOG_GROUP:-false}" = "true" ]]; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
   group_type="---"
 else
   group_type="+++"
 fi
+
 # Disable -e to prevent cancelling step if the command fails for whatever reason
 set +e
 ( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)
