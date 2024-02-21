@@ -112,6 +112,49 @@ if [[ "$(plugin_read_config PROPAGATE_ENVIRONMENT "false")" =~ ^(true|on|1)$ ]] 
   fi
 fi
 
+# Propagate AWS credentials if requested
+if [[ "$(plugin_read_config PROPAGATE_AWS_AUTH_TOKENS "false")" =~ ^(true|on|1)$ ]] ; then
+  if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]] ; then
+      run_params+=( --env "AWS_ACCESS_KEY_ID" )
+  fi
+  if [[ -n "${AWS_SECRET_ACCESS_KEY:-}" ]] ; then
+      run_params+=( --env "AWS_SECRET_ACCESS_KEY" )
+  fi
+  if [[ -n "${AWS_SESSION_TOKEN:-}" ]] ; then
+      run_params+=( --env "AWS_SESSION_TOKEN" )
+  fi
+  if [[ -n "${AWS_REGION:-}" ]] ; then
+      run_params+=( --env "AWS_REGION" )
+  fi
+  if [[ -n "${AWS_DEFAULT_REGION:-}" ]] ; then
+      run_params+=( --env "AWS_DEFAULT_REGION" )
+  fi
+  if [[ -n "${AWS_ROLE_ARN:-}" ]] ; then
+      run_params+=( --env "AWS_ROLE_ARN" )
+  fi
+  if [[ -n "${AWS_STS_REGIONAL_ENDPOINTS:-}" ]] ; then
+      run_params+=( --env "AWS_STS_REGIONAL_ENDPOINTS" )
+  fi
+  # Pass ECS variables when the agent is running in ECS
+  # https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html
+  if [[ -n "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]] ; then
+      run_params+=( --env "AWS_CONTAINER_CREDENTIALS_FULL_URI" )
+  fi
+  if [[ -n "${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-}" ]] ; then
+      run_params+=( --env "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" )
+  fi
+  if [[ -n "${AWS_CONTAINER_AUTHORIZATION_TOKEN:-}" ]] ; then
+      run_params+=( --env "AWS_CONTAINER_AUTHORIZATION_TOKEN" )
+  fi
+  # Pass EKS variables when the agent is running in EKS
+  # https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
+  if [[ -n "${AWS_WEB_IDENTITY_TOKEN_FILE:-}" ]] ; then
+      run_params+=( --env "AWS_WEB_IDENTITY_TOKEN_FILE" )
+      # Add the token file as a volume
+      run_params+=( --volume "${AWS_WEB_IDENTITY_TOKEN_FILE}:${AWS_WEB_IDENTITY_TOKEN_FILE}" )
+  fi
+fi
+
 # If requested, propagate a set of env vars as listed in a given env var to the
 # container.
 if [[ -n "$(plugin_read_config ENV_PROPAGATION_LIST)" ]]; then
