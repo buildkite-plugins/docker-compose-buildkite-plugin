@@ -78,6 +78,14 @@ Whether or not to automatically propagate all pipeline environment variables int
 
 **Important**: only pipeline environment variables will be propagated (what you see in the BuildKite UI, those listed in `$BUILDKITE_ENV_FILE`). This does not include variables exported in preceeding `environment` hooks. If you wish for those to be propagated you will need to list them specifically or use `env-propagation-list`.
 
+### `propagate-aws-auth-tokens` (run only, boolean)
+
+Whether or not to automatically propagate aws authentication environment variables into the docker container. Avoiding the need to be specified with `environment`. This is useful for example if you are using an assume role plugin or you want to pass the role of an agent running in ECS or EKS to the docker container.
+
+Will propagate `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `AWS_REGION`, `AWS_DEFAULT_REGION`, `AWS_STS_REGIONAL_ENDPOINTS`, `AWS_WEB_IDENTITY_TOKEN_FILE`, `AWS_ROLE_ARN`, `AWS_CONTAINER_CREDENTIALS_FULL_URI`, `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`, and `AWS_CONTAINER_AUTHORIZATION_TOKEN`, only if they are set already.
+
+When the `AWS_WEB_IDENTITY_TOKEN_FILE` is specified, it will also mount it automatically for you and make it usable within the container.
+
 #### `command` (run only, array)
 
 Sets the command for the Docker image, and defaults the `shell` option to `false`. Useful if the Docker image has an entrypoint, or doesn't contain a shell.
