@@ -327,3 +327,19 @@ setup_file() {
 
   unstub docker
 }
+
+@test "Build with buildkit-inline-cache" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ARGS_0=MYARG=0
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ARGS_1=MYARG=1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKIT_INLINE_CACHE=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg MYARG=0 --build-arg MYARG=1 myservice : echo built myservice"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "built myservice"
+  unstub docker
+}
