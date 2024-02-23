@@ -27,6 +27,8 @@ configuration:
       type: boolean
     buildkit:
       type: boolean
+    buildkit-inline-cache:
+      type: boolean
     cache-from:
       type: [ string, array ]
       minimum: 1
@@ -138,6 +140,7 @@ configuration:
     build-alias: [ push ]
     build-parallel: [ build ]
     buildkit: [ build ]
+    buildkit-inline-cache: [ build ]
     cache-from: [ build ]
     command: [ run ]
     dependencies: [ run ]

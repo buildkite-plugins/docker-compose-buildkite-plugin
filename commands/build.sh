@@ -89,6 +89,10 @@ if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
   build_params+=(--parallel)
 fi
 
+if [[ "$(plugin_read_config BUILDKIT_INLINE_CACHE "false")" == "true" ]] ; then
+  build_params+=("--build-arg" "BUILDKIT_INLINE_CACHE=1")
+fi
+
 # Parse the list of secrets to pass on to build command
 while read -r line ; do
   [[ -n "$line" ]] && build_params+=("--secret" "$line")

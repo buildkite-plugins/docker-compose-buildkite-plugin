@@ -146,6 +146,12 @@ If set to `true` it will mount onto `/workdir`, unless `workdir` is set, in whic
 
 Default: `false`
 
+### `buildkit-inline-cache` (optional, build-only, boolean)
+
+Whether to pass the `BUILDKIT_INLINE_CACHE=1` build arg when building an image. Can be safely used in combination with `args`.
+
+Default: `false`
+
 #### `pull-retries` (run only, integer)
 
 A number of times to retry failed docker pull. Defaults to 0.
