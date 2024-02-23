@@ -64,6 +64,10 @@ Important: this only works when building a single service, an error will be gene
 
 A list of KEY=VALUE that are passed through as build arguments when image is being built.
 
+#### `labels` (build only, string or array)
+
+A list of KEY=VALUE that are passed through as service labels when image is being built. These will be merged with any service labels defined in the compose file.
+
 #### `env` or `environment` (run only, string or array)
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
@@ -146,7 +150,7 @@ If set to `true` it will mount onto `/workdir`, unless `workdir` is set, in whic
 
 Default: `false`
 
-### `buildkit-inline-cache` (optional, build-only, boolean)
+#### `buildkit-inline-cache` (optional, build-only, boolean)
 
 Whether to pass the `BUILDKIT_INLINE_CACHE=1` build arg when building an image. Can be safely used in combination with `args`.
 
