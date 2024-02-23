@@ -344,5 +344,5 @@ setup_file() {
 
   assert_success
   assert_output --partial "built myservice"
-  unstub docker-compose
+  unstub docker
 }
