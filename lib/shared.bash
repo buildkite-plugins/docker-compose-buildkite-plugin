@@ -171,7 +171,7 @@ function build_image_override_file_with_version() {
     if (( $# > 0 )); then
       cache_from_amt=$1
       shift
-      while (( cache_from_amt-- > 0 )) ; do
+      while (( cache_from_amt-- > 0 )); do
         cache_from+=( "$1" ); shift
       done
     fi
@@ -181,7 +181,7 @@ function build_image_override_file_with_version() {
     if (( $# > 0 )); then
       labels_amt=$1
       shift
-      while (( labels_amt-- > 0 )) ; do
+      while (( labels_amt-- > 0 )); do
         labels+=( "$1" ); shift
       done
     fi
