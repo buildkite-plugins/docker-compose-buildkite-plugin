@@ -92,6 +92,10 @@ if [[ "$(plugin_read_config RUN_LABELS "true")" =~ ^(true|on|1)$ ]]; then
   )
 fi
 
+while read -r label ; do
+  [[ -n "${label:-}" ]] && run_params+=("--label" "${label}")
+done <<< "$(plugin_read_list LABELS)"
+
 # append env vars provided in ENV or ENVIRONMENT, these are newline delimited
 while IFS=$'\n' read -r env ; do
   [[ -n "${env:-}" ]] && run_params+=("-e" "${env}")

@@ -64,9 +64,9 @@ Important: this only works when building a single service, an error will be gene
 
 A list of KEY=VALUE that are passed through as build arguments when image is being built.
 
-#### `labels` (build only, string or array)
+#### `labels` (build and run only, string or array)
 
-A list of KEY=VALUE that are passed through as service labels when image is being built. These will be merged with any service labels defined in the compose file.
+A list of KEY=VALUE that are passed through as service labels when image is being built or ran. These will be merged with any service labels defined in the compose file.
 
 #### `env` or `environment` (run only, string or array)
 

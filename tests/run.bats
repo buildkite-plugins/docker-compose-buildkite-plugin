@@ -1280,3 +1280,28 @@ cmd3"
   assert_output --partial "env-propagation-list desired, but LIST_OF_VARS is not defined!"
   unstub buildkite-agent
 }
+
+@test "Run with a list of propagated labels" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_LABELS_0="com.buildkite.test=test"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_LABELS_1="com.buildkite.test2=test2"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --label com.buildkite.test=test --label com.buildkite.test2=test2 -T --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  refute_output --partial "Pulling"
+  assert_output --partial "ran myservice"
+
+  unstub docker
+  unstub buildkite-agent
+}
