@@ -167,26 +167,24 @@ function build_image_override_file_with_version() {
     shift 3
 
     # load cache_from array
-    cache_from=()
-    if (( $# > 0 )); then
-      cache_from_amt=$1
-      shift
-      while (( cache_from_amt-- > 0 )); do
+    cache_from_amt="${1:-0}"
+    [[ -n "${1:-}" ]] && shift; # remove the value if not empty
+    if [[ "${cache_from_amt}" -gt 0 ]]; then
+      for amt in $(seq 1 "$cache_from_amt"); do
         cache_from+=( "$1" ); shift
       done
     fi
 
     # load labels array
-    labels=()
-    if (( $# > 0 )); then
-      labels_amt=$1
-      shift
-      while (( labels_amt-- > 0 )); do
+    labels_amt="${1:-0}"
+    [[ -n "${1:-}" ]] && shift; # remove the value if not empty
+    if [[ "${labels_amt}" -gt 0 ]]; then
+      for amt in $(seq 1 "$labels_amt"); do
         labels+=( "$1" ); shift
       done
     fi
 
-    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "${#cache_from[@]}" -eq 0 ]] && [[ "${#labels[@]}" -eq 0 ]]; then
+    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]] && [[ "$labels_amt" -eq 0 ]]; then
       # should not print out an empty service
       continue
     fi
@@ -197,7 +195,7 @@ function build_image_override_file_with_version() {
       printf "    image: %s\\n" "$image_name"
     fi
 
-    if [[ "${#cache_from[@]}" -gt 0 ]] || [[ -n "$target" ]] || [[ "${#labels[@]}" -gt 0 ]]; then
+    if [[ "$cache_from_amt" -gt 0 ]] || [[ -n "$target" ]] || [[ "$labels_amt" -gt 0 ]]; then
       printf "    build:\\n"
     fi
 
@@ -205,7 +203,7 @@ function build_image_override_file_with_version() {
       printf "      target: %s\\n" "$target"
     fi
 
-    if [[ "${#cache_from[@]}" -gt 0 ]] ; then
+    if [[ "$cache_from_amt" -gt 0 ]] ; then
       if ! docker_compose_supports_cache_from "$version" ; then
         echo "Unsupported Docker Compose config file version: $version"
         echo "The 'cache_from' option can only be used with Compose file versions 2.2 or 3.2 and above."
@@ -220,7 +218,7 @@ function build_image_override_file_with_version() {
       done
     fi
 
-    if [[ "${#labels[@]}" -gt 0 ]] ; then
+    if [[ "$labels_amt" -gt 0 ]] ; then
       printf "      labels:\\n"
       for label in "${labels[@]}"; do
         printf "        - %s\\n" "${label}"

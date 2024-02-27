@@ -64,10 +64,6 @@ Important: this only works when building a single service, an error will be gene
 
 A list of KEY=VALUE that are passed through as build arguments when image is being built.
 
-#### `labels` (build and run only, string or array)
-
-A list of KEY=VALUE that are passed through as service labels when image is being built or ran. These will be merged with any service labels defined in the compose file.
-
 #### `env` or `environment` (run only, string or array)
 
 A list of either KEY or KEY=VALUE that are passed through as environment variables to the container.
@@ -271,6 +267,14 @@ The default is `true`.
 If set to true, adds useful Docker labels to the primary container. See [Container Labels](#container-labels) for more info.
 
 The default is `true`.
+
+#### `labels` (run only, string or array)
+
+A list of KEY=VALUE that are passed through as service labels when image is being ran. These will be merged with any service labels defined in the compose file.
+
+#### `build-labels` (build only, string or array)
+
+A list of KEY=VALUE that are passed through as service labels when image is being built. These will be merged with any service labels defined in the compose file.
 
 #### `compatibility` (boolean)
 

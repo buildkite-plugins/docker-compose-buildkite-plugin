@@ -50,7 +50,7 @@ for service_name in $(plugin_read_list BUILD) ; do
   labels=()
   while read -r label ; do
     [[ -n "${label:-}" ]] && labels+=("${label}")
-  done <<< "$(plugin_read_list LABELS)"
+  done <<< "$(plugin_read_list BUILD_LABELS)"
 
   if [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
     build_images+=("$service_name" "${image_name}" "${target}")

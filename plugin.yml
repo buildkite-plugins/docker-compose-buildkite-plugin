@@ -23,6 +23,9 @@ configuration:
     build-alias:
       type: [ string, array ]
       minimum: 1
+    build-labels:
+      type: [ string, array ]
+      minimum: 1
     build-parallel:
       type: boolean
     buildkit:
@@ -141,6 +144,7 @@ configuration:
     ansi: [ run ]
     args: [ build ]
     build-alias: [ push ]
+    build-labels: [ build ]
     build-parallel: [ build ]
     buildkit: [ build ]
     buildkit-inline-cache: [ build ]
@@ -153,7 +157,7 @@ configuration:
     environment: [ run ]
     expand-volume-vars: [ volumes ]
     graceful-shutdown: [ run ]
-    labels: [ build, run ]
+    labels: [ run ]
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
     mount-checkout: [ run ]
