@@ -170,6 +170,7 @@ function build_image_override_file_with_version() {
     cache_from_amt="${1:-0}"
     [[ -n "${1:-}" ]] && shift; # remove the value if not empty
     if [[ "${cache_from_amt}" -gt 0 ]]; then
+      cache_from=()
       for _ in $(seq 1 "$cache_from_amt"); do
         cache_from+=( "$1" ); shift
       done
@@ -179,6 +180,7 @@ function build_image_override_file_with_version() {
     labels_amt="${1:-0}"
     [[ -n "${1:-}" ]] && shift; # remove the value if not empty
     if [[ "${labels_amt}" -gt 0 ]]; then
+      labels=()
       for _ in $(seq 1 "$labels_amt"); do
         labels+=( "$1" ); shift
       done
