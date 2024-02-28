@@ -1280,3 +1280,28 @@ cmd3"
   assert_output --partial "env-propagation-list desired, but LIST_OF_VARS is not defined!"
   unstub buildkite-agent
 }
+
+@test "Run wit a run image override" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_IMAGE=docker.buildkite.com/myservice:123
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -T --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "image: docker.buildkite.com/myservice:123"
+  assert_output --partial "ran myservice"
+
+  unstub docker
+  unstub buildkite-agent
+}

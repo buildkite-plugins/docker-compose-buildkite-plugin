@@ -40,6 +40,10 @@ None of the following are mandatory.
 
 Pull down multiple pre-built images. By default only the service that is being run will be pulled down, but this allows multiple images to be specified to handle prebuilt dependent images. Note that pulling will be skipped if the `skip-pull` option is activated.
 
+#### `run-image` (run only, string)
+
+Set the service image to pull during a run. This can be useful if the image was created outside of the plugin.
+
 #### `collapse-logs` (boolean)
 
 Whether to collapse or expand the log group that is created for the output of the main commands (`run`, `build` and `push`). When this setting is `true`, the output is collected into a `---` group, when `false` the output is collected into a `+++` group. Setting this to `true` can be useful to de-emphasize plugin output if your command creates its own `+++` group.
