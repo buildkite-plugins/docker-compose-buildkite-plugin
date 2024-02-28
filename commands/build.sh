@@ -43,18 +43,26 @@ for service_name in $(plugin_read_list BUILD) ; do
   image_name="" # no longer used here
 
   cache_from=()
-  cache_length=0
-  
   for cache_line in $(get_caches_for_service "$service_name"); do
     cache_from+=("$cache_line")
-    cache_length=$((cache_length + 1))
   done
 
-  if [[ -n "${target}" ]] || [[ "${cache_length:-0}" -gt 0 ]]; then
-    build_images+=("$service_name" "${image_name}" "${target}" "${cache_length}")
+  labels=()
+  while read -r label ; do
+    [[ -n "${label:-}" ]] && labels+=("${label}")
+  done <<< "$(plugin_read_list BUILD_LABELS)"
 
-    if [[ "${cache_length:-0}" -gt 0 ]]; then
+  if [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
+    build_images+=("$service_name" "${image_name}" "${target}")
+    
+    build_images+=("${#cache_from[@]}")
+    if [[ "${#cache_from[@]}" -gt 0 ]]; then
       build_images+=("${cache_from[@]}")
+    fi
+    
+    build_images+=("${#labels[@]}")
+    if [[ "${#labels[@]}" -gt 0 ]]; then
+      build_images+=("${labels[@]}")
     fi
   fi
 done

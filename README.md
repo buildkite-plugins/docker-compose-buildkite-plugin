@@ -146,7 +146,7 @@ If set to `true` it will mount onto `/workdir`, unless `workdir` is set, in whic
 
 Default: `false`
 
-### `buildkit-inline-cache` (optional, build-only, boolean)
+#### `buildkit-inline-cache` (optional, build-only, boolean)
 
 Whether to pass the `BUILDKIT_INLINE_CACHE=1` build arg when building an image. Can be safely used in combination with `args`.
 
@@ -267,6 +267,10 @@ The default is `true`.
 If set to true, adds useful Docker labels to the primary container. See [Container Labels](#container-labels) for more info.
 
 The default is `true`.
+
+#### `build-labels` (build only, string or array)
+
+A list of KEY=VALUE that are passed through as service labels when image is being built. These will be merged with any service labels defined in the compose file.
 
 #### `compatibility` (boolean)
 

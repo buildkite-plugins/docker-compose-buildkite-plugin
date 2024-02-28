@@ -23,6 +23,9 @@ configuration:
     build-alias:
       type: [ string, array ]
       minimum: 1
+    build-labels:
+      type: [ string, array ]
+      minimum: 1
     build-parallel:
       type: boolean
     buildkit:
@@ -138,6 +141,7 @@ configuration:
     ansi: [ run ]
     args: [ build ]
     build-alias: [ push ]
+    build-labels: [ build ]
     build-parallel: [ build ]
     buildkit: [ build ]
     buildkit-inline-cache: [ build ]

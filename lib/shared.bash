@@ -164,10 +164,29 @@ function build_image_override_file_with_version() {
     service_name=$1
     image_name=$2
     target=$3
-    cache_from_amt=$4
-    shift 4
+    shift 3
 
-    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]]; then
+    # load cache_from array
+    cache_from_amt="${1:-0}"
+    [[ -n "${1:-}" ]] && shift; # remove the value if not empty
+    if [[ "${cache_from_amt}" -gt 0 ]]; then
+      cache_from=()
+      for _ in $(seq 1 "$cache_from_amt"); do
+        cache_from+=( "$1" ); shift
+      done
+    fi
+
+    # load labels array
+    labels_amt="${1:-0}"
+    [[ -n "${1:-}" ]] && shift; # remove the value if not empty
+    if [[ "${labels_amt}" -gt 0 ]]; then
+      labels=()
+      for _ in $(seq 1 "$labels_amt"); do
+        labels+=( "$1" ); shift
+      done
+    fi
+
+    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]] && [[ "$labels_amt" -eq 0 ]]; then
       # should not print out an empty service
       continue
     fi
@@ -178,7 +197,7 @@ function build_image_override_file_with_version() {
       printf "    image: %s\\n" "$image_name"
     fi
 
-    if [[ "$cache_from_amt" -gt 0 ]] || [[ -n "$target" ]]; then
+    if [[ "$cache_from_amt" -gt 0 ]] || [[ -n "$target" ]] || [[ "$labels_amt" -gt 0 ]]; then
       printf "    build:\\n"
     fi
 
@@ -196,10 +215,16 @@ function build_image_override_file_with_version() {
       fi
 
       printf "      cache_from:\\n"
-      for cache_from_i in $(seq 1 "$cache_from_amt"); do
-        printf "        - %s\\n" "${!cache_from_i}"
+      for cache_from_i in "${cache_from[@]}"; do
+        printf "        - %s\\n" "${cache_from_i}"
       done
-      shift "$cache_from_amt"
+    fi
+
+    if [[ "$labels_amt" -gt 0 ]] ; then
+      printf "      labels:\\n"
+      for label in "${labels[@]}"; do
+        printf "        - %s\\n" "${label}"
+      done
     fi
   done
 }

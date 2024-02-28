@@ -29,11 +29,28 @@ EOF
   )
 
   run build_image_override_file_with_version "2.1" \
-    "myservice1" "newimage1:1.0.0" "" 0 \
-    "myservice2" "newimage2:1.0.0" "" 0
+    "myservice1" "newimage1:1.0.0" "" 0 0 \
+    "myservice2" "newimage2:1.0.0" "" 0 0
 
   assert_success
   assert_output "$myservice_override_file2"
+}
+
+@test "Build a docker-compose file with target" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      target: build
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "build" 0
+
+  assert_success
+  assert_output "$myservice_override_file3"
 }
 
 @test "Build a docker-compose file with cache-from" {
@@ -71,6 +88,88 @@ EOF
 
   assert_success
   assert_output "$myservice_override_file4"
+}
+
+@test "Build a docker-compose file with labels" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      labels:
+        - com.buildkite.test=test
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 0 1 "com.buildkite.test=test"
+
+  assert_success
+  assert_output "$myservice_override_file3"
+}
+
+@test "Build a docker-compose file with multiple labels" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      labels:
+        - com.buildkite.test=test
+        - com.buildkite.test2=test2
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 0 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
+
+  assert_success
+  assert_output "$myservice_override_file3"
+}
+
+@test "Build a docker-compose file with multiple cache-from and multiple labels" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      cache_from:
+        - my.repository/myservice:latest
+        - my.repository/myservice:target
+      labels:
+        - com.buildkite.test=test
+        - com.buildkite.test2=test2
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 2 "my.repository/myservice:latest" "my.repository/myservice:target" 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
+
+  assert_success
+  assert_output "$myservice_override_file3"
+}
+
+@test "Build a docker-compose file with multiple cache-from and multiple labels and target" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      target: build
+      cache_from:
+        - my.repository/myservice:latest
+        - my.repository/myservice:target
+      labels:
+        - com.buildkite.test=test
+        - com.buildkite.test2=test2
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "build" 2 "my.repository/myservice:latest" "my.repository/myservice:target" 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
+
+  assert_success
+  assert_output "$myservice_override_file3"
 }
 
 @test "Build a docker-compose file with cache-from and compose-file version 2" {
