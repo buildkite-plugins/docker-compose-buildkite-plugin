@@ -36,6 +36,23 @@ EOF
   assert_output "$myservice_override_file2"
 }
 
+@test "Build a docker-compose file with target" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      target: build
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "build" 0
+
+  assert_success
+  assert_output "$myservice_override_file3"
+}
+
 @test "Build a docker-compose file with cache-from" {
   myservice_override_file3=$(cat <<-EOF
 version: '3.2'
