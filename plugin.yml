@@ -66,9 +66,6 @@ configuration:
       type: boolean
     graceful-shutdown:
       type: boolean
-    labels:
-      type: [ string, array ]
-      minimum: 1
     leave-volumes:
       type: boolean
     mount-buildkite-agent:
@@ -157,7 +154,6 @@ configuration:
     environment: [ run ]
     expand-volume-vars: [ volumes ]
     graceful-shutdown: [ run ]
-    labels: [ run ]
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
     mount-checkout: [ run ]

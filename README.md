@@ -268,10 +268,6 @@ If set to true, adds useful Docker labels to the primary container. See [Contain
 
 The default is `true`.
 
-#### `labels` (run only, string or array)
-
-A list of KEY=VALUE that are passed through as service labels when image is being ran. These will be merged with any service labels defined in the compose file.
-
 #### `build-labels` (build only, string or array)
 
 A list of KEY=VALUE that are passed through as service labels when image is being built. These will be merged with any service labels defined in the compose file.
