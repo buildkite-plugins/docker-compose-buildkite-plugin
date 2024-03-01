@@ -93,6 +93,8 @@ configuration:
       type: boolean
     rm:
       type: boolean
+    run-image:
+      type: string
     run-labels:
       type: boolean
     secrets:
@@ -167,6 +169,7 @@ configuration:
     push-retries: [ push ]
     quiet-pull: [ run ]
     rm: [ run ]
+    run-image: [ run ]
     run-labels: [ run ]
     service-ports: [ run ]
     skip-pull: [ build, run ]

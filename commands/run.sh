@@ -40,9 +40,16 @@ prebuilt_service_overrides=()
 prebuilt_services=()
 
 # We look for a prebuilt images for all the pull services and the run_service.
+prebuilt_image_override="$(plugin_read_config RUN_IMAGE)"
 for service_name in "${prebuilt_candidates[@]}" ; do
-  if prebuilt_image=$(get_prebuilt_image "$service_name") ; then
-    echo "~~~ :docker: Found a pre-built image for $service_name"
+  if [[ -n "$prebuilt_image_override" ]] && [[ "$service_name" == "$run_service" ]] ; then
+    echo "~~~ :docker: Overriding run image for $service_name"
+    prebuilt_image="$prebuilt_image_override"
+  elif prebuilt_image=$(get_prebuilt_image "$service_name") ; then
+     echo "~~~ :docker: Found a pre-built image for $service_name"
+  fi
+
+  if [[ -n "$prebuilt_image" ]] ; then
     prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "" 0 0)
     prebuilt_services+=("$service_name")
 
