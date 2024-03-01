@@ -10,7 +10,7 @@ The following pipeline will run `test.sh` inside a `app` service container using
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: app
 ```
 
@@ -19,7 +19,7 @@ steps:
 ```yml
 steps:
   - plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: app
           command: ["custom", "command", "values"]
 ```
@@ -30,7 +30,7 @@ The plugin will honor the value of the `COMPOSE_FILE` environment variable if on
 steps:
   - command: test.sh
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: app
           config: docker-compose.tests.yml
           env:
@@ -46,7 +46,7 @@ steps:
   - plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           build: app
           push: app:index.docker.io/myorg/myrepo:tag
   - wait
@@ -54,7 +54,7 @@ steps:
     plugins:
       - docker-login#v2.0.1:
           username: xyz
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: app
 ```
 
@@ -71,7 +71,7 @@ steps:
   - command: generate-dist.sh
     artifact_paths: "dist/*"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: app
           volumes:
             - "./dist:/folder/dist"
@@ -95,7 +95,7 @@ this plugin offers a `environment` block of its own:
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: app
           env:
             - BUILDKITE_BUILD_NUMBER
@@ -113,7 +113,7 @@ Alternatively, you can have the plugin add all environment variables defined for
 steps:
   - command: use-vars.sh
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: app
           propagate-environment: true
 ```
@@ -148,7 +148,7 @@ Alternatively, if you want to set build arguments when pre-building an image, th
 steps:
   - command: generate-dist.sh
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           build: app
           args:
             - MY_CUSTOM_ARG=panda
@@ -165,7 +165,7 @@ If you have multiple steps that use the same service/image (such as steps that r
 steps:
   - label: ":docker: Build"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           build: app
           push: app
 
@@ -175,7 +175,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: app
 ```
 
@@ -191,7 +191,7 @@ steps:
     agents:
       queue: docker-builder
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           build:
             - app
             - tests
@@ -205,7 +205,7 @@ steps:
     command: test.sh
     parallelism: 25
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           run: tests
 ```
 
@@ -217,7 +217,7 @@ If you want to push your Docker images ready for deployment, you can use the `pu
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           push: app
 ```
 
@@ -227,7 +227,7 @@ To push multiple images, you can use a list:
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           push:
             - first-service
             - second-service
@@ -239,7 +239,7 @@ If you want to push to a specific location (that's not defined as the `image` in
 steps:
   - label: ":docker: Push"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           push:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
@@ -253,7 +253,7 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 steps:
   - label: ":docker Build an image"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           build: app
           push: app:index.docker.io/myorg/myrepo:my-branch
           cache-from:
@@ -264,7 +264,7 @@ steps:
 
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           push:
             - app:myregistry:port/myrepo/myapp:latest
 ```
@@ -277,7 +277,7 @@ The values you add in the `cache-from` will be mapped to the corresponding servi
 steps:
   - label: ":docker Build an image"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           build: app
           push: app:index.docker.io/myorg/myrepo:my-branch
           cache-from:
@@ -288,7 +288,7 @@ steps:
 
   - label: ":docker: Push to final repository"
     plugins:
-      - docker-compose#v5.1.0:
+      - docker-compose#v5.2.0:
           push:
             - app:myregistry:port/myrepo/myapp:latest
 ```
