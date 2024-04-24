@@ -50,6 +50,8 @@ configuration:
       type: array
     skip-checkout:
       type: boolean
+    stop-signal:
+      type: string
     leave-volumes:
       type: boolean
     no-cache:
