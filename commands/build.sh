@@ -1,63 +1,69 @@
 #!/bin/bash
 set -ueo pipefail
 
-image_repository="$(plugin_read_config IMAGE_REPOSITORY)"
-pull_retries="$(plugin_read_config PULL_RETRIES "0")"
-push_retries="$(plugin_read_config PUSH_RETRIES "0")"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 build_images=()
+build_params=()
 
-service_name_cache_from_var() {
-  local service_name="$1"
-  echo "cache_from__${service_name//-/_}"
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
+  group_type="---"
+else
+  group_type="+++"
+fi
+
+if [[ "$(plugin_read_config BUILDKIT "true")" == "true" ]]; then
+  export DOCKER_BUILDKIT=1
+  export COMPOSE_DOCKER_CLI_BUILD=1
+  export BUILDKIT_PROGRESS=plain
+fi
+
+get_caches_for_service() {
+  local service="$1"
+
+  # Read any cache-from parameters provided
+  # If no-cache is set skip pulling the cache-from images
+  if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
+    for line in $(plugin_read_list CACHE_FROM) ; do
+      IFS=':' read -r -a tokens <<< "$line"
+      service_name=${tokens[0]}
+      service_image=$(IFS=':'; echo "${tokens[*]:1}")
+
+      if [ "${service_name}" == "${service}" ]; then
+        echo "$service_image"
+      fi
+    done
+  fi
 }
-
-if [[ -z "$image_repository" ]] ; then
-  echo "+++ ⚠️ Build step missing image-repository setting"
-  echo "This build step has no image-repository set. Without an image-repository, the Docker image won't be pushed to a repository, and won't be automatically used by any run steps."
-fi
-
-# Read any cache-from parameters provided and pull down those images first
-# If no-cache is set skip pulling the cache-from images
-if [[ "$(plugin_read_config NO_CACHE "false")" == "false" ]] ; then
-  for line in $(plugin_read_list CACHE_FROM) ; do
-    IFS=':' read -r -a tokens <<< "$line"
-    service_name=${tokens[0]}
-    service_image=$(IFS=':'; echo "${tokens[*]:1}")
-    cache_image_name="$(service_name_cache_from_var "$service_name")"
-
-    if [[ -n ${!cache_image_name+x} ]]; then
-      continue # skipping since there's already a pulled cache image for this service
-    fi
-
-    echo "~~~ :docker: Pulling cache image for $service_name"
-    if retry "$pull_retries" plugin_prompt_and_run docker pull "$service_image" ; then
-      printf -v "$cache_image_name" "%s" "$service_image"
-    else
-      echo "!!! :docker: Pull failed. $service_image will not be used as a cache for $service_name"
-    fi
-  done
-fi
 
 # Run through all images in the build property, either a single item or a list
 # and build up a list of service name, image name and optional cache-froms to
 # write into a docker-compose override file
-service_idx=0
 for service_name in $(plugin_read_list BUILD) ; do
-  image_name=$(build_image_name "${service_name}" "${service_idx}")
-  service_idx=$((service_idx+1))
+  target="$(plugin_read_config TARGET "")"
+  image_name="" # no longer used here
 
-  if [[ -n "$image_repository" ]] ; then
-    image_name="${image_repository}:${image_name}"
-  fi
+  cache_from=()
+  for cache_line in $(get_caches_for_service "$service_name"); do
+    cache_from+=("$cache_line")
+  done
 
-  build_images+=("$service_name" "$image_name")
+  labels=()
+  while read -r label ; do
+    [[ -n "${label:-}" ]] && labels+=("${label}")
+  done <<< "$(plugin_read_list BUILD_LABELS)"
 
-  cache_from_var="$(service_name_cache_from_var "${service_name}")"
-  if [[ -n "${!cache_from_var-}" ]]; then
-    build_images+=("${!cache_from_var}")
-  else
-    build_images+=("")
+  if [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
+    build_images+=("$service_name" "${image_name}" "${target}")
+    
+    build_images+=("${#cache_from[@]}")
+    if [[ "${#cache_from[@]}" -gt 0 ]]; then
+      build_images+=("${cache_from[@]}")
+    fi
+    
+    build_images+=("${#labels[@]}")
+    if [[ "${#labels[@]}" -gt 0 ]]; then
+      build_images+=("${labels[@]}")
+    fi
   fi
 done
 
@@ -73,7 +79,15 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
-build_params=(--pull)
+if [[ -f "${override_file}" ]]; then
+  build_params+=(-f "${override_file}")
+fi
+
+build_params+=(build)
+
+if [[ ! "$(plugin_read_config SKIP_PULL "false")" == "true" ]] ; then
+  build_params+=(--pull)
+fi
 
 if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
   build_params+=(--no-cache)
@@ -83,27 +97,32 @@ if [[ "$(plugin_read_config BUILD_PARALLEL "false")" == "true" ]] ; then
   build_params+=(--parallel)
 fi
 
+if [[ "$(plugin_read_config BUILDKIT_INLINE_CACHE "false")" == "true" ]] ; then
+  build_params+=("--build-arg" "BUILDKIT_INLINE_CACHE=1")
+fi
+
+# Parse the list of secrets to pass on to build command
+while read -r line ; do
+  [[ -n "$line" ]] && build_params+=("--secret" "$line")
+done <<< "$(plugin_read_list SECRETS)"
+
+if [[ "$(plugin_read_config SSH "false")" != "false" ]] ; then
+  if [[ "${DOCKER_BUILDKIT:-}" != "1" && "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION:-2}" != "2" ]]; then
+    echo "🚨 You can not use the ssh option if you are not using buildkit"
+    exit 1
+  fi
+
+  SSH_CONTEXT="$(plugin_read_config SSH)"
+  if [[ "${SSH_CONTEXT}" == "true" ]]; then
+    # ssh option was a boolean
+    SSH_CONTEXT='default'
+  fi
+  build_params+=(--ssh "${SSH_CONTEXT}")
+fi
+
 while read -r arg ; do
   [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
 done <<< "$(plugin_read_list ARGS)"
 
-echo "+++ :docker: Building services ${services[*]}"
-run_docker_compose -f "$override_file" build "${build_params[@]}" "${services[@]}"
-
-if [[ -n "$image_repository" ]] ; then
-  echo "~~~ :docker: Pushing built images to $image_repository"
-  retry "$push_retries" run_docker_compose -f "$override_file" push "${services[@]}"
-
-  # iterate over build images
-  while [[ ${#build_images[@]} -gt 0 ]] ; do
-    set_prebuilt_image "${build_images[0]}" "${build_images[1]}"
-
-    # set aliases
-    for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
-      set_prebuilt_image "$service_alias" "${build_images[1]}"
-    done
-
-    # pop-off the last build image
-    build_images=("${build_images[@]:3}")
-  done
-fi
+echo "${group_type} :docker: Building services ${services[*]}"
+run_docker_compose "${build_params[@]}" "${services[@]}"

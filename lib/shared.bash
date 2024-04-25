@@ -17,8 +17,16 @@ function plugin_prompt() {
 
 # Shows the command being run, and runs it
 function plugin_prompt_and_run() {
+  local exit_code
+
   plugin_prompt "$@"
   "$@"
+  exit_code=$?
+
+  # Sometimes docker-compose pull leaves unfinished ansi codes
+  echo
+
+  return $exit_code
 }
 
 # Shows the command about to be run, and exits if it fails
@@ -102,7 +110,7 @@ function docker_compose_config_files() {
 
   # Use a default if there are no config files specified
   if [[ -z "${config_files[*]:-}" ]]  ; then
-    echo "docker-compose.yml"
+    echo "${COMPOSE_FILE:-docker-compose.yml}"
     return
   fi
 
@@ -115,7 +123,7 @@ function docker_compose_config_files() {
 # Returns the version from the output of docker_compose_config
 function docker_compose_config_version() {
   IFS=$'\n' read -r -a config <<< "$(docker_compose_config_files)"
-  awk '/^\s*version:/ { print $2; }' < "${config[0]}" | sed "s/[\"']//g"
+  grep 'version' < "${config[0]}" | sort -r | awk '/^\s*version:/ { print $2; exit; }'  | sed "s/[\"']//g"
 }
 
 # Build an docker-compose file that overrides the image for a set of
@@ -128,32 +136,76 @@ function build_image_override_file() {
 # Checks that a specific version of docker-compose supports cache_from
 function docker_compose_supports_cache_from() {
   local version="$1"
-  if [[ -z "$version" || "$version" == 1* || "$version" =~ ^(2|3)(\.[01])?$ ]] ; then
+  if [[ "$version" == 1* || "$version" =~ ^(2|3)(\.[01])?$ ]] ; then
     return 1
   fi
 }
 
 # Build an docker-compose file that overrides the image for a specific
-# docker-compose version and set of [ service, image, cache_from ] tuples
+# docker-compose version and set of [ service, image, num_cache_from, cache_from1, cache_from2, ... ] tuples
 function build_image_override_file_with_version() {
   local version="$1"
 
-  if [[ -z "$version" ]]; then
+  if [[ "$version" == 1* ]] ; then
     echo "The 'build' option can only be used with Compose file versions 2.0 and above."
     echo "For more information on Docker Compose configuration file versions, see:"
     echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
     exit 1
   fi
 
-  printf "version: '%s'\\n" "$version"
+  if [[ -n "$version" ]]; then
+    printf "version: '%s'\\n" "$version"
+  fi
+
   printf "services:\\n"
 
   shift
   while test ${#} -gt 0 ; do
-    printf "  %s:\\n" "$1"
-    printf "    image: %s\\n" "$2"
+    service_name=$1
+    image_name=$2
+    target=$3
+    shift 3
 
-    if [[ -n "$3" ]] ; then
+    # load cache_from array
+    cache_from_amt="${1:-0}"
+    [[ -n "${1:-}" ]] && shift; # remove the value if not empty
+    if [[ "${cache_from_amt}" -gt 0 ]]; then
+      cache_from=()
+      for _ in $(seq 1 "$cache_from_amt"); do
+        cache_from+=( "$1" ); shift
+      done
+    fi
+
+    # load labels array
+    labels_amt="${1:-0}"
+    [[ -n "${1:-}" ]] && shift; # remove the value if not empty
+    if [[ "${labels_amt}" -gt 0 ]]; then
+      labels=()
+      for _ in $(seq 1 "$labels_amt"); do
+        labels+=( "$1" ); shift
+      done
+    fi
+
+    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]] && [[ "$labels_amt" -eq 0 ]]; then
+      # should not print out an empty service
+      continue
+    fi
+
+    printf "  %s:\\n" "$service_name"
+
+    if [[ -n "$image_name" ]]; then
+      printf "    image: %s\\n" "$image_name"
+    fi
+
+    if [[ "$cache_from_amt" -gt 0 ]] || [[ -n "$target" ]] || [[ "$labels_amt" -gt 0 ]]; then
+      printf "    build:\\n"
+    fi
+
+    if [[ -n "$target" ]]; then
+      printf "      target: %s\\n" "$target"
+    fi
+
+    if [[ "$cache_from_amt" -gt 0 ]] ; then
       if ! docker_compose_supports_cache_from "$version" ; then
         echo "Unsupported Docker Compose config file version: $version"
         echo "The 'cache_from' option can only be used with Compose file versions 2.2 or 3.2 and above."
@@ -162,21 +214,39 @@ function build_image_override_file_with_version() {
         exit 1
       fi
 
-      printf "    build:\\n"
       printf "      cache_from:\\n"
-      printf "        - %s\\n" "$3"
+      for cache_from_i in "${cache_from[@]}"; do
+        printf "        - %s\\n" "${cache_from_i}"
+      done
     fi
 
-    shift 3
+    if [[ "$labels_amt" -gt 0 ]] ; then
+      printf "      labels:\\n"
+      for label in "${labels[@]}"; do
+        printf "        - %s\\n" "${label}"
+      done
+    fi
   done
 }
 
 # Runs the docker-compose command, scoped to the project, with the given arguments
 function run_docker_compose() {
   local command=(docker-compose)
+  if [[ "$(plugin_read_config CLI_VERSION "2")" == "2" ]] ; then
+    command=(docker compose)
+  fi
 
   if [[ "$(plugin_read_config VERBOSE "false")" == "true" ]] ; then
     command+=(--verbose)
+  fi
+
+  if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
+    command+=(--no-ansi)
+  fi
+
+  # Enable compatibility mode for v3 files
+  if [[ "$(plugin_read_config COMPATIBILITY "false")" == "true" ]]; then
+    command+=(--compatibility)
   fi
 
   for file in $(docker_compose_config_files) ; do
@@ -186,20 +256,6 @@ function run_docker_compose() {
   command+=(-p "$(docker_compose_project_name)")
 
   plugin_prompt_and_run "${command[@]}" "$@"
-}
-
-# Create an image name that is used to tag custom images
-function build_image_name() {
-  local service_name="$1"
-  local service_idx="$2"
-  local image_names=()
-
-  while read -r name ; do
-    image_names+=("$name")
-  done <<< "$(plugin_read_list IMAGE_NAME)"
-
-  # Either look in custom image_name values, or use our default
-  echo "${image_names[$service_idx]:-${BUILDKITE_PIPELINE_SLUG}-${service_name}-build-${BUILDKITE_BUILD_NUMBER}}"
 }
 
 function in_array() {
@@ -236,4 +292,14 @@ function is_windows() {
 
 function is_macos() {
   [[ "$OSTYPE" =~ ^(darwin) ]]
+}
+
+function validate_tag {
+  local tag=$1
+
+  if [[ "$tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+    return 0
+  else
+    return 1
+  fi
 }

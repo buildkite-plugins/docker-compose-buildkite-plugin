@@ -12,14 +12,6 @@ commands=()
 
 [[ -n "$(plugin_read_list BUILD)" ]] && commands+=("BUILD")
 [[ -n "$(plugin_read_list RUN)" ]] && commands+=("RUN")
-
-# Check we've only got one of BUILD or RUN
-if [[ ${#commands[@]} -gt 1 ]] ; then
-  echo "+++ Docker Compose plugin error"
-  echo "Only one of build or run is supported. More than one was used."
-  exit 1
-fi
-
 [[ -n "$(plugin_read_list PUSH)" ]] && commands+=("PUSH")
 
 # Don't convert paths on gitbash on windows
@@ -29,7 +21,7 @@ fi
 
 if [[ ${#commands[@]} -lt 1 ]] ; then
   echo "+++ Docker Compose plugin error"
-  echo "No build or run options were specified"
+  echo "No build, run or push options were specified"
   exit 1
 fi
 

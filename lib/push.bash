@@ -10,18 +10,18 @@ compose_image_for_service() {
     | grep -oE '  image: (.+)' \
     | awk '{print $2}')
 
-  if [[ -z "$image" ]] ; then
-    default_compose_image_for_service "$service"
-    return
-  fi
-
   echo "$image"
 }
 
 default_compose_image_for_service() {
   local service="$1"
+  
+  local separator="-"
+  if [[ "$(plugin_read_config CLI_VERSION "2")" == "1" ]] || [[ "$(plugin_read_config COMPATIBILITY "false")" == "true" ]] ; then
+    separator="_"
+  fi
 
-  printf '%s_%s\n' "$(docker_compose_project_name)" "$service"
+  printf '%s%s%s\n' "$(docker_compose_project_name)" "$separator" "$service"
 }
 
 docker_image_exists() {

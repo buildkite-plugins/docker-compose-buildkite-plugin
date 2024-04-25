@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
-load '../lib/shared'
+load "${BATS_PLUGIN_PATH}/load.bash"
+load '../lib/shared.bash'
 
 @test "Project name comes from BUILDKITE_JOB_ID" {
   export BUILDKITE_JOB_ID=11111-1111-11111-11111

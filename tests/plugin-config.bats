@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
-load '../lib/shared'
+load "${BATS_PLUGIN_PATH}/load.bash"
+load '../lib/shared.bash'
 
 @test "Read existing config without default" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=llamas
