@@ -17,8 +17,7 @@ load '../lib/run'
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=true
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 kill : echo killing containers" \
-    "compose -f docker-compose.yml -p buildkite1111 rm --force -v : echo removing stopped containers" \
+    "compose -f docker-compose.yml -p buildkite1111 rm --force -v : echo killing and removing stopped containers" \
     "compose -f docker-compose.yml -p buildkite1111 down --remove-orphans --volumes : echo removing everything"
 
   run "$PWD"/hooks/pre-exit

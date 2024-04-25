@@ -15,19 +15,19 @@ setup () {
   run compose_cleanup
 
   assert_success
-  assert_equal "${lines[0]}" "graceful shutdown was false"
-  # assert_equal "${lines[0]}" "rm --force -v"
-  # assert_equal "${lines[1]}" "down --remove-orphans --volumes"
+  assert_equal "${lines[0]}" "rm --force -v"
+  assert_equal "${lines[1]}" "down --remove-orphans --volumes"
 }
 
 @test "Possible to gracefully shutdown containers in docker-compose cleanup" {
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_GRACEFUL_SHUTDOWN=1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_GRACEFUL_SHUTDOWN="true"
   run compose_cleanup
 
   assert_success
-  assert_equal "${lines[0]}" "graceful shutdown was true"
-  # assert_equal "${lines[0]}" "stop"
-  # assert_equal "${lines[1]}" "down --remove-orphans --volumes"
+  assert_equal "${lines[0]}" "wait"
+  assert_equal "${lines[1]}" "exit code was 0"
+  assert_equal "${lines[2]}" "rm --force -v"
+  assert_equal "${lines[3]}" "down --remove-orphans --volumes"
 }
 
 @test "Possible to skip volume destruction in docker-compose cleanup" {
