@@ -397,7 +397,7 @@ if [[ -z $shell_disabled ]] && [[ ${#shell[@]} -eq 0 ]] ; then
   if is_windows ; then
     shell=("CMD.EXE" "/c")
   else
-    shell=("/bin/sh" "-e" "-c")
+    # shell=("/bin/sh" "-e" "-c")
   fi
 fi
 
