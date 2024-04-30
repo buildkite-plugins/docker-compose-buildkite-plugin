@@ -24,7 +24,7 @@ setup () {
   run compose_cleanup
 
   assert_success
-  assert_equal "${lines[0]}" "wait"
+  assert_output --partial "wait"
   assert_equal "${lines[1]}" "exit code was 0"
   assert_equal "${lines[2]}" "rm --force -v"
   assert_equal "${lines[3]}" "down --remove-orphans --volumes"

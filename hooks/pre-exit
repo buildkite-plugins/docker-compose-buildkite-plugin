@@ -18,5 +18,5 @@ if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true"
   . "$DIR/../lib/run.bash"
 
   echo "~~~ :docker: Cleaning up after docker-compose" >&2
-  compose_cleanup
+  compose_cleanup ""
 fi

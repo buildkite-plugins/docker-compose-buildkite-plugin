@@ -451,7 +451,7 @@ fi
 ensure_stopped() {
   echo '+++ :warning: Signal received, stopping container gracefully'
   # docker stop "${container_name}" || true
-  compose_cleanup
+  compose_cleanup ${run_service}
   echo '~~~ Last log lines that may be missing above (if container was not already removed)'
   docker logs "${container_name}" || true
   exitcode='TRAP'

@@ -4,7 +4,7 @@ kill_or_wait_for_stop() {
 
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "true" ]]; then
     # This will block until the container exits
-    run_docker_compose wait
+    run_docker_compose wait "$1"
     container_exit_code=$?
     echo "exit code was $container_exit_code"
   fi
@@ -26,13 +26,14 @@ kill_or_wait_for_stop() {
 }
 
 compose_cleanup() {
-  kill_or_wait_for_stop &
+  kill_or_wait_for_stop "$1" &
   sleep 1
   
   # No need to call kill directly for GRACEFUL_SHUTDOWN == false since rm --force will send the same kill signal
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "true" ]]; then
+    echo "graceful shutdown was true, stopping ${1}"
     # Send all containers a friendly SIGTERM, followed by a SIGKILL after exceeding the stop_grace_period
-    run_docker_compose stop || true
+    run_docker_compose stop "$1" || true
   fi
 }
 
