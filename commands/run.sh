@@ -465,9 +465,11 @@ else
   group_type="+++"
 fi
 
-echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
-run_docker_compose "${run_params[@]}"
-exitcode=$?
+(
+  echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
+  run_docker_compose "${run_params[@]}"
+  exitcode=$?
+)
 
 if [[ $exitcode = "TRAP" ]]; then
   # command failed due to cancellation signal, make sure there is an error but no further output
