@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ueo pipefail
 
+. "$DIR/../lib/run.bash"
+
 # Run takes a service name, pulls down any pre-built image for that name
 # and then runs docker-compose run a generated project name
 
@@ -447,8 +449,9 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
 fi
 
 ensure_stopped() {
-  echo '+++ :warning: Signal received, stopping container'
-  docker stop "${container_name}" || true
+  echo '+++ :warning: Signal received, stopping container gracefully'
+  # docker stop "${container_name}" || true
+  compose_cleanup
   echo '~~~ Last log lines that may be missing above (if container was not already removed)'
   docker logs "${container_name}" || true
   exitcode='TRAP'
@@ -466,7 +469,7 @@ fi
 set +e
 ( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)
   echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
-  run_docker_compose ["${run_params[@]}"]
+  run_docker_compose "${run_params[@]}"
 )
 exitcode=$?
 
