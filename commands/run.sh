@@ -454,10 +454,10 @@ ensure_stopped() {
   compose_cleanup ${run_service}
   echo '~~~ Last log lines that may be missing above (if container was not already removed)'
   docker logs "${container_name}" || true
-  exitcode='TRAP'
+  exit $1
 }
 
-trap ensure_stopped SIGINT SIGTERM SIGQUIT
+trap 'ensure_stopped "$?"' SIGINT SIGTERM SIGQUIT
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
   group_type="---"
