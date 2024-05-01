@@ -463,23 +463,22 @@ trap 'ensure_stopped "$?"' SIGINT SIGTERM SIGQUIT
 # Disable -e to prevent cancelling step if the command fails for whatever reason
 set +e
 exitcode=0
-(
-  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
-    group_type="---"
-  else
-    group_type="+++"
-  fi
 
-  echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service"
-  run_docker_compose "${run_params[@]}"
+if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
+  group_type="---"
+else
+  group_type="+++"
+fi
 
-  exitcode=$?
-  if [[ $exitcode -ne 0 ]] ; then
-    echo "^^^ +++"
-    echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
-    echo "${run_params[@]}"
-  fi
-)
+echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service"
+run_docker_compose "${run_params[@]}"
+
+exitcode=$?
+if [[ $exitcode -ne 0 ]] ; then
+  echo "^^^ +++"
+  echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
+  echo "${run_params[@]}"
+fi
 # Restore -e as an option.
 set -e
 
