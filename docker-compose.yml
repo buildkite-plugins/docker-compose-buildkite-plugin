@@ -2,5 +2,6 @@ version: '2'
 services:
   tests:
     image: buildkite/plugin-tester:v4.1.1
+    command: ["bats", "tests/run.bats", "tests/cleanup.bats"]
     volumes:
       - ".:/plugin"
