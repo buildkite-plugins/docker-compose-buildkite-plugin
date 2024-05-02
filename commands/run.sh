@@ -191,7 +191,7 @@ fi
 
 echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service"
 echo "commands is: ${commands[@]}"
-cmd_lit="[${commands[@]}]"
+cmd_lit="[${commands[@]@Q}]"
 echo "cmd_lit is: ${cmd_lit}"
 run_docker_compose "${run_params[@]}" "$cmd_lit"
 
