@@ -194,7 +194,7 @@ echo "commands is: ${commands[@]}"
 printf -v cmd_lit ' "%s" ' "${commands[@]}"
 cmd_lit="["${cmd_lit}"]"
 echo "cmd_lit is: ${cmd_lit}"
-run_docker_compose "${run_params[@]} $cmd_lit"
+run_docker_compose "${run_params[@]} ${commands[@]}"
 
 exitcode=$?
 if [[ $exitcode -ne 0 ]] ; then
