@@ -18,15 +18,16 @@ run_service="$(plugin_read_config RUN)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 
-expand_headers_on_error() {
-  echo "^^^ +++"
-}
-trap expand_headers_on_error ERR
-
 test -f "$override_file" && rm "$override_file"
 
 pull "$run_service"
 pulled_status=$?
+echo "pulled_status: $pulled_status"
+
+expand_headers_on_error() {
+  echo "^^^ +++"
+}
+trap expand_headers_on_error ERR
 
 if [[ ! -f "$override_file" ]] ; then
   echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
