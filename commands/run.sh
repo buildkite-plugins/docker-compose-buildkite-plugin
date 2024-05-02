@@ -187,7 +187,7 @@ else
 fi
 
 echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service"
-run_docker_compose "${run_params[@]}" "commands"
+run_docker_compose "${run_params[@]}" "[commands]"
 
 exitcode=$?
 if [[ $exitcode -ne 0 ]] ; then
