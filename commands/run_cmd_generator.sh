@@ -4,8 +4,7 @@ set -uo pipefail
 # We set a predictable container name so we can find it and inspect it later on
 function generate_run_args() {
 	local -n params="$1"
-	params+=("run" "--name" "$2")
-	pulled_services=$3
+	pulled_services=$2
 
 	if [[ $pulled_services -eq 0 ]] ; then
 		echo "~~~ :docker: Creating docker-compose override file for prebuilt services"

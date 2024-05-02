@@ -42,7 +42,8 @@ fi
 
 up_params=()
 declare -a run_params
-generate_run_args "run_params" $container_name $pulled_status
+run_params+=("run" "--name" "$container_name")
+generate_run_args "run_params" $pulled_status
 echo "run_params after func: ${run_params[@]}"
 
 run_params+=("$run_service")
@@ -88,7 +89,10 @@ if [[ $dependency_exitcode -ne 0 ]] ; then
 fi
 
 
-shell=()
+# Assemble the shell and command arguments into the docker arguments
+display_command=()
+commands=()
+
 shell_disabled=1
 result=()
 
@@ -114,20 +118,24 @@ elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_SHELL:-}" ]] ; then
 elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_SHELL ; then
   shell_disabled=''
   for arg in "${result[@]}" ; do
-    shell+=("$arg")
+    commands+=("$arg")
   done
 fi
 
 # Set a default shell if one is needed
-if [[ -z $shell_disabled ]] && [[ ${#shell[@]} -eq 0 ]] ; then
+if [[ -z $shell_disabled ]] && [[ ${#commands[@]} -eq 0 ]] ; then
   if is_windows ; then
-    shell=("CMD.EXE" "/c")
+    commands=("CMD.EXE" "/c")
   # else
-    # shell=("/bin/sh" "-e" "-c")
+    # commands=("/bin/sh" "-e" "-c")
   fi
 fi
 
-command=()
+if [[ ${#commands[@]} -gt 0 ]] ; then
+  for shell_arg in "${commands[@]}" ; do
+    display_command+=("$shell_arg")
+  done
+fi
 
 # Show a helpful error message if string version of command is used
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND:-}" ]] ; then
@@ -137,41 +145,26 @@ fi
 
 # Parse plugin command if provided
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND ; then
-  for arg in "${result[@]}" ; do
-    command+=("$arg")
-  done
-fi
+  if [[ "${#result[@]}" -gt 0 ]] && [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+    echo "+++ Error: Can't use both a step level command and the command parameter of the plugin"
+    exit 1
+  elif [[ "${#result[@]}" -gt 0 ]] ; then
+    for arg in "${result[@]}" ; do
+      commands+=("$arg")
+      display_command+=("$arg")
+    done
+  elif [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+    if [[ $(echo "$BUILDKITE_COMMAND" | wc -l) -gt 1 ]]; then
+      # FIXME: This is easy to fix, just need to do at end
 
-if [[ ${#command[@]} -gt 0 ]] && [[ -n "${BUILDKITE_COMMAND}" ]] ; then
-  echo "+++ Error: Can't use both a step level command and the command parameter of the plugin"
-  exit 1
-fi
-
-# Assemble the shell and command arguments into the docker arguments
-
-display_command=()
-
-if [[ ${#shell[@]} -gt 0 ]] ; then
-  for shell_arg in "${shell[@]}" ; do
-    run_params+=("$shell_arg")
-    display_command+=("$shell_arg")
-  done
-fi
-
-if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
-  if [[ $(echo "$BUILDKITE_COMMAND" | wc -l) -gt 1 ]]; then
-    # An array of commands in the step will be a single string with multiple lines
-    # This breaks a lot of things here so we will print a warning for user to be aware
-    echo "⚠️  Warning: The command received has multiple lines."
-    echo "⚠️           The Docker Compose Plugin does not correctly support step-level array commands."
+      # An array of commands in the step will be a single string with multiple lines
+      # This breaks a lot of things here so we will print a warning for user to be aware
+      echo "⚠️  Warning: The command received has multiple lines."
+      echo "⚠️           The Docker Compose Plugin does not correctly support step-level array commands."
+    fi
+    commands+=("${BUILDKITE_COMMAND}")
+    display_command+=("'${BUILDKITE_COMMAND}'")
   fi
-  run_params+=("${BUILDKITE_COMMAND}")
-  display_command+=("'${BUILDKITE_COMMAND}'")
-elif [[ ${#command[@]} -gt 0 ]] ; then
-  for command_arg in "${command[@]}" ; do
-    run_params+=("$command_arg")
-    display_command+=("${command_arg}")
-  done
 fi
 
 ensure_stopped() {
@@ -194,7 +187,7 @@ else
 fi
 
 echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service"
-run_docker_compose "${run_params[@]}"
+run_docker_compose "${run_params[@]}" "commands"
 
 exitcode=$?
 if [[ $exitcode -ne 0 ]] ; then
