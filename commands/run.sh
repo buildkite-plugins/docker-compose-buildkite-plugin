@@ -35,17 +35,16 @@ if [[ ! -f "$override_file" ]] ; then
     echo "The step specified that it was required"
     exit 1
   fi
+else
+  echo "~~~ :docker: Using pre-built image for $run_service"
 fi
 
 up_params=()
-
 run_params=()
 generate_run_args $container_name $pulled_status
+echo "run_params after func: ${run_params[@]}"
 
 run_params+=("$run_service")
-
-
-
 up_params+=("up")  # this ensures that the array has elements to avoid issues with bash 4.3
 
 if [[ "$(plugin_read_config WAIT "false")" == "true" ]] ; then
@@ -56,8 +55,8 @@ if [[ "$(plugin_read_config QUIET_PULL "false")" == "true" ]] ; then
   up_params+=("--quiet-pull")
 fi
 
-dependency_exitcode=0
 
+dependency_exitcode=0
 
 run_dependencies="true"
 # Optionally disable dependencies
@@ -74,10 +73,7 @@ if [[ "${run_dependencies}" == "true" ]] ; then
   run_docker_compose "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
 fi
 
-
-
 if [[ $dependency_exitcode -ne 0 ]] ; then
-  # Dependent services failed to start.
   echo "^^^ +++"
   echo "+++ 🚨 Failed to start dependencies"
 
@@ -89,6 +85,7 @@ if [[ $dependency_exitcode -ne 0 ]] ; then
 
   return $dependency_exitcode
 fi
+
 
 shell=()
 shell_disabled=1
@@ -187,9 +184,6 @@ ensure_stopped() {
 
 trap 'ensure_stopped "$?"' SIGINT SIGTERM SIGQUIT
 
-
-# Disable -e to prevent cancelling step if the command fails for whatever reason
-set +e
 exitcode=0
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
@@ -207,8 +201,6 @@ if [[ $exitcode -ne 0 ]] ; then
   echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
   echo "${run_params[@]}"
 fi
-# Restore -e as an option.
-set -e
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   if [[ "$(plugin_read_config CHECK_LINKED_CONTAINERS "true")" != "false" ]] ; then

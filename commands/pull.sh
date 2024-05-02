@@ -68,5 +68,6 @@ function pull() {
     retry "$pull_retries" run_docker_compose "${pull_params[@]}"
   fi
 
+  echo "done pulling. exitcode: $exitcode"
   return $exitcode
 }
