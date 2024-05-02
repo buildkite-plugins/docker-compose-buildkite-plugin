@@ -192,9 +192,9 @@ fi
 echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service"
 echo "commands is: ${commands[@]}"
 printf -v cmd_lit ' "%s" ' "${commands[@]}"
-cmd_lit='['${cmd_lit}']'
+cmd_lit="["${cmd_lit}"]"
 echo "cmd_lit is: ${cmd_lit}"
-run_docker_compose "${run_params[@]}" "$cmd_lit"
+run_docker_compose "${run_params[@]} $cmd_lit"
 
 exitcode=$?
 if [[ $exitcode -ne 0 ]] ; then
