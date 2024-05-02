@@ -3,19 +3,19 @@ set -uo pipefail
 
 # We set a predictable container name so we can find it and inspect it later on
 function generate_run_args() {
-	local -n run_params="$1"
-	run_params+=("run" "--name" "$2")
+	local -n params="$1"
+	params+=("run" "--name" "$2")
 	pulled_services=$3
 
 	if [[ $pulled_services -eq 0 ]] ; then
 		echo "~~~ :docker: Creating docker-compose override file for prebuilt services"
-		run_params+=(-f "$override_file")
+		params+=(-f "$override_file")
 		up_params+=(-f "$override_file")
 	fi
 
 	if [[ "$(plugin_read_config RUN_LABELS "true")" =~ ^(true|on|1)$ ]]; then
 		# Add useful labels to run container
-		run_params+=(
+		params+=(
 			"--label" "com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}"
 			"--label" "com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG}"
 			"--label" "com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER}"
@@ -29,7 +29,7 @@ function generate_run_args() {
 
 	# append env vars provided in ENV or ENVIRONMENT, these are newline delimited
 	while IFS=$'\n' read -r env ; do
-		[[ -n "${env:-}" ]] && run_params+=("-e" "${env}")
+		[[ -n "${env:-}" ]] && params+=("-e" "${env}")
 	done <<< "$(printf '%s\n%s' \
 		"$(plugin_read_list ENV)" \
 		"$(plugin_read_list ENVIRONMENT)")"
@@ -40,7 +40,7 @@ function generate_run_args() {
 			# Read in the env file and convert to --env params for docker
 			# This is because --env-file doesn't support newlines or quotes per https://docs.docker.com/compose/env-file/#syntax-rules
 			while read -r var; do
-			run_params+=("-e" "${var%%=*}")
+			params+=("-e" "${var%%=*}")
 			done < "${BUILDKITE_ENV_FILE}"
 		else
 			echo -n "🚨 Not propagating environment variables to container as \$BUILDKITE_ENV_FILE is not set"
@@ -50,43 +50,43 @@ function generate_run_args() {
 	# Propagate AWS credentials if requested
 	if [[ "$(plugin_read_config PROPAGATE_AWS_AUTH_TOKENS "false")" =~ ^(true|on|1)$ ]] ; then
 		if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]] ; then
-			run_params+=( --env "AWS_ACCESS_KEY_ID" )
+			params+=( --env "AWS_ACCESS_KEY_ID" )
 		fi
 		if [[ -n "${AWS_SECRET_ACCESS_KEY:-}" ]] ; then
-			run_params+=( --env "AWS_SECRET_ACCESS_KEY" )
+			params+=( --env "AWS_SECRET_ACCESS_KEY" )
 		fi
 		if [[ -n "${AWS_SESSION_TOKEN:-}" ]] ; then
-			run_params+=( --env "AWS_SESSION_TOKEN" )
+			params+=( --env "AWS_SESSION_TOKEN" )
 		fi
 		if [[ -n "${AWS_REGION:-}" ]] ; then
-			run_params+=( --env "AWS_REGION" )
+			params+=( --env "AWS_REGION" )
 		fi
 		if [[ -n "${AWS_DEFAULT_REGION:-}" ]] ; then
-			run_params+=( --env "AWS_DEFAULT_REGION" )
+			params+=( --env "AWS_DEFAULT_REGION" )
 		fi
 		if [[ -n "${AWS_ROLE_ARN:-}" ]] ; then
-			run_params+=( --env "AWS_ROLE_ARN" )
+			params+=( --env "AWS_ROLE_ARN" )
 		fi
 		if [[ -n "${AWS_STS_REGIONAL_ENDPOINTS:-}" ]] ; then
-			run_params+=( --env "AWS_STS_REGIONAL_ENDPOINTS" )
+			params+=( --env "AWS_STS_REGIONAL_ENDPOINTS" )
 		fi
 		# Pass ECS variables when the agent is running in ECS
 		# https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html
 		if [[ -n "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]] ; then
-			run_params+=( --env "AWS_CONTAINER_CREDENTIALS_FULL_URI" )
+			params+=( --env "AWS_CONTAINER_CREDENTIALS_FULL_URI" )
 		fi
 		if [[ -n "${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-}" ]] ; then
-			run_params+=( --env "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" )
+			params+=( --env "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" )
 		fi
 		if [[ -n "${AWS_CONTAINER_AUTHORIZATION_TOKEN:-}" ]] ; then
-			run_params+=( --env "AWS_CONTAINER_AUTHORIZATION_TOKEN" )
+			params+=( --env "AWS_CONTAINER_AUTHORIZATION_TOKEN" )
 		fi
 		# Pass EKS variables when the agent is running in EKS
 		# https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
 		if [[ -n "${AWS_WEB_IDENTITY_TOKEN_FILE:-}" ]] ; then
-			run_params+=( --env "AWS_WEB_IDENTITY_TOKEN_FILE" )
+			params+=( --env "AWS_WEB_IDENTITY_TOKEN_FILE" )
 			# Add the token file as a volume
-			run_params+=( --volume "${AWS_WEB_IDENTITY_TOKEN_FILE}:${AWS_WEB_IDENTITY_TOKEN_FILE}" )
+			params+=( --volume "${AWS_WEB_IDENTITY_TOKEN_FILE}:${AWS_WEB_IDENTITY_TOKEN_FILE}" )
 		fi
 	fi
 
@@ -99,12 +99,12 @@ function generate_run_args() {
 			exit 1
 		fi
 		for var in ${!env_propagation_list_var}; do
-			run_params+=("-e" "$var")
+			params+=("-e" "$var")
 		done
 	fi
 
 	while IFS=$'\n' read -r vol ; do
-		[[ -n "${vol:-}" ]] && run_params+=("-v" "$(expand_relative_volume_path "$vol")")
+		[[ -n "${vol:-}" ]] && params+=("-v" "$(expand_relative_volume_path "$vol")")
 	done <<< "$(plugin_read_list VOLUMES)"
 
 	# Parse BUILDKITE_DOCKER_DEFAULT_VOLUMES delimited by semi-colons, normalized to
@@ -112,18 +112,18 @@ function generate_run_args() {
 	IFS=';' read -r -a default_volumes <<< "${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
 	for vol in "${default_volumes[@]:-}" ; do
 		trimmed_vol="$(echo -n "$vol" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//')"
-		[[ -n "$trimmed_vol" ]] && run_params+=("-v" "$(expand_relative_volume_path "$trimmed_vol")")
+		[[ -n "$trimmed_vol" ]] && params+=("-v" "$(expand_relative_volume_path "$trimmed_vol")")
 	done
 
 	# If there's a git mirror, mount it so that git references can be followed.
 	if [[ -n "${BUILDKITE_REPO_MIRROR:-}" ]]; then
-		run_params+=("-v" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro")
+		params+=("-v" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro")
 	fi
 
 	# Disable allocating a TTY
 	tty_default='false'
 	if [[ "$(plugin_read_config TTY "$tty_default")" == "false" ]] ; then
-		run_params+=(-T)
+		params+=(-T)
 	fi
 
 	workdir=''
@@ -144,13 +144,13 @@ function generate_run_args() {
 	fi
 
 	if [[ -n "${workdir}" ]] ; then
-		run_params+=("--workdir=${workdir}")
+		params+=("--workdir=${workdir}")
 	fi
 
 	if [[ "${mount_checkout}" == "true" ]]; then
-		run_params+=("-v" "${pwd_default}:${workdir}")
+		params+=("-v" "${pwd_default}:${workdir}")
 	elif [[ "${mount_checkout}" =~ ^/.*$ ]]; then
-		run_params+=("-v" "${pwd_default}:${mount_checkout}")
+		params+=("-v" "${pwd_default}:${mount_checkout}")
 	elif [[ "${mount_checkout}" != "false" ]]; then
 		echo -n "🚨 mount-checkout should be either true or an absolute path to use as a mountpoint"
 		exit 1
@@ -158,28 +158,28 @@ function generate_run_args() {
 
 	# Optionally run as specified username or uid
 	if [[ -n "$(plugin_read_config USER)" ]] ; then
-		run_params+=("--user=$(plugin_read_config USER)")
+		params+=("--user=$(plugin_read_config USER)")
 	fi
 
 	# Optionally run as specified username or uid
 	if [[ "$(plugin_read_config PROPAGATE_UID_GID "false")" == "true" ]] ; then
-		run_params+=("--user=$(id -u):$(id -g)")
+		params+=("--user=$(id -u):$(id -g)")
 	fi
 
 	# Enable alias support for networks
 	if [[ "$(plugin_read_config USE_ALIASES "false")" == "true" ]] ; then
-		run_params+=(--use-aliases)
+		params+=(--use-aliases)
 	fi
 
 	# Optionally remove containers after run
 	if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
-		run_params+=(--rm)
+		params+=(--rm)
 	fi
 
 	# Optionally sets --entrypoint
 	if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
-		run_params+=(--entrypoint)
-		run_params+=("$(plugin_read_config ENTRYPOINT)")
+		params+=(--entrypoint)
+		params+=("$(plugin_read_config ENTRYPOINT)")
 	fi
 
 	# Mount ssh-agent socket and known_hosts
@@ -199,7 +199,7 @@ function generate_run_args() {
 			MOUNT_PATH="${BUILDKITE_PLUGIN_DOCKER_COMPOSE_MOUNT_SSH_AGENT}"
 		fi
 
-		run_params+=(
+		params+=(
 			"-e" "SSH_AUTH_SOCK=/ssh-agent"
 			"-v" "${SSH_AUTH_SOCK}:/ssh-agent"
 			"-v" "${HOME}/.ssh/known_hosts:${MOUNT_PATH}/.ssh/known_hosts"
@@ -220,7 +220,7 @@ function generate_run_args() {
 
 	# Mount buildkite-agent if we have a path for it
 	if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
-		run_params+=(
+		params+=(
 			"-e" "BUILDKITE_JOB_ID"
 			"-e" "BUILDKITE_BUILD_ID"
 			"-e" "BUILDKITE_AGENT_ACCESS_TOKEN"
@@ -230,6 +230,6 @@ function generate_run_args() {
 
 	# Optionally expose service ports
 	if [[ "$(plugin_read_config SERVICE_PORTS "false")" == "true" ]]; then
-		run_params+=(--service-ports)
+		params+=(--service-ports)
 	fi
 }
