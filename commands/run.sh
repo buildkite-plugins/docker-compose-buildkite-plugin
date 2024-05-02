@@ -41,8 +41,8 @@ else
 fi
 
 up_params=()
-declare -a run_params=()
-generate_run_args $container_name $pulled_status
+declare -a run_params
+generate_run_args "run_params" $container_name $pulled_status
 echo "run_params after func: ${run_params[@]}"
 
 run_params+=("$run_service")
