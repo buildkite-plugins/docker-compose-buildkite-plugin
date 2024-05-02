@@ -154,19 +154,20 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND ; then
       commands+=("$arg")
       display_command+=("$arg")
     done
-  elif [[ -n "${BUILDKITE_COMMAND}" ]] ; then
-    echo "buildkite command: ${BUILDKITE_COMMAND}"
-    if [[ $(echo "$BUILDKITE_COMMAND" | wc -l) -gt 1 ]]; then
-      # FIXME: This is easy to fix, just need to do at end
-
-      # An array of commands in the step will be a single string with multiple lines
-      # This breaks a lot of things here so we will print a warning for user to be aware
-      echo "⚠️  Warning: The command received has multiple lines."
-      echo "⚠️           The Docker Compose Plugin does not correctly support step-level array commands."
-    fi
-    commands+=("${BUILDKITE_COMMAND}")
-    display_command+=("'${BUILDKITE_COMMAND}'")
   fi
+fi
+if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+  echo "buildkite command: ${BUILDKITE_COMMAND}"
+  if [[ $(echo "$BUILDKITE_COMMAND" | wc -l) -gt 1 ]]; then
+    # FIXME: This is easy to fix, just need to do at end
+
+    # An array of commands in the step will be a single string with multiple lines
+    # This breaks a lot of things here so we will print a warning for user to be aware
+    echo "⚠️  Warning: The command received has multiple lines."
+    echo "⚠️           The Docker Compose Plugin does not correctly support step-level array commands."
+  fi
+  commands+=("${BUILDKITE_COMMAND}")
+  display_command+=("'${BUILDKITE_COMMAND}'")
 fi
 
 ensure_stopped() {
