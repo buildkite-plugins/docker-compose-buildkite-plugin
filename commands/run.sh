@@ -41,7 +41,7 @@ else
 fi
 
 up_params=()
-run_params=()
+declare -a run_params=()
 generate_run_args $container_name $pulled_status
 echo "run_params after func: ${run_params[@]}"
 
