@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ueo pipefail
+set -uo pipefail
 
 . "$DIR/../lib/run.bash"
 . "$DIR/../commands/pull.sh"
@@ -25,17 +25,8 @@ trap expand_headers_on_error ERR
 
 test -f "$override_file" && rm "$override_file"
 
-set -e
 pull "$run_service"
 pulled_status=$?
-set +e
-
-up_params=()
-
-run_params=()
-generate_run_args $container_name $pulled_status
-
-run_params+=("$run_service")
 
 if [[ ! -f "$override_file" ]] ; then
   echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
@@ -45,6 +36,15 @@ if [[ ! -f "$override_file" ]] ; then
     exit 1
   fi
 fi
+
+up_params=()
+
+run_params=()
+generate_run_args $container_name $pulled_status
+
+run_params+=("$run_service")
+
+
 
 up_params+=("up")  # this ensures that the array has elements to avoid issues with bash 4.3
 
