@@ -149,11 +149,13 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_COMMAND ; then
     echo "+++ Error: Can't use both a step level command and the command parameter of the plugin"
     exit 1
   elif [[ "${#result[@]}" -gt 0 ]] ; then
+    echo "compose plugin command: ${result[@]}"
     for arg in "${result[@]}" ; do
       commands+=("$arg")
       display_command+=("$arg")
     done
   elif [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+    echo "buildkite command: ${BUILDKITE_COMMAND}"
     if [[ $(echo "$BUILDKITE_COMMAND" | wc -l) -gt 1 ]]; then
       # FIXME: This is easy to fix, just need to do at end
 
@@ -187,7 +189,7 @@ else
 fi
 
 echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service"
-echo "command is: ${commands[@]}"
+echo "commands is: ${commands[@]}"
 cmd_lit="[${commands[@]}]"
 echo "cmd_lit is: ${cmd_lit}"
 run_docker_compose "${run_params[@]}" "$cmd_lit"
