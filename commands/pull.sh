@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ueo pipefail
+set -uo pipefail
 
 function pull() {
   prebuilt_candidates=("$1")

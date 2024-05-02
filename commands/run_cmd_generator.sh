@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ueo pipefail
+set -uo pipefail
 
 # We set a predictable container name so we can find it and inspect it later on
 function generate_run_args() {
