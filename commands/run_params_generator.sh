@@ -119,7 +119,7 @@ function generate_run_args() {
 	fi
 
 	# Disable allocating a TTY
-	tty_default='false'
+	tty_default='true'
 	if [[ "$(plugin_read_config TTY "$tty_default")" == "false" ]] ; then
 		params+=(-T)
 	fi
