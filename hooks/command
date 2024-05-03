@@ -6,8 +6,19 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 expand_headers_on_error() {
   echo "trapped an error"
   echo "^^^ +++"
+  exit $1
 }
-trap expand_headers_on_error ERR
+trap 'expand_headers_on_error "$?"' ERR
+
+ensure_stopped() {
+  echo '+++ :warning: Trapped fired, signal received, stopping container gracefully'
+  # docker stop "${container_name}" || true
+  compose_cleanup ${run_service}
+  echo '~~~ Last log lines that may be missing above (if container was not already removed)'
+  docker logs "${container_name}" || true
+  exit $1
+}
+trap 'ensure_stopped "$?"' SIGINT SIGTERM SIGQUIT
 
 # shellcheck source=lib/shared.bash
 . "$DIR/../lib/shared.bash"

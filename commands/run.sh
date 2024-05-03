@@ -20,8 +20,8 @@ override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 
 test -f "$override_file" && rm "$override_file"
 
-pull "$run_service"
-pulled_status=$?
+pulled_status=0
+pull "$run_service" || pulled_status=$?
 echo "pulled_status: $pulled_status"
 
 if [[ ! -f "$override_file" ]] ; then
@@ -165,18 +165,7 @@ if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
   display_command+=("'${BUILDKITE_COMMAND}'")
 fi
 
-ensure_stopped() {
-  echo '+++ :warning: Trapped fired, signal received, stopping container gracefully'
-  # docker stop "${container_name}" || true
-  compose_cleanup ${run_service}
-  echo '~~~ Last log lines that may be missing above (if container was not already removed)'
-  docker logs "${container_name}" || true
-  exit $1
-}
 
-trap 'ensure_stopped "$?"' SIGINT SIGTERM SIGQUIT
-
-exitcode=0
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" = "true" ]]; then
   group_type="---"
@@ -189,9 +178,11 @@ echo "commands is: ${commands[@]}"
 # printf -v cmd_lit ' "%s" ' "${commands[@]}"
 cmd_lit=( "${run_params[@]}" "${commands[@]}" )
 echo "PID is: $BASHPID"
-run_docker_compose "${cmd_lit[@]}"
 
-exitcode=$?
+exitcode=0
+run_docker_compose "${cmd_lit[@]}" || exitcode=$?
+
+
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
@@ -206,4 +197,4 @@ if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" ]] ; then
   fi
 fi
 
-return "$exitcode"
+exit "$exitcode"
