@@ -24,6 +24,8 @@ trap 'ensure_stopped "$?"' SIGINT SIGTERM SIGQUIT
 . "$DIR/../lib/shared.bash"
 # shellcheck source=lib/metadata.bash
 . "$DIR/../lib/metadata.bash"
+# shellcheck source=lib/run.bash
+. "$DIR/../lib/run.bash"
 
 commands=()
 
@@ -48,8 +50,6 @@ if in_array "BUILD" "${commands[@]}" ; then
   . "$DIR/../commands/build.sh"
 fi
 if in_array "RUN" "${commands[@]}" ; then
-  # shellcheck source=lib/run.bash
-  . "$DIR/../lib/run.bash"
   # shellcheck source=commands/run.sh
   . "$DIR/../commands/run.sh"
 fi
