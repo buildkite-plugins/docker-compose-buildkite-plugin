@@ -24,11 +24,6 @@ pull "$run_service"
 pulled_status=$?
 echo "pulled_status: $pulled_status"
 
-expand_headers_on_error() {
-  echo "^^^ +++"
-}
-trap expand_headers_on_error ERR
-
 if [[ ! -f "$override_file" ]] ; then
   echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
 
@@ -171,7 +166,7 @@ if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
 fi
 
 ensure_stopped() {
-  echo '+++ :warning: Signal received, stopping container gracefully'
+  echo '+++ :warning: Trapped fired, signal received, stopping container gracefully'
   # docker stop "${container_name}" || true
   compose_cleanup ${run_service}
   echo '~~~ Last log lines that may be missing above (if container was not already removed)'
@@ -193,7 +188,7 @@ echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_ser
 echo "commands is: ${commands[@]}"
 # printf -v cmd_lit ' "%s" ' "${commands[@]}"
 cmd_lit=( "${run_params[@]}" "${commands[@]}" )
-echo "cmd_lit is: ${cmd_lit[@]}"
+echo "PID is: $BASHPID"
 run_docker_compose "${cmd_lit[@]}"
 
 exitcode=$?

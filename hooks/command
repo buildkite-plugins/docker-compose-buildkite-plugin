@@ -3,6 +3,12 @@ set -uo pipefail
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
+expand_headers_on_error() {
+  echo "trapped an error"
+  echo "^^^ +++"
+}
+trap expand_headers_on_error ERR
+
 # shellcheck source=lib/shared.bash
 . "$DIR/../lib/shared.bash"
 # shellcheck source=lib/metadata.bash
