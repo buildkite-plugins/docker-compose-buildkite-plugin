@@ -33,7 +33,8 @@ compose_cleanup() {
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "true" ]]; then
     echo "graceful shutdown was true, stopping ${1}"
     # Send all containers a friendly SIGTERM, followed by a SIGKILL after exceeding the stop_grace_period
-    run_docker_compose stop "$1" || true
+    # run_docker_compose stop "$1" || true
+    docker compose "$1" kill -s SIGTERM
   fi
 }
 

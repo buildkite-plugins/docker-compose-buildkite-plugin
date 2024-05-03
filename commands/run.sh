@@ -104,8 +104,9 @@ echo "PID is: $BASHPID"
 
 exitcode=0
 (
-  echo "docker compose being called"
-  run_docker_compose "${cmd_lit[@]}" || exitcode=$?
+  echo "docker compose being called. PID is: $BASHPID"
+  docker compose "${cmd_lit[@]}" || exitcode=$?
+  # run_docker_compose "${cmd_lit[@]}" || exitcode=$?
 )
 
 
