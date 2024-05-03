@@ -38,8 +38,8 @@ function generate_cmd() {
 	if [[ -z $shell_disabled ]] && [[ ${#cmds[@]} -eq 0 ]] ; then
 		if is_windows ; then
 			cmds=("CMD.EXE" "/c")
-		# else
-			# cmds=("/bin/sh" "-e" "-c")
+		else
+			cmds=("/bin/sh" "-e" "-c")
 		fi
 	fi
 
