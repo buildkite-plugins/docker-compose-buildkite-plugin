@@ -257,7 +257,7 @@ function run_docker_compose() {
 
   echo "running: ${command[@]} $@"
 
-  plugin_prompt_and_run "${command[@]} $@"
+  plugin_prompt_and_run "${command[@]}" "$@"
 }
 
 function in_array() {
