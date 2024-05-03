@@ -255,6 +255,8 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
+  echo "running: ${command[@]}"
+
   plugin_prompt_and_run "${command[@]}" "$@"
 }
 
