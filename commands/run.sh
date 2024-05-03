@@ -99,14 +99,13 @@ fi
 echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service"
 echo "commands is: ${commands[@]}"
 # printf -v cmd_lit ' "%s" ' "${commands[@]}"
-# cmd_lit=( "${run_params[@]}" "${commands[@]}" )
-cmd_lit=( "${run_params[@]}" "echo hello world, I'm starting here; sleep 10000" )
+cmd_lit=( "${run_params[@]}" "${commands[@]}" )
+# cmd_lit=( "${run_params[@]}" "echo hello world, I'm starting here; sleep 10000" )
 echo "PID is: $BASHPID"
 
 exitcode=0
 (
   echo "docker compose being called. PID is: $BASHPID"
-  # docker compose "${cmd_lit[@]}" || exitcode=$?
   run_docker_compose "${cmd_lit[@]}" || exitcode=$?
 )
 
