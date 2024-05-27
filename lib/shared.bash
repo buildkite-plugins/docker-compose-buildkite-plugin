@@ -240,6 +240,10 @@ function run_docker_compose() {
     command+=(--verbose)
   fi
 
+  if [[ -n "$(plugin_read_config ENV_FILE)" ]];then
+    command+=(--env-file "$(plugin_read_config ENV_FILE)")
+  fi
+
   if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
     command+=(--no-ansi)
   fi

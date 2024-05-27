@@ -60,6 +60,8 @@ configuration:
     environment:
       type: [ string, array ]
       minimum: 1
+    env-file:
+      type: string
     env-propagation-list:
       type: string
     expand-volume-vars:
@@ -152,6 +154,7 @@ configuration:
     dependencies: [ run ]
     entrypoint: [ run ]
     env: [ run ]
+    env-file: [ run ]
     env-propagation-list: [ run ]
     environment: [ run ]
     expand-volume-vars: [ volumes ]
@@ -184,3 +187,4 @@ configuration:
     volumes: [ run ]
     wait: [ run ]
     workdir: [ run ]
+
