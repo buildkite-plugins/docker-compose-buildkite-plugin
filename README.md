@@ -32,6 +32,8 @@ The name of the service the command should be run within. If the docker-compose 
 
 A list of services to push.  You can specify just the service name to push or the format `service:registry:tag` to override where the service's image is pushed to. Needless to say, the image for the service must have been built in the very same step or built and pushed previously to ensure it is available for pushing.
 
+:warning: The `push` command will be skipped if a `login` command has not previously been used, or the agent has not been authenticated for a image registry.
+
 ### Other options
 
 None of the following are mandatory.
