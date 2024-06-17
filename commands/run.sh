@@ -311,6 +311,13 @@ if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
     "-e" "BUILDKITE_AGENT_ACCESS_TOKEN"
     "-v" "$BUILDKITE_AGENT_BINARY_PATH:/usr/bin/buildkite-agent"
   )
+  if [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" ]] ; then
+    run_params+=(
+      "-e" "BUILDKITE_AGENT_JOB_API_SOCKET"
+      "-e" "BUILDKITE_AGENT_JOB_API_TOKEN"
+      "-v" "$BUILDKITE_AGENT_JOB_API_SOCKET:$BUILDKITE_AGENT_JOB_API_SOCKET"
+    )
+  fi
 fi
 
 # Optionally expose service ports

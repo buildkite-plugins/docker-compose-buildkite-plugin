@@ -513,7 +513,7 @@ cmd3"
   assert_success
   assert_output --partial "Running /bin/sh -e -c 'pwd' in service myservice"
   assert_output --partial "ran myservice without pull"
-  
+
   unstub docker-compose
   unstub buildkite-agent
 }
@@ -1246,7 +1246,7 @@ cmd3"
 
 @test "Run waiting for dependencies" {
   export BUILDKITE_COMMAND="echo hello world"
-  
+
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WAIT=true
