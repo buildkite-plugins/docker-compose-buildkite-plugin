@@ -131,6 +131,8 @@ configuration:
       type: boolean
     workdir:
       type: string
+    metadata-key-prefix:
+      type: string
   anyOf:
     - required:
       - run
