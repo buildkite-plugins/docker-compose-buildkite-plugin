@@ -77,7 +77,7 @@ done
 
 # single image build
 for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
-  if [ -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH}" ]; then
+  if [ -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH:-}" ]; then
     echo "+++ 🚨 You can not use build-alias if you are not pushing a single service"
     exit 1
   fi
