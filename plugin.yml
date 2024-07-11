@@ -129,6 +129,8 @@ configuration:
       minimum: 1
     wait:
       type: boolean
+    with-dependencies:
+      type: boolean
     workdir:
       type: string
   anyOf:
@@ -183,4 +185,5 @@ configuration:
     user: [ run ]
     volumes: [ run ]
     wait: [ run ]
+    with-dependencies: [ build ]
     workdir: [ run ]

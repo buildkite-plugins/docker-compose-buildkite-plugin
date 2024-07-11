@@ -101,6 +101,10 @@ if [[ "$(plugin_read_config BUILDKIT_INLINE_CACHE "false")" == "true" ]] ; then
   build_params+=("--build-arg" "BUILDKIT_INLINE_CACHE=1")
 fi
 
+if [[ "$(plugin_read_config WITH_DEPENDENCIES "false")" == "true" ]] ; then
+  build_params+=(--with-dependencies)
+fi
+
 # Parse the list of secrets to pass on to build command
 while read -r line ; do
   [[ -n "$line" ]] && build_params+=("--secret" "$line")
