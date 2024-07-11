@@ -330,7 +330,7 @@ All elements in this array will be passed literally to the `build` command as pa
 
 #### `with-dependencies` (build only, boolean)
 
-If set to true, docker compose build will be run with the `--with-dependencies` option which will also build dependencies transitively.
+If set to true, docker compose will build with the `--with-dependencies` option which will also build dependencies transitively.
 
 The default is `false`.
 
