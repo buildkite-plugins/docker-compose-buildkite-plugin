@@ -328,6 +328,12 @@ It will add the `--ssh` option to the build command with the passed value (if `t
 
 All elements in this array will be passed literally to the `build` command as parameters of the [`--secrets` option](https://docs.docker.com/engine/reference/commandline/buildx_build/#secret). Note that you must have BuildKit enabled for this option to have any effect and special `RUN` stanzas in your Dockerfile to actually make use of them.
 
+#### `with-dependencies` (build only, boolean)
+
+If set to true, docker compose build will be run with the `--with-dependencies` option which will also build dependencies transitively.
+
+The default is `false`.
+
 ## Developing
 
 To run the tests:
