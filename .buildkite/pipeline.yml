@@ -6,8 +6,6 @@ env:
 
 steps:
   - label: ":shell: Shellcheck"
-    agents:
-      queue: "hosted"
     plugins:
       shellcheck#v1.3.0:
         files:
@@ -16,16 +14,12 @@ steps:
           - commands/**
 
   - label: ":sparkles: Lint"
-    agents:
-      queue: "hosted"
     plugins:
       plugin-linter#v3.3.0:
         id: docker-compose
         readme: docs/examples.md
 
   - label: ":bash: Tests"
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: tests
@@ -37,16 +31,12 @@ steps:
 
   - label: run, with links that fail
     command: echo hello from alpine
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: alpinewithfailinglink
         config: tests/composefiles/docker-compose.v2.1.yml
 
   - label: run, with environment
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: alpinewithenv
@@ -55,8 +45,6 @@ steps:
           - ALPACAS=sometimes
 
   - label: run, with multi-line command
-    agents:
-      queue: "hosted"
     command: |
       echo \
       hello \
@@ -71,8 +59,6 @@ steps:
     env:
       PERSIST_REGISTRY: true
     command: /hello
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
@@ -83,8 +69,6 @@ steps:
     depends_on: prebuild-2-0
     env:
       RESTORE_REGISTRY_FROM: prebuild-2-0
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
@@ -97,8 +81,6 @@ steps:
     env:
       PERSIST_REGISTRY: true
     command: /hello
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
@@ -109,8 +91,6 @@ steps:
     depends_on: prebuild-2-1
     env:
       RESTORE_REGISTRY_FROM: prebuild-2-1
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
@@ -122,8 +102,6 @@ steps:
     key: prebuild-custom-image-name
     env:
       PERSIST_REGISTRY: true
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         build: helloworld
@@ -135,8 +113,6 @@ steps:
     key: run-custom-image-name
     env:
       RESTORE_REGISTRY_FROM: prebuild-custom-image-name
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: helloworld
@@ -148,8 +124,6 @@ steps:
     depends_on: run-custom-image-name
     env:
       RESTORE_REGISTRY_FROM: prebuild-custom-image-name
-    agents:
-      queue: "hosted"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         push: helloworld:${IMAGE_REPO}:llamas-build-${BUILDKITE_BUILD_NUMBER}-push
