@@ -26,6 +26,8 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD; then
   build_services=("${result[@]}")
 fi
 
+metadata_key_prefix="$(plugin_read_config METADATA_KEY_PREFIX '')"
+
 # Then we figure out what to push, and where
 for line in $(plugin_read_list PUSH) ; do
   IFS=':' read -r -a tokens <<< "$line"
@@ -37,7 +39,7 @@ for line in $(plugin_read_list PUSH) ; do
   elif in_array "${service_name}" "${build_services[@]}"; then
     echo "~~~ :docker: Service was built in this step, using that image"
     service_image="$(default_compose_image_for_service "${service_name}")"
-  elif prebuilt_image="$(get_prebuilt_image "$service_name")"; then
+  elif prebuilt_image="$(get_prebuilt_image "$metadata_key_prefix" "$service_name")"; then
     echo "~~~ :docker: Using pre-built image ${prebuilt_image}"
 
     # Only pull it down once
@@ -63,7 +65,7 @@ for line in $(plugin_read_list PUSH) ; do
   if [[ ${#tokens[@]} -eq 1 ]] ; then
     echo "${group_type} :docker: Pushing images for ${service_name}" >&2;
     retry "$push_retries" run_docker_compose push "${service_name}"
-    set_prebuilt_image "${service_name}" "${service_image}"
+    set_prebuilt_image "${metadata_key_prefix}" "${service_name}" "${service_image}"
     target_image="${service_image}" # necessary for build-alias
   # push: "service-name:repo:tag"
   else
@@ -71,7 +73,7 @@ for line in $(plugin_read_list PUSH) ; do
     echo "${group_type} :docker: Pushing image $target_image" >&2;
     plugin_prompt_and_run docker tag "$service_image" "$target_image"
     retry "$push_retries" plugin_prompt_and_run docker push "$target_image"
-    set_prebuilt_image "${service_name}" "${target_image}"
+    set_prebuilt_image "${metadata_key_prefix}" "${service_name}" "${target_image}"
   fi
 done
 
@@ -82,5 +84,5 @@ for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
     exit 1
   fi
 
-  set_prebuilt_image "$service_alias" "${target_image}"
+  set_prebuilt_image "${metadata_key_prefix}" "$service_alias" "${target_image}"
 done
