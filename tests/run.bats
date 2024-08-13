@@ -4,9 +4,9 @@ load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared.bash'
 load '../lib/run.bash'
 
- export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
- export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
-  export BATS_MOCK_TMPDIR=$PWD
+# export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
+# export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
+# export BATS_MOCK_TMPDIR=$PWD
 
 setup_file() {
   export BUILDKITE_JOB_ID=1111
