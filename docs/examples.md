@@ -86,7 +86,7 @@ interpolation of docker-compose.yml, but it doesn't pass them in to your contain
 
 You can use the [environment key in docker-compose.yml](https://docs.docker.com/compose/environment-variables/) to either set specific environment vars or "pass through" environment variables from outside docker-compose.
 
-### Specific values
+#### Specific values
 
 If you want to add extra environment above what is declared in your `docker-compose.yml`,
 this plugin offers a `environment` block of its own:
@@ -105,7 +105,7 @@ steps:
 
 Note how the values in the list can either be just a key (so the value is sourced from the environment) or a KEY=VALUE pair.
 
-### Pipeline variables
+#### Pipeline variables
 
 Alternatively, you can have the plugin add all environment variables defined for the job by the agent as defined in [`BUILDKITE_ENV_FILE`](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_ENV_FILE) activating the `propagate-environment` option:
 
@@ -117,6 +117,23 @@ steps:
           run: app
           propagate-environment: true
 ```
+
+### Profiles
+
+You can take advantage of [Compose profiles](https://docs.docker.com/compose/profiles/) defined in your compose file by setting the appropriate environment variable in the step. For example:
+
+```yaml
+steps:
+  - key: test
+     command: echo 'from inside the container'
+     env:
+       COMPOSE_PROFILES: "frontend,debug"
+     plugins:
+       - docker-compose#v5.3.0:
+           run: app
+```
+
+It is important to understand that, as documented in the official documentation, profiles may prevent some service dependencies from being started up unless the compose file is setup correctly which may cause unforseen issues with your steps when used.
 
 ### Container Labels
 
