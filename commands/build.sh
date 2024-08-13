@@ -105,11 +105,6 @@ if [[ "$(plugin_read_config WITH_DEPENDENCIES "false")" == "true" ]] ; then
   build_params+=(--with-dependencies)
 fi
 
-# Parse the list of secrets to pass on to build command
-while read -r line ; do
-  [[ -n "$line" ]] && build_params+=("--secret" "$line")
-done <<< "$(plugin_read_list SECRETS)"
-
 if [[ "$(plugin_read_config SSH "false")" != "false" ]] ; then
   if [[ "${DOCKER_BUILDKIT:-}" != "1" && "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION:-2}" != "2" ]]; then
     echo "🚨 You can not use the ssh option if you are not using buildkit"
