@@ -125,12 +125,12 @@ You can take advantage of [Compose profiles](https://docs.docker.com/compose/pro
 ```yaml
 steps:
   - key: test
-     command: echo 'from inside the container'
-     env:
-       COMPOSE_PROFILES: "frontend,debug"
-     plugins:
-       - docker-compose#v5.3.0:
-           run: app
+    command: echo 'from inside the container'
+    env:
+      COMPOSE_PROFILES: "frontend,debug"
+    plugins:
+      - docker-compose#v5.3.0:
+          run: app
 ```
 
 It is important to understand that, as documented in the official documentation, profiles may prevent some service dependencies from being started up unless the compose file is setup correctly which may cause unforseen issues with your steps when used.
