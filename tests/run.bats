@@ -4,9 +4,9 @@ load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared.bash'
 load '../lib/run.bash'
 
-# export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
-# export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
-# export BATS_MOCK_TMPDIR=$PWD
+ export DOCKER_COMPOSE_STUB_DEBUG=/dev/tty
+ export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
+  export BATS_MOCK_TMPDIR=$PWD
 
 setup_file() {
   export BUILDKITE_JOB_ID=1111
@@ -40,6 +40,22 @@ teardown() {
   assert_output --partial "ran myservice"
 
   unstub docker
+  unstub buildkite-agent
+}
+
+@test "Fail running without a prebuilt image and require-prebuild" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD=true
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "No pre-built image found"
+
   unstub buildkite-agent
 }
 
