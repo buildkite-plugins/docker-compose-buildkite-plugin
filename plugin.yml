@@ -91,6 +91,8 @@ configuration:
       type: integer
     quiet-pull:
       type: boolean
+    require-prebuild:
+      type: boolean
     rm:
       type: boolean
     run-image:
@@ -170,6 +172,7 @@ configuration:
     pull-retries: [ run ]
     push-retries: [ push ]
     quiet-pull: [ run ]
+    require-prebuild: [ run ]
     rm: [ run ]
     run-image: [ run ]
     run-labels: [ run ]

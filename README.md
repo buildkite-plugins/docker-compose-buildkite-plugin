@@ -294,6 +294,12 @@ Note that [the effect of this option changes depending on your docker compose CL
 
 Sets the `--entrypoint` argument when running `docker compose`.
 
+#### `require-prebuild` (run only, boolean)
+
+If no prebuilt image is found for the run step, it will cause the plugin to fail the step.
+
+The default is `false`.
+
 #### `service-ports` (run only, boolean)
 
 If set to true, docker compose will run with the service ports enabled and mapped to the host. Equivalent to `--service-ports` in docker-compose.
