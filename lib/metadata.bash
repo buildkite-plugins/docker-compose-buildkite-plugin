@@ -7,14 +7,10 @@ function plugin_check_metadata_exists() {
 
 # Read agent metadata for the plugin
 function plugin_get_metadata() {
-  local metadata_key_prefix="$1"
+  local namespace="$1"
   local key="$2"
 
-  if [ -n "$metadata_key_prefix" ]; then
-    metadata_key_prefix="$metadata_key_prefix-"
-  fi
-
-  key="docker-compose-plugin-$metadata_key_prefix$key"
+  key="$namespace$key"
 
   if plugin_check_metadata_exists "$key"; then
     plugin_prompt buildkite-agent meta-data get "$key"
@@ -26,15 +22,11 @@ function plugin_get_metadata() {
 
 # Write agent metadata for the plugin
 function plugin_set_metadata() {
-  local metadata_key_prefix="$1"
+  local namespace="$1"
   local key="$2"
   local value="$3"
 
-  if [ -n "$metadata_key_prefix" ]; then
-    metadata_key_prefix="$metadata_key_prefix-"
-  fi
-
-  key="docker-compose-plugin-$metadata_key_prefix$key"
+  key="$namespace$key"
 
   plugin_prompt_and_must_run buildkite-agent meta-data set "$key" "$value"
 }
@@ -60,17 +52,17 @@ function prebuilt_image_meta_data_key() {
 
 # Sets a prebuilt image for a service name
 function set_prebuilt_image() {
-  local metadata_key_prefix="$1"
+  local namespace="$1"
   local service="$2"
   local image="$3"
 
-  plugin_set_metadata "$metadata_key_prefix" "$(prebuilt_image_meta_data_key "$service")" "$image"
+  plugin_set_metadata "$namespace" "$(prebuilt_image_meta_data_key "$service")" "$image"
 }
 
 # Gets a prebuilt image for a service name
 function get_prebuilt_image() {
-  local metadata_key_prefix="$1"
+  local namespace="$1"
   local service="$2"
 
-  plugin_get_metadata "$metadata_key_prefix" "$(prebuilt_image_meta_data_key "$service")"
+  plugin_get_metadata "$namespace" "$(prebuilt_image_meta_data_key "$service")"
 }
