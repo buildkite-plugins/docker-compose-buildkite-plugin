@@ -35,6 +35,8 @@ while read -r name ; do
   fi
 done <<< "$(plugin_read_list PULL)"
 
+prebuilt_image_namespace="$(plugin_read_config PREBUILT_IMAGE_NAMESPACE 'docker-compose-plugin-')"
+
 # A list of tuples of [service image cache_from] for build_image_override_file
 prebuilt_service_overrides=()
 prebuilt_services=()
@@ -45,7 +47,7 @@ for service_name in "${prebuilt_candidates[@]}" ; do
   if [[ -n "$prebuilt_image_override" ]] && [[ "$service_name" == "$run_service" ]] ; then
     echo "~~~ :docker: Overriding run image for $service_name"
     prebuilt_image="$prebuilt_image_override"
-  elif prebuilt_image=$(get_prebuilt_image "$service_name") ; then
+  elif prebuilt_image=$(get_prebuilt_image "$prebuilt_image_namespace" "$service_name") ; then
      echo "~~~ :docker: Found a pre-built image for $service_name"
   fi
 

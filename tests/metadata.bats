@@ -36,8 +36,8 @@ load '../lib/metadata'
   # Only expect the 'exists' command to be called, not the 'get'
   stub buildkite-agent "meta-data exists docker-compose-plugin-built-image-tag-test : exit 1"
 
-  run get_prebuilt_image "test"
-  
+  run get_prebuilt_image "docker-compose-plugin-" "test"
+
   assert_failure
   unstub buildkite-agent
 }
@@ -45,10 +45,10 @@ load '../lib/metadata'
 @test "Only get prebuilt image from metadata if 'exists' check returns true" {
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-test : exit 0" \
-    "meta-data get docker-compose-plugin-built-image-tag-test : exit 0" 
+    "meta-data get docker-compose-plugin-built-image-tag-test : exit 0"
 
-  run get_prebuilt_image "test"
-  
+  run get_prebuilt_image "docker-compose-plugin-" "test"
+
   assert_success
   assert_output --partial "buildkite-agent meta-data get docker-compose-plugin-built-image-tag-test"
   unstub buildkite-agent

@@ -78,6 +78,8 @@ configuration:
       type: boolean
     pre-run-dependencies:
       type: boolean
+    prebuilt-image-namespace:
+      type: string
     propagate-environment:
       type: boolean
     propagate-uid-gid:
