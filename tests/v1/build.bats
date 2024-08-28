@@ -319,23 +319,6 @@ setup_file() {
   unstub docker-compose
 }
 
-@test "Build with secrets" {
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SECRETS_0='id=test,file=~/.test'
-  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SECRETS_1='id=SECRET_VAR'
-
-  stub docker-compose \
-    "-f docker-compose.yml -p buildkite1111 build --pull --secret \* --secret \* \* : echo built \${11} with secrets \${8} and \${10}"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "built myservice"
-  assert_output --partial "with secrets id=test,file=~/.test and id=SECRET_VAR"
-
-  unstub docker-compose
-}
-
 @test "Build without pull" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL=true

@@ -324,10 +324,6 @@ You may want to also add `BUILDKIT_INLINE_CACHE=1` to your build arguments (`arg
 
 It will add the `--ssh` option to the build command with the passed value (if `true` it will use `default`). Note that it assumes you have a compatible docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).
 
-#### `secrets` (build only, array of strings)
-
-All elements in this array will be passed literally to the `build` command as parameters of the [`--secrets` option](https://docs.docker.com/engine/reference/commandline/buildx_build/#secret). Note that you must have BuildKit enabled for this option to have any effect and special `RUN` stanzas in your Dockerfile to actually make use of them.
-
 #### `with-dependencies` (build only, boolean)
 
 If set to true, docker compose will build with the `--with-dependencies` option which will also build dependencies transitively.
