@@ -43,6 +43,22 @@ teardown() {
   unstub buildkite-agent
 }
 
+@test "Fail running without a prebuilt image and require-prebuild" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD=true
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "No pre-built image found"
+
+  unstub buildkite-agent
+}
+
 @test "Run without a prebuilt image and an empty command" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_COMMAND=""

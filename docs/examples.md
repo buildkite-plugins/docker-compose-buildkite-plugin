@@ -194,9 +194,12 @@ steps:
     plugins:
       - docker-compose#v5.3.0:
           run: app
+          require-prebuild: true
 ```
 
-All `run` steps for the service `app` will automatically pull and use the pre-built image. Without this, each `Test %n` job would build its own instead.
+All `run` steps for the service `app` will automatically pull and use the pre-built image. Note that, for the example to work as-is, the `app` service needs to have an `image` element defined or the build/push step needs to be changed to `push: app:the_registry:the_tag` (and the agent running all the steps need to be authenticated against the registry if required).
+
+Note that the `require-prebuild` option means that if no prebuilt image is found, all `Test %n` jobs will fail. Without it, if the agent the `Test %n` is running on has ever built such an image and has it appropriately tagged it may still run.
 
 ### Building multiple images
 
