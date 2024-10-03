@@ -9,22 +9,22 @@ configuration:
     run:
       type: string
     build:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     push:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
 
     ansi:
       type: boolean
     args:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     build-alias:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     build-labels:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     build-parallel:
       type: boolean
@@ -33,14 +33,14 @@ configuration:
     buildkit-inline-cache:
       type: boolean
     cache-from:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     cli-version:
       oneOf:
         - type: string
-          enum: [ "1", "2" ]
+          enum: ["1", "2"]
         - type: integer
-          enum: [ 1, 2 ]
+          enum: [1, 2]
     collapse-logs:
       type: boolean
     command:
@@ -48,17 +48,17 @@ configuration:
     compatibility:
       type: boolean
     config:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     dependencies:
       type: boolean
     entrypoint:
       type: string
     env:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     environment:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     env-propagation-list:
       type: string
@@ -71,9 +71,9 @@ configuration:
     mount-buildkite-agent:
       type: boolean
     mount-ssh-agent:
-      type: [ boolean, string ]
+      type: [boolean, string]
     mount-checkout:
-      type: [ boolean, string ]
+      type: [boolean, string]
     no-cache:
       type: boolean
     pre-run-dependencies:
@@ -85,7 +85,7 @@ configuration:
     propagate-uid-gid:
       type: boolean
     pull:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     pull-retries:
       type: integer
@@ -104,20 +104,20 @@ configuration:
     service-ports:
       type: boolean
     shell:
-      type: [ boolean, array ]
+      type: [boolean, array]
     skip-checkout:
       type: boolean
     skip-pull:
       type: boolean
     ssh:
-      type: [ boolean, string ]
+      type: [boolean, string]
     target:
       type: string
     tty:
       type: boolean
     upload-container-logs:
       type: string
-      enum: [ "always", "never", "on-error" ]
+      enum: ["always", "never", "on-error"]
     use-aliases:
       type: boolean
     user:
@@ -125,7 +125,7 @@ configuration:
     verbose:
       type: boolean
     volumes:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     wait:
       type: boolean
@@ -135,55 +135,55 @@ configuration:
       type: string
   anyOf:
     - required:
-      - run
+        - run
     - required:
-      - build
+        - build
     - required:
-      - push
+        - push
   additionalProperties: false
   dependencies:
-    ansi: [ run ]
-    args: [ build ]
-    build-alias: [ push ]
-    build-labels: [ build ]
-    build-parallel: [ build ]
-    buildkit: [ build ]
-    buildkit-inline-cache: [ build ]
-    cache-from: [ build ]
-    command: [ run ]
-    dependencies: [ run ]
-    entrypoint: [ run ]
-    env: [ run ]
-    env-propagation-list: [ run ]
-    environment: [ run ]
-    expand-volume-vars: [ volumes ]
-    graceful-shutdown: [ run ]
-    leave-volumes: [ run ]
-    mount-buildkite-agent: [ run ]
-    mount-checkout: [ run ]
-    mount-ssh-agent: [ run ]
-    no-cache: [ build, run ]
-    pre-run-dependencies: [ run ]
-    propagate-environment: [ run ]
-    propagate-uid-gid: [ run ]
-    pull: [ run ]
-    pull-retries: [ run ]
-    push-retries: [ push ]
-    quiet-pull: [ run ]
-    require-prebuild: [ run ]
-    rm: [ run ]
-    run-image: [ run ]
-    run-labels: [ run ]
-    service-ports: [ run ]
-    skip-pull: [ build, run ]
-    shell: [ run ]
-    ssh: [ build ]
-    target: [ build ]
-    tty: [ run ]
-    upload-container-logs: [ run ]
-    use-aliases: [ run ]
-    user: [ run ]
-    volumes: [ run ]
-    wait: [ run ]
-    with-dependencies: [ build ]
-    workdir: [ run ]
+    ansi: [run]
+    args: [build]
+    build-alias: [push]
+    build-labels: [build]
+    build-parallel: [build]
+    buildkit: [build]
+    buildkit-inline-cache: [build]
+    cache-from: [build]
+    command: [run]
+    dependencies: [run]
+    entrypoint: [run]
+    env: [run]
+    env-propagation-list: [run]
+    environment: [run]
+    expand-volume-vars: [volumes]
+    graceful-shutdown: [run]
+    leave-volumes: [run]
+    mount-buildkite-agent: [run]
+    mount-checkout: [run]
+    mount-ssh-agent: [run]
+    no-cache: [build, run]
+    pre-run-dependencies: [run]
+    propagate-environment: [run]
+    propagate-uid-gid: [run]
+    pull: [run]
+    pull-retries: [run]
+    push-retries: [push]
+    quiet-pull: [run]
+    require-prebuild: [run]
+    rm: [run]
+    run-image: [run]
+    run-labels: [run]
+    service-ports: [run]
+    skip-pull: [build, run]
+    shell: [run]
+    ssh: [build]
+    target: [build]
+    tty: [run]
+    upload-container-logs: [run]
+    use-aliases: [run]
+    user: [run]
+    volumes: [run]
+    wait: [run]
+    with-dependencies: [build]
+    workdir: [run]
