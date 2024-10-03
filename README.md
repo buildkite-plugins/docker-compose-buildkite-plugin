@@ -174,6 +174,12 @@ A list of images to attempt pulling before building in the format `service:CACHE
 
 They will be mapped directly to `cache-from` elements in the build according to the spec so any valid format there should be allowed.
 
+#### `cache-to` (build only, string or array)
+
+A list of export locations to be used to share build cache with future builds in the format `service:CACHE-SPEC` to allow for layer re-use. Unsupported caches are ignored and do not prevent building images.
+
+They will be mapped directly to `cache-to` elements in the build according to the spec so any valid format there should be allowed.
+
 #### `target` (build only)
 
 Allow for intermediate builds as if building with docker's `--target VALUE` options.
