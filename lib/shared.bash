@@ -176,6 +176,16 @@ function build_image_override_file_with_version() {
       done
     fi
 
+    # load cache_to array
+    cache_to_amt="${1:-0}"
+    [[ -n "${1:-}" ]] && shift; # remove the value if not empty
+    if [[ "${cache_to_amt}" -gt 0 ]]; then
+      cache_to=()
+      for _ in $(seq 1 "$cache_to_amt"); do
+        cache_to+=( "$1" ); shift
+      done
+    fi
+
     # load labels array
     labels_amt="${1:-0}"
     [[ -n "${1:-}" ]] && shift; # remove the value if not empty
@@ -186,7 +196,7 @@ function build_image_override_file_with_version() {
       done
     fi
 
-    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]] && [[ "$labels_amt" -eq 0 ]]; then
+    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]] && [[ "$cache_to_amt" -eq 0 ]] && [[ "$labels_amt" -eq 0 ]]; then
       # should not print out an empty service
       continue
     fi
@@ -197,7 +207,7 @@ function build_image_override_file_with_version() {
       printf "    image: %s\\n" "$image_name"
     fi
 
-    if [[ "$cache_from_amt" -gt 0 ]] || [[ -n "$target" ]] || [[ "$labels_amt" -gt 0 ]]; then
+    if [[ "$cache_from_amt" -gt 0 ]] || [[ "$cache_to_amt" -gt 0 ]] || [[ -n "$target" ]] || [[ "$labels_amt" -gt 0 ]]; then
       printf "    build:\\n"
     fi
 
@@ -217,6 +227,21 @@ function build_image_override_file_with_version() {
       printf "      cache_from:\\n"
       for cache_from_i in "${cache_from[@]}"; do
         printf "        - %s\\n" "${cache_from_i}"
+      done
+    fi
+
+    if [[ "$cache_to_amt" -gt 0 ]] ; then
+      if ! docker_compose_supports_cache "$version" ; then
+        echo "Unsupported Docker Compose config file version: $version"
+        echo "The 'cache_to' option can only be used with Compose file versions 2.2 or 3.2 and above."
+        echo "For more information on Docker Compose configuration file versions, see:"
+        echo "https://docs.docker.com/compose/compose-file/compose-versioning/#versioning"
+        exit 1
+      fi
+
+      printf "      cache_to:\\n"
+      for cache_to_i in "${cache_to[@]}"; do
+        printf "        - %s\\n" "${cache_to_i}"
       done
     fi
 
