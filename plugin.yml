@@ -35,6 +35,9 @@ configuration:
     cache-from:
       type: [string, array]
       minimum: 1
+    cache-to:
+      type: [string, array]
+      minimum: 1
     cli-version:
       oneOf:
         - type: string
@@ -150,6 +153,7 @@ configuration:
     buildkit: [build]
     buildkit-inline-cache: [build]
     cache-from: [build]
+    cache-to: [build]
     command: [run]
     dependencies: [run]
     entrypoint: [run]
