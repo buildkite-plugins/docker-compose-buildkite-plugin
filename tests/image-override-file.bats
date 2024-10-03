@@ -29,8 +29,8 @@ EOF
   )
 
   run build_image_override_file_with_version "2.1" \
-    "myservice1" "newimage1:1.0.0" "" 0 0 \
-    "myservice2" "newimage2:1.0.0" "" 0 0
+    "myservice1" "newimage1:1.0.0" "" 0 0 0 \
+    "myservice2" "newimage2:1.0.0" "" 0 0 0
 
   assert_success
   assert_output "$myservice_override_file2"
@@ -102,7 +102,7 @@ services:
 EOF
   )
 
-  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 0 1 "com.buildkite.test=test"
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 0 0 1 "com.buildkite.test=test"
 
   assert_success
   assert_output "$myservice_override_file3"
@@ -121,7 +121,7 @@ services:
 EOF
   )
 
-  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 0 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 0 0 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
 
   assert_success
   assert_output "$myservice_override_file3"
@@ -143,7 +143,7 @@ services:
 EOF
   )
 
-  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 2 "my.repository/myservice:latest" "my.repository/myservice:target" 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 2 "my.repository/myservice:latest" "my.repository/myservice:target" 0 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
 
   assert_success
   assert_output "$myservice_override_file3"
@@ -166,7 +166,7 @@ services:
 EOF
   )
 
-  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "build" 2 "my.repository/myservice:latest" "my.repository/myservice:target" 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "build" 2 "my.repository/myservice:latest" "my.repository/myservice:target" 0 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
 
   assert_success
   assert_output "$myservice_override_file3"
