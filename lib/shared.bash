@@ -241,7 +241,7 @@ function run_docker_compose() {
   fi
 
   if [[ "$(plugin_read_config ANSI "true")" == "false" ]] ; then
-    command+=(--no-ansi)
+    command+=(--ansi never)
   fi
 
   # Enable compatibility mode for v3 files
