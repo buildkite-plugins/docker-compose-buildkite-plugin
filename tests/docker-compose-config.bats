@@ -82,33 +82,33 @@ load '../lib/shared'
 }
 
 @test "Whether docker-compose supports cache_from directive" {
-  run docker_compose_supports_cache_from ""
+  run docker_compose_supports_cache ""
   assert_success
 
-  run docker_compose_supports_cache_from "1.0"
+  run docker_compose_supports_cache "1.0"
   assert_failure
 
-  run docker_compose_supports_cache_from "2"
+  run docker_compose_supports_cache "2"
   assert_failure
 
-  run docker_compose_supports_cache_from "2.1"
+  run docker_compose_supports_cache "2.1"
   assert_failure
 
-  run docker_compose_supports_cache_from "2.2"
+  run docker_compose_supports_cache "2.2"
   assert_success
 
-  run docker_compose_supports_cache_from "2.3"
+  run docker_compose_supports_cache "2.3"
   assert_success
 
-  run docker_compose_supports_cache_from "3"
+  run docker_compose_supports_cache "3"
   assert_failure
 
-  run docker_compose_supports_cache_from "3.1"
+  run docker_compose_supports_cache "3.1"
   assert_failure
 
-  run docker_compose_supports_cache_from "3.2"
+  run docker_compose_supports_cache "3.2"
   assert_success
 
-  run docker_compose_supports_cache_from "3.3"
+  run docker_compose_supports_cache "3.3"
   assert_success
 }
