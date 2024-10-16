@@ -207,3 +207,87 @@ EOF
 
   assert_failure
 }
+
+@test "Build a docker-compose file with cache-to" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      cache_to:
+        - user/app:cache
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 0 1 "user/app:cache"
+
+  assert_success
+  assert_output "$myservice_override_file3"
+}
+
+@test "Build a docker-compose file with multiple cache-to entries" {
+  myservice_override_file4=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      cache_to:
+        - user/app:cache
+        - type=local,dest=path/to/cache
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 0 2 "user/app:cache" "type=local,dest=path/to/cache"
+
+  assert_success
+  assert_output "$myservice_override_file4"
+}
+
+
+@test "Build a docker-compose file with cache-from and cache-to" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      cache_from:
+        - my.repository/myservice:latest
+      cache_to:
+        - user/app:cache
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "" 1 "my.repository/myservice:latest" 1 "user/app:cache"
+
+  assert_success
+  assert_output "$myservice_override_file3"
+}
+
+@test "Build a docker-compose file with multiple cache-from, multiple cache-to and multiple labels and target" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice:
+    image: newimage:1.0.0
+    build:
+      target: build
+      cache_from:
+        - my.repository/myservice:latest
+        - my.repository/myservice:target
+      cache_to:
+        - user/app:cache
+        - type=local,dest=path/to/cache
+      labels:
+        - com.buildkite.test=test
+        - com.buildkite.test2=test2
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice" "newimage:1.0.0" "build" 2 "my.repository/myservice:latest" "my.repository/myservice:target" 2 "user/app:cache" "type=local,dest=path/to/cache" 2 "com.buildkite.test=test" "com.buildkite.test2=test2"
+
+  assert_success
+  assert_output "$myservice_override_file3"
+}
