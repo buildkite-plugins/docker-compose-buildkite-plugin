@@ -73,7 +73,7 @@ for service_name in $(plugin_read_list BUILD) ; do
     [[ -n "${label:-}" ]] && labels+=("${label}")
   done <<< "$(plugin_read_list BUILD_LABELS)"
 
-  if [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]]|| [[ "${#cache_to[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
+  if [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_to[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
     build_images+=("$service_name" "${image_name}" "${target}")
 
     build_images+=("${#cache_from[@]}")
