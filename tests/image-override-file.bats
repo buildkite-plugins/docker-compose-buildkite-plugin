@@ -291,3 +291,42 @@ EOF
   assert_success
   assert_output "$myservice_override_file3"
 }
+
+@test "Build a docker-compose file with multiple services, multiple cache-from, multiple cache-to and multiple labels and target" {
+  myservice_override_file3=$(cat <<-EOF
+version: '3.2'
+services:
+  myservice-1:
+    image: newimage:1.0.0
+    build:
+      target: build
+      cache_from:
+        - my.repository/myservice-1:latest
+        - my.repository/myservice-1:target
+      cache_to:
+        - user/app:cache
+        - type=local,dest=path/to/cache
+      labels:
+        - com.buildkite.test=test
+        - com.buildkite.test2=test2
+  myservice-2:
+    image: newimage:2.0.0
+    build:
+      target: build-2
+      cache_from:
+        - my.repository/myservice-2:latest
+        - my.repository/myservice-2:target
+      cache_to:
+        - user/app:cache
+        - type=local,dest=path/to/cache-2
+      labels:
+        - com.buildkite.test3=test3
+        - com.buildkite.test4=test4
+EOF
+  )
+
+  run build_image_override_file_with_version "3.2" "myservice-1" "newimage:1.0.0" "build" 2 "my.repository/myservice-1:latest" "my.repository/myservice-1:target" 2 "user/app:cache" "type=local,dest=path/to/cache" 2 "com.buildkite.test=test" "com.buildkite.test2=test2" "myservice-2" "newimage:2.0.0" "build-2" 2 "my.repository/myservice-2:latest" "my.repository/myservice-2:target" 2 "user/app:cache" "type=local,dest=path/to/cache-2" 2 "com.buildkite.test3=test3" "com.buildkite.test4=test4"
+
+  assert_success
+  assert_output "$myservice_override_file3"
+}
