@@ -52,7 +52,7 @@ for service_name in "${prebuilt_candidates[@]}" ; do
   fi
 
   if [[ -n "$prebuilt_image" ]] ; then
-    prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "" 0 0)
+    prebuilt_service_overrides+=("$service_name" "$prebuilt_image" "" 0 0 0)
     prebuilt_services+=("$service_name")
 
     # If it's prebuilt, we need to pull it down

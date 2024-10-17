@@ -35,8 +35,24 @@ get_caches_for_service() {
   fi
 }
 
+get_caches_to_service() {
+  local service="$1"
+
+  # Read any cache-to parameters provided
+  for line in $(plugin_read_list CACHE_TO) ; do
+    IFS=':' read -r -a tokens <<< "$line"
+    service_name=${tokens[0]}
+    service_image=$(IFS=':'; echo "${tokens[*]:1}")
+
+    if [ "${service_name}" == "${service}" ]; then
+      echo "$service_image"
+    fi
+  done
+}
+
+
 # Run through all images in the build property, either a single item or a list
-# and build up a list of service name, image name and optional cache-froms to
+# and build up a list of service name, image name and optional cache-froms and cache-tos to
 # write into a docker-compose override file
 for service_name in $(plugin_read_list BUILD) ; do
   target="$(plugin_read_config TARGET "")"
@@ -47,19 +63,29 @@ for service_name in $(plugin_read_list BUILD) ; do
     cache_from+=("$cache_line")
   done
 
+  cache_to=()
+  for cache_line in $(get_caches_to_service "$service_name"); do
+    cache_to+=("$cache_line")
+  done
+
   labels=()
   while read -r label ; do
     [[ -n "${label:-}" ]] && labels+=("${label}")
   done <<< "$(plugin_read_list BUILD_LABELS)"
 
-  if [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
+  if [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_to[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
     build_images+=("$service_name" "${image_name}" "${target}")
-    
+
     build_images+=("${#cache_from[@]}")
     if [[ "${#cache_from[@]}" -gt 0 ]]; then
       build_images+=("${cache_from[@]}")
     fi
-    
+
+    build_images+=("${#cache_to[@]}")
+    if [[ "${#cache_to[@]}" -gt 0 ]]; then
+      build_images+=("${cache_to[@]}")
+    fi
+
     build_images+=("${#labels[@]}")
     if [[ "${#labels[@]}" -gt 0 ]]; then
       build_images+=("${labels[@]}")
