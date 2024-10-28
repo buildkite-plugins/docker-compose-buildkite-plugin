@@ -55,6 +55,9 @@ configuration:
       minimum: 1
     dependencies:
       type: boolean
+    docker-driver:
+      type: string
+      enum: [ "docker", "docker-container", "kubernetes", "remote" ]
     entrypoint:
       type: string
     env:
