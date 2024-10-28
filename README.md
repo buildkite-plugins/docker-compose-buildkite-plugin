@@ -344,9 +344,9 @@ If set to true, docker compose will build with the `--with-dependencies` option 
 
 The default is `false`.
 
-#### `docker-driver` {string}
+#### `build-driver` {string}
 
-If set will create a Docker Builder Instance using the selected Driver and use it. Available Drivers:
+If set will create a Builder Instance using the selected Driver and use it. Available Drivers:
 
 - `docker-container` creates a dedicated BuildKit container using Docker.
 - `kubernetes` creates BuildKit pods in a Kubernetes cluster.

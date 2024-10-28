@@ -23,6 +23,9 @@ configuration:
     build-alias:
       type: [ string, array ]
       minimum: 1
+    build-driver:
+      type: string
+      enum: [ "docker-container", "kubernetes", "remote" ]
     build-labels:
       type: [ string, array ]
       minimum: 1
@@ -55,9 +58,6 @@ configuration:
       minimum: 1
     dependencies:
       type: boolean
-    docker-driver:
-      type: string
-      enum: [ "docker-container", "kubernetes", "remote" ]
     entrypoint:
       type: string
     env:
