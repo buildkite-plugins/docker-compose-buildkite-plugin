@@ -21,7 +21,7 @@ if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true"
   compose_cleanup
 fi
 
-if [[ "${BUILD_DRIVER_INSTANCE}" == true ]]; then
+if [[ "${BUILD_DRIVER_INSTANCE:-}" == true ]]; then
   echo "~~~ :docker: Cleaning up Builder Instance"
   docker buildx stop "${BUILDKITE_JOB_ID}"
   docker buildx rm "${BUILDKITE_JOB_ID}"
