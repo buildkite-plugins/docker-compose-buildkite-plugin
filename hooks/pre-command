@@ -1,0 +1,22 @@
+#!/bin/bash
+set -ueo pipefail
+
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+# shellcheck source=lib/shared.bash
+. "$DIR/../lib/shared.bash"
+
+docker_driver="$(plugin_read_config DOCKER_DRIVER "")"
+docker_drivers=("docker" "docker-container" "kubernetes" "remote")
+if [[ ${docker_drivers[*]} =~ $docker_driver ]]; then
+    echo "~~~ :docker: Creating and Using Docker Builder Instance with Driver: ${docker_driver}"
+    # Use Buildkite Job ID to create unique builder instance instance per Job
+    docker buildx create "${docker_driver}" --name "${BUILDKITE_JOB_ID}" --use
+    export DOCKER_DRIVER_INSTANCE=true
+elif [[ -z "$docker_driver"  ]]; then
+    echo "~~~ :docker: Using Default Docker Driver"
+else
+    echo "+++ 🚨 Invalid driver: ${docker_driver}"
+    echo "Valid Drivers: ${docker_drivers[*]}"
+    exit 1
+fi
