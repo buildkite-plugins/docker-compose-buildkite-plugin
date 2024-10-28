@@ -57,7 +57,7 @@ configuration:
       type: boolean
     docker-driver:
       type: string
-      enum: [ "docker", "docker-container", "kubernetes", "remote" ]
+      enum: [ "docker-container", "kubernetes", "remote" ]
     entrypoint:
       type: string
     env:
