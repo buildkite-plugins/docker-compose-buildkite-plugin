@@ -7,8 +7,8 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 . "$DIR/../lib/shared.bash"
 
 build_driver="$(plugin_read_config BUILD_DRIVER "")"
-build_drivers=("docker-container" "kubernetes" "remote")
-if [[ ${build_drivers[*]} =~ $build_driver ]]; then
+valid_drivers="docker-container|kubernetes|remote"
+if [[ "${build_driver}" =~ ^(${valid_drivers})$ ]]; then
     echo "~~~ :docker: Creating and Using Builder Instance with Driver: ${build_driver}"
     # Use Buildkite Job ID to create unique builder instance instance per Job
     docker buildx create "${build_driver}" --name "${BUILDKITE_JOB_ID}" --use
@@ -17,6 +17,6 @@ elif [[ -z "$build_driver"  ]]; then
     echo "~~~ :docker: Using Default Build Driver 'docker'"
 else
     echo "+++ 🚨 Invalid driver: ${build_driver}"
-    echo "Valid Drivers: ${build_drivers[*]}"
+    echo "Valid Drivers: ${valid_drivers//|/, }"
     exit 1
 fi
