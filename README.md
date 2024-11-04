@@ -344,7 +344,7 @@ If set to true, docker compose will build with the `--with-dependencies` option 
 
 The default is `false`.
 
-#### `build-driver` {string}
+#### `build-driver` (string)
 
 If set will create a Builder Instance using the selected Driver and use it. Available Drivers:
 
