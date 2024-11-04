@@ -11,7 +11,9 @@ valid_drivers="docker-container|kubernetes|remote"
 if [[ "${build_driver}" =~ ^(${valid_drivers})$ ]]; then
     echo "~~~ :docker: Creating and Using Builder Instance with Driver: ${build_driver}"
     # Use Buildkite Job ID to create unique builder instance instance per Job
-    docker buildx create "${build_driver}" --name "${BUILDKITE_JOB_ID}" --use
+    # add prefix due constraint needing to start with a letter
+    export BUILDER_INSTANCE_NAME="${build_driver}-${BUILDKITE_JOB_ID}"
+    docker buildx create "${build_driver}" --name ${BUILDER_INSTANCE_NAME} --use
     export BUILD_DRIVER_INSTANCE=true
 elif [[ -z "$build_driver"  ]]; then
     echo "~~~ :docker: Using Default Build Driver 'docker'"

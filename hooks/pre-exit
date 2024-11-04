@@ -23,6 +23,6 @@ fi
 
 if [[ "${BUILD_DRIVER_INSTANCE:-}" == true ]]; then
   echo "~~~ :docker: Cleaning up Builder Instance"
-  docker buildx stop "${BUILDKITE_JOB_ID}"
-  docker buildx rm "${BUILDKITE_JOB_ID}"
+  docker buildx stop "${BUILDER_INSTANCE_NAME}"
+  docker buildx rm "${BUILDER_INSTANCE_NAME}"
 fi
