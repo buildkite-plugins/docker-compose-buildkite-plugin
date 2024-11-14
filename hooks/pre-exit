@@ -21,8 +21,15 @@ if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true"
   compose_cleanup
 fi
 
-if [[ "${BUILD_DRIVER_INSTANCE:-}" == true ]]; then
-  echo "~~~ :docker: Cleaning up Builder Instance"
-  docker buildx stop "${BUILDER_INSTANCE_NAME}"
-  docker buildx rm "${BUILDER_INSTANCE_NAME}"
+# clean up builder instances if specified
+builder_remove="$(plugin_read_config BUILDER_REMOVE "false")"
+
+if [[ "${builder_remove}" == true ]]; then
+  if builder_instance_exists "${builder_name}"; then
+    echo "~~~ :docker: Cleaning up Builder Instance '${builder_name}"
+    docker buildx stop "${builder_name}"
+    docker buildx rm "${builder_name}"
+  else
+    echo "~~~ :docker: Cannot to remove Builder Instance '${builder_name}' as does not exist"
+  fi
 fi
