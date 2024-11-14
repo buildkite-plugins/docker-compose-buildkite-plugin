@@ -32,3 +32,15 @@ load '../lib/shared'
     assert_failure
     assert_output "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
 }
+
+@test "Create Builder Instance with invalid Driver" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=""
+
+    run "$PWD"/hooks/pre-command
+
+    assert_failure
+    assert_output --partial "+++ 🚨 Invalid driver: ''"
+    assert_output --partial "Valid Drivers: docker-container, kubernetes, remote"
+}
