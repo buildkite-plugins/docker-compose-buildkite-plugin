@@ -6,19 +6,73 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # shellcheck source=lib/shared.bash
 . "$DIR/../lib/shared.bash"
 
-build_driver="$(plugin_read_config BUILD_DRIVER "")"
-valid_drivers="docker-container|kubernetes|remote"
-if [[ "${build_driver}" =~ ^(${valid_drivers})$ ]]; then
-    echo "~~~ :docker: Creating and Using Builder Instance with Driver: ${build_driver}"
-    # Use Buildkite Job ID to create unique builder instance instance per Job
-    # add prefix due constraint needing to start with a letter
-    export BUILDER_INSTANCE_NAME="${build_driver}-${BUILDKITE_JOB_ID}"
-    docker buildx create --driver "${build_driver}" --name "${BUILDER_INSTANCE_NAME}" --use --bootstrap
-    export BUILD_DRIVER_INSTANCE=true
-elif [[ -z "$build_driver"  ]]; then
-    echo "~~~ :docker: Using Default Build Driver 'docker'"
+builder_create="$(plugin_read_config BUILDER_CREATE "false")"
+builder_use="$(plugin_read_config BUILDER_USE "false")"
+builder_name="$(plugin_read_config BUILDER_NAME "")"
+
+if [[ "${builder_create}" == "true" ]] || [[ "${builder_use}" == "true" ]]; then
+    if [[ -z "${builder_name}" ]]; then
+        echo "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
+        exit 1
+    fi
+    # exporting to use in pre-exit
+    export builder_name
+fi
+
+if [[ "${builder_create}" == "true" ]]; then
+    if ! builder_instance_exists "${builder_name}"; then
+        builder_instance_args=()
+
+        build_driver="$(plugin_read_config BUILDER_DRIVER "")"
+        valid_drivers="docker-container|kubernetes|remote"
+        if [[ "${build_driver}" =~ ^(${valid_drivers})$ ]]; then
+            builder_instance_args=(--driver "${build_driver}")
+        else
+            echo "+++ 🚨 Invalid driver: '${build_driver}'"
+            echo "Valid Drivers: ${valid_drivers//|/, }"
+            exit 1
+        fi
+
+        if [[ "$(plugin_read_config BUILDER_BOOTSTRAP "true")" == "true" ]]; then
+            builder_instance_args+=("--bootstrap")
+        fi
+
+        if [[ "$(plugin_read_config BUILDER_DEBUG "false")" == "true" ]]; then
+            builder_instance_args+=("--debug")
+        fi
+
+        driver_opt="$(plugin_read_config BUILDER_DRIVER_OPT "")"
+        if [[ -n "${driver_opt}" ]]; then
+            builder_instance_args+=("--driver-opt ${driver_opt}")
+        fi
+
+        builder_platform="$(plugin_read_config BUILDER_PLATFORM "")"
+        if [[ -n "${builder_platform}" ]]; then
+            builder_instance_args+=("--platform ${builder_platform}")
+        fi
+
+        remote_address="$(plugin_read_config BUILDER_REMOTE_ADDRESS "")"
+        if [[ -n "${remote_address}" ]]; then
+            builder_instance_args+=("${remote_address}")
+        fi
+
+        echo "~~~ :docker: Creating Builder Instance '${builder_name}' with Driver '${build_driver}'"
+        docker buildx create --driver "${build_driver}" --name "${BUILDER_INSTANCE_NAME}" --bootstrap ${build_driver_options:+"--driver-opt=${build_driver_options}"}
+    else
+        echo "~~~ :docker: Not Creating Builder Instance '${builder_name}' as already exists"
+    fi
+fi
+
+if [[ "${builder_use}" == "true" ]]; then
+    if builder_instance_exists "${builder_name}"; then
+        echo "~~~ :docker: Using Builder Instance '${builder_name}'"
+        docker buildx use "${builder_name}"
+    else
+        echo "+++ 🚨 Builder Instance '${builder_name}' does not exist"
+        exit 1
+    fi
 else
-    echo "+++ 🚨 Invalid driver: ${build_driver}"
-    echo "Valid Drivers: ${valid_drivers//|/, }"
-    exit 1
+    current_builder=$(docker buildx inspect | grep -m 1 "Name" | awk '{print $2}') || true
+    current_builder_driver=$(docker buildx inspect | grep -m 1 "Driver" | awk '{print $2}') || true
+    echo "~~~ :docker: Using Default Build Driver '${current_builder}' with Driver '${current_builder_driver}'"
 fi
