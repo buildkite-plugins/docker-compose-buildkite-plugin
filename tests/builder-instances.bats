@@ -14,3 +14,21 @@ load '../lib/shared'
     assert_success
     assert_output "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
 }
+
+@test "Create Builder Instance with invalid Name" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+
+    run "$PWD"/hooks/pre-command
+
+    assert_failure
+    assert_output "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
+}
+
+@test "Use Builder Instance with invalid Name" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+
+    run "$PWD"/hooks/pre-command
+
+    assert_failure
+    assert_output "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
+}
