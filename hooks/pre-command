@@ -53,7 +53,13 @@ if [[ "${builder_create}" == "true" ]]; then
 
         remote_address="$(plugin_read_config BUILDER_REMOTE_ADDRESS "")"
         if [[ -n "${remote_address}" ]]; then
-            builder_instance_args+=("${remote_address}")
+            if [[ "${build_driver}" == "remote" ]]; then
+                builder_instance_args+=("${remote_address}")
+            else
+                echo "+++ 🚨 Builder Driver '${build_driver}' used with 'remote-address' parameter"
+                echo "'remote-address' can only be used with 'remote' driver"
+                exit 1
+            fi
         fi
 
         echo "~~~ :docker: Creating Builder Instance '${builder_name}' with Driver '${build_driver}'"
