@@ -80,5 +80,5 @@ if [[ "${builder_use}" == "true" ]]; then
 else
     current_builder=$(docker buildx inspect | grep -m 1 "Name" | awk '{print $2}') || true
     current_builder_driver=$(docker buildx inspect | grep -m 1 "Driver" | awk '{print $2}') || true
-    echo "~~~ :docker: Using Default Build Driver '${current_builder}' with Driver '${current_builder_driver}'"
+    echo "~~~ :docker: Using Default Builder '${current_builder}' with Driver '${current_builder_driver}'"
 fi
