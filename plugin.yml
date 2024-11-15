@@ -9,10 +9,10 @@ configuration:
     run:
       type: string
     build:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
     push:
-      type: [ string, array ]
+      type: [string, array]
       minimum: 1
 
     ansi:
@@ -33,6 +33,9 @@ configuration:
     buildkit-inline-cache:
       type: boolean
     cache-from:
+      type: [ string, array ]
+      minimum: 1
+    cache-to:
       type: [ string, array ]
       minimum: 1
     cli-version:
@@ -150,6 +153,7 @@ configuration:
     buildkit: [ build ]
     buildkit-inline-cache: [ build ]
     cache-from: [ build ]
+    cache-to: [ build ]
     command: [ run ]
     dependencies: [ run ]
     entrypoint: [ run ]
