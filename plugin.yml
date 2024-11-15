@@ -47,6 +47,7 @@ configuration:
           type: boolean
         use:
           type: string
+      additionalProperties: false
     build-labels:
       type: [ string, array ]
       minimum: 1
