@@ -37,6 +37,10 @@ configuration:
           enum: [ "docker-container", "kubernetes", "remote" ]
         driver-opt:
           type: string
+        keep-daemon:
+          type: boolean
+        keep-state:
+          type: boolean
         name:
           type: string
         platform:

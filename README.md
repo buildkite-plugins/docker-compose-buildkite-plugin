@@ -386,6 +386,18 @@ Commas separated, Key-Value pairs of driver-specific options to configure the Bu
 
 Example: `memory=100m,cpuset-cpus=1`
 
+##### `keep-daemon` (boolean)
+
+If set to true, will keep the BuildKit daemon running after the buildx context (Builder) is removed. This is useful when you manage BuildKit daemons and buildx contexts independently. Only supported by the `docker-container` and `kubernetes` drivers. Optional when using `remove`.
+
+The default is `false`.
+
+##### `keep-state` (boolean)
+
+If set to true, will keep BuildKit state so it can be reused by a new Builder with the same name, persisting the driver's cache. Currently, only supported by the `docker-container` driver. Optional when using `remove`.
+
+The default is `false`.
+
 ##### `name`
 
 Sets the name of the Builder instance to create or use. Required when using `create` or `use` builder paramaters.
