@@ -378,13 +378,13 @@ More details on different [Build Drivers](https://docs.docker.com/build/builders
 
 ##### `driver-opt`
 
-Optional, commas separated, Key-Value pairs of driver-specific options to configure the Builder Instance when using `create`. Available options for each Driver:
+Commas separated, Key-Value pairs of driver-specific options to configure the Builder Instance when using `create`. Available options for each Driver:
 
 - [docker-container](https://docs.docker.com/build/builders/drivers/docker-container/)
 - [kubernetes](https://docs.docker.com/build/builders/drivers/kubernetes/)
 - [remote](https://docs.docker.com/build/builders/drivers/remote/)
 
-Example: `memory=100m`
+Example: `memory=100m,cpuset-cpus=1`
 
 ##### `name`
 
