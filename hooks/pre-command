@@ -21,12 +21,12 @@ if [[ "${builder_create}" == "true" ]]; then
     if ! builder_instance_exists "${builder_name}"; then
         builder_instance_args=()
 
-        builder_instance_args=(--name "${builder_name}")
+        builder_instance_args+=(--name "${builder_name}")
 
         build_driver="$(plugin_read_config BUILDER_DRIVER "")"
         valid_drivers="docker-container|kubernetes|remote"
         if [[ "${build_driver}" =~ ^(${valid_drivers})$ ]]; then
-            builder_instance_args=(--driver "${build_driver}")
+            builder_instance_args+=(--driver "${build_driver}")
         else
             echo "+++ 🚨 Invalid driver: '${build_driver}'"
             echo "Valid Drivers: ${valid_drivers//|/, }"
