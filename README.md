@@ -354,19 +354,19 @@ If set to true, will boot builder instance after creation. Optional when using `
 
 The default is `true`.
 
-##### create (boolean)
+##### `create` (boolean)
 
 If set to true, will use `docker buildx create` to create a new Builder Instance using the propeties defined.
 
 The default is `false`.
 
-##### debug (boolean)
+##### `debug` (boolean)
 
 If set to true, enables debug logging during creation of builder instance. Optional when using `create`.
 
 The default is `false`.
 
-##### `driver` (string)
+##### `driver`
 
 If set will create a Builder Instance using the selected Driver and use it. Available Drivers:
 
@@ -376,7 +376,7 @@ If set will create a Builder Instance using the selected Driver and use it. Avai
 
 More details on different [Build Drivers](https://docs.docker.com/build/builders/drivers/).
 
-##### `driver-opt` (string)
+##### `driver-opt`
 
 Optional, commas separated, Key-Value pairs of driver-specific options to configure the Builder Instance when using `create`. Available options for each Driver:
 
@@ -386,29 +386,29 @@ Optional, commas separated, Key-Value pairs of driver-specific options to config
 
 Example: `memory=100m`
 
-##### name (string)
+##### `name`
 
 Sets the name of the Builder instance to create or use. Required when using `create` or `use` builder paramaters.
 
-##### platform (string)
+##### `platform`
 
 Commas separated, fixed platforms for builder instance. Optional when using `create`.
 
 Example: `linux/amd64,linux/arm64`
 
-##### remote-address
+##### `remote-address`
 
 Address of remote builder instance. Required when using `driver: remote`.
 
 Example: `tcp://localhost:1234`
 
-##### remove (boolean)
+##### `remove` (boolean)
 
 If set to true will stop and remove the Builder Instance specified by `name`.
 
 The default is `false`.
 
-##### use (boolean)
+##### `use` (boolean)
 
 If set to true will use Builder Instance specified by `name`.
 
