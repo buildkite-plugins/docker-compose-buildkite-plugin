@@ -21,6 +21,8 @@ if [[ "${builder_create}" == "true" ]]; then
     if ! builder_instance_exists "${builder_name}"; then
         builder_instance_args=()
 
+        builder_instance_args=(--name "${builder_name}")
+
         build_driver="$(plugin_read_config BUILDER_DRIVER "")"
         valid_drivers="docker-container|kubernetes|remote"
         if [[ "${build_driver}" =~ ^(${valid_drivers})$ ]]; then
@@ -61,7 +63,7 @@ if [[ "${builder_create}" == "true" ]]; then
         fi
 
         echo "~~~ :docker: Creating Builder Instance '${builder_name}' with Driver '${build_driver}'"
-        docker buildx create --driver "${build_driver}" --name "${BUILDER_INSTANCE_NAME}" --bootstrap ${build_driver_options:+"--driver-opt=${build_driver_options}"}
+        docker buildx create "${builder_instance_args[@]}"
     else
         echo "~~~ :docker: Not Creating Builder Instance '${builder_name}' as already exists"
     fi
