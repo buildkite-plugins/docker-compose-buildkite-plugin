@@ -15,8 +15,6 @@ if [[ "${builder_create}" == "true" ]] || [[ "${builder_use}" == "true" ]]; then
         echo "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
         exit 1
     fi
-    # exporting to use in pre-exit
-    export builder_name
 fi
 
 if [[ "${builder_create}" == "true" ]]; then

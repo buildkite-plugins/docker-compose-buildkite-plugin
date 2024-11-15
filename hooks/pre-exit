@@ -22,6 +22,7 @@ if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true"
 fi
 
 # clean up builder instances if specified
+builder_name="$(plugin_read_config BUILDER_NAME "")"
 builder_remove="$(plugin_read_config BUILDER_REMOVE "false")"
 
 if [[ "${builder_remove}" == true ]]; then
