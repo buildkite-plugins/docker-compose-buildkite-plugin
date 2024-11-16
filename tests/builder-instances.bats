@@ -89,3 +89,30 @@ teardown() {
         "~~~ :docker: Not Creating Builder Instance 'builder-name' as already exists
 ~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
 }
+
+@test "Use Builder Instance that does not Exist" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+
+    stub docker \
+        "buildx inspect builder-name : exit 1"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_failure
+    assert_output "+++ 🚨 Builder Instance 'builder-name' does not exist"
+}
+
+@test "Use Builder Instance that Exists" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+
+    stub docker \
+        "buildx inspect builder-name : exit 0" \
+        "buildx use builder-name : exit 0"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output "~~~ :docker: Using Builder Instance '$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME'"
+}
