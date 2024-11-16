@@ -46,3 +46,40 @@ load '../lib/shared'
     assert_output --partial "+++ 🚨 Invalid driver: ''"
     assert_output --partial "Valid Drivers: docker-container, kubernetes, remote"
 }
+
+@test "Create Builder Instance with valid Driver" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=docker-container
+
+    stub docker \
+        "buildx inspect builder-name : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 0" \
+        "buildx inspect : echo 'Name: test'" \
+        "buildx inspect : echo 'Driver: driver'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output \
+        "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'
+~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+}
+
+@test "Create Builder Instance with valid Driver but already Exists" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=docker-container
+
+    stub docker \
+        "buildx inspect builder-name : exit 0" \
+        "buildx inspect : echo 'Name: test'" \
+        "buildx inspect : echo 'Driver: driver'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output \
+        "~~~ :docker: Not Creating Builder Instance 'builder-name' as already exists
+~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+}
