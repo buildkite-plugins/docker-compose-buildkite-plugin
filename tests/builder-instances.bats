@@ -5,6 +5,12 @@ load '../lib/shared'
 
 # export DOCKER_STUB_DEBUG=/dev/tty
 
+teardown() {
+    if [[ -f "${BATS_MOCK_BINDIR}/docker" ]]; then
+        unstub docker
+    fi
+}
+
 @test "No Builder Instance Parameters" {
 
     stub docker \
