@@ -3,6 +3,8 @@
 load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared'
 
+# export DOCKER_STUB_DEBUG=/dev/tty
+
 @test "No Builder Instance Parameters" {
 
     stub docker \
