@@ -38,7 +38,7 @@ if [[ "${builder_remove}" == true ]]; then
       builder_remove_args+=("--keep-state")
     fi
 
-    echo "~~~ :docker: Cleaning up Builder Instance '${builder_name}"
+    echo "~~~ :docker: Cleaning up Builder Instance '${builder_name}'"
     docker buildx stop "${builder_name}"
     docker buildx rm "${builder_name}" ${builder_remove_args:+${builder_remove_args[@]}}
   else

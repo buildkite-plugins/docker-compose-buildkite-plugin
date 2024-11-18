@@ -116,3 +116,72 @@ teardown() {
     assert_success
     assert_output "~~~ :docker: Using Builder Instance '$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME'"
 }
+
+@test "Remove Builder Instance that Exists" {
+    export BUILDKITE_BUILD_NUMBER=111
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_REMOVE=true
+
+    stub docker \
+        "buildx inspect builder-name : exit 0" \
+        "buildx stop builder-name : exit 0" \
+        "buildx rm builder-name : exit 0"
+
+    run "$PWD"/hooks/pre-exit
+
+    assert_success
+    assert_output "~~~ :docker: Cleaning up Builder Instance 'builder-name'"
+}
+
+@test "Remove Builder Instance that Exists with keep-daemon" {
+    export BUILDKITE_BUILD_NUMBER=111
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_REMOVE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_KEEP_DAEMON=true
+
+    stub docker \
+        "buildx inspect builder-name : exit 0" \
+        "buildx stop builder-name : exit 0" \
+        "buildx rm builder-name --keep-daemon : exit 0"
+
+    run "$PWD"/hooks/pre-exit
+
+    assert_success
+    assert_output "~~~ :docker: Cleaning up Builder Instance 'builder-name'"
+}
+
+@test "Remove Builder Instance that Exists with keep-daemon and keep-state" {
+    export BUILDKITE_BUILD_NUMBER=111
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_REMOVE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_KEEP_DAEMON=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_KEEP_STATE=true
+
+    stub docker \
+        "buildx inspect builder-name : exit 0" \
+        "buildx stop builder-name : exit 0" \
+        "buildx rm builder-name --keep-daemon --keep-state : exit 0"
+
+    run "$PWD"/hooks/pre-exit
+
+    assert_success
+    assert_output "~~~ :docker: Cleaning up Builder Instance 'builder-name'"
+}
+
+@test "Remove Builder Instance that does not Exists" {
+    export BUILDKITE_BUILD_NUMBER=111
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_REMOVE=true
+
+    stub docker \
+        "buildx inspect builder-name : exit 1"
+
+    run "$PWD"/hooks/pre-exit
+
+    assert_success
+    assert_output "~~~ :docker: Cannot remove Builder Instance 'builder-name' as does not exist"
+}
