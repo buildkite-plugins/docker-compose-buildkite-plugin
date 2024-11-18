@@ -42,6 +42,6 @@ if [[ "${builder_remove}" == true ]]; then
     docker buildx stop "${builder_name}"
     docker buildx rm "${builder_name}" ${builder_remove_args:+${builder_remove_args[@]}}
   else
-    echo "~~~ :docker: Cannot remove Builder Instance '${builder_name}' as does not exist"
+    echo "~~~ :warning: Cannot remove Builder Instance '${builder_name}' as does not exist"
   fi
 fi

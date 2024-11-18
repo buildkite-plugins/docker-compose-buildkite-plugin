@@ -183,5 +183,5 @@ teardown() {
     run "$PWD"/hooks/pre-exit
 
     assert_success
-    assert_output "~~~ :docker: Cannot remove Builder Instance 'builder-name' as does not exist"
+    assert_output "~~~ :warning: Cannot remove Builder Instance 'builder-name' as does not exist"
 }
