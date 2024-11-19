@@ -331,7 +331,7 @@ steps:
           cache-from:
             - "app:myregistry:port/myrepo/myapp:my-branch"
             - "app:myregistry:port/myrepo/myapp:latest"
-          driver:
+          builder:
             name: container
             driver: docker-container
             create: true
@@ -353,7 +353,7 @@ steps:
           cache-from:
             - "app:myregistry:port/myrepo/myapp:my-branch"
             - "app:myregistry:port/myrepo/myapp:latest"
-          driver:
+          builder:
             name: container
             use: true
 ```
@@ -372,7 +372,7 @@ steps:
           cache-from:
             - "app:myregistry:port/myrepo/myapp:my-branch"
             - "app:myregistry:port/myrepo/myapp:latest"
-          driver:
+          builder:
             name: container
             remove: true
 ```
@@ -396,7 +396,7 @@ steps:
             - type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
           cache-to:
             - type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
-          driver:
+          builder:
             name: container
             use: true
             create: true
@@ -410,7 +410,7 @@ steps:
           build: app
           cache-from:
             - type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
-          driver:
+          builder:
             name: container
             use: true
             create: true
