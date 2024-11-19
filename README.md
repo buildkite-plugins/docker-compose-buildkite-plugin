@@ -356,7 +356,7 @@ The default is `true`.
 
 ##### `create` (boolean)
 
-If set to true, will use `docker buildx create` to create a new Builder Instance using the propeties defined.
+If set to true, will use `docker buildx create` to create a new Builder Instance using the propeties defined. If a Builder Instance with the same `name` already exists, it will not be recreated.
 
 The default is `false`.
 
