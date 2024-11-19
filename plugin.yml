@@ -50,7 +50,7 @@ configuration:
         remove:
           type: boolean
         use:
-          type: string
+          type: boolean
       additionalProperties: false
     build-labels:
       type: [ string, array ]
