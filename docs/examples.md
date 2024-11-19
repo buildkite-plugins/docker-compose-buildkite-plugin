@@ -401,19 +401,20 @@ steps:
             use: true
             create: true
             driver: docker-container
+  
   - wait
 
   - label: ":docker: Build an image using remote cache"
-  plugins:
-    - docker-compose#v5.4.1:
-        build: app
-        cache-from:
-          - type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
-        driver:
-          name: container
-          use: true
-          create: true
-          driver: docker-container
+    plugins:
+      - docker-compose#v5.4.1:
+          build: app
+          cache-from:
+            - type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
+          driver:
+            name: container
+            use: true
+            create: true
+            driver: docker-container
 ```
 
 The first Step will build the Image using a Builder Instance with the `docker-container` driver and push the image cache to the remote registry, as specified by `cache-to`, with additional cache export options being used to export all the layers of intermediate steps with the image manifests. More details cache export options [here](https://github.com/moby/buildkit?tab=readme-ov-file#registry-push-image-and-cache-separately).
