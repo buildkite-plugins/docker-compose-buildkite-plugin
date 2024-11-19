@@ -381,3 +381,41 @@ steps:
 **To keep the daemon or state, use the `keep-daemon` or `keep-state` parameters.**
 **These parameter are only applicable with specific Drivers, for detail see [`docker buildx rm`](https://docs.docker.com/reference/cli/docker/buildx/rm/).**
 
+### Reusing caches from remote regestries
+
+A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a remote registry, but requires pushing cache and manifests to a registry using a Builder Driver that supports cache exports e.g., `docker-container` - the `docker` driver does not support this by default. This requires use of the `cache-from`, `cache-to`, `name` and `use` parameters but will use the `create` and `driver` parameters to create the Builder Instance across multiple Agents:
+
+```yaml
+steps:
+  - label: ":docker: Build an image and push cache"
+    plugins:
+      - docker-compose#v5.4.1:
+          build: app
+          push: app:${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
+          cache-from:
+            - type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
+          cache-to:
+            - type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
+          driver:
+            name: container
+            use: true
+            create: true
+            driver: docker-container
+  - wait
+
+  - label: ":docker: Build an image using remote cache"
+  plugins:
+    - docker-compose#v5.4.1:
+        build: app
+        cache-from:
+          - type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
+        driver:
+          name: container
+          use: true
+          create: true
+          driver: docker-container
+```
+
+The first Step will build the Image using a Builder Instance with the `docker-container` driver and push the image cache to the remote registry, as specified by `cache-to`, with additional cache export options being used to export all the layers of intermediate steps with the image manifests. More details cache export options [here](https://github.com/moby/buildkit?tab=readme-ov-file#registry-push-image-and-cache-separately).
+
+The second Step will build the Image using a Builder Instance with the `docker-container` driver and use remote registry for the image cache, as specified by `cache-from`, speeding up Image building process.
