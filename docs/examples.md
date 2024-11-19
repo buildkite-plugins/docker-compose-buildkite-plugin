@@ -271,7 +271,7 @@ A newly spawned agent won't contain any of the docker caches for the first run w
 
 ```yaml
 steps:
-  - label: ":docker Build an image"
+  - label: ":docker: Build an image"
     plugins:
       - docker-compose#v5.4.1:
           build: app
@@ -295,7 +295,7 @@ The values you add in the `cache-from` will be mapped to the corresponding servi
 
 ```yaml
 steps:
-  - label: ":docker Build an image"
+  - label: ":docker: Build an image"
     plugins:
       - docker-compose#v5.4.1:
           build: app
@@ -312,3 +312,72 @@ steps:
           push:
             - app:myregistry:port/myrepo/myapp:latest
 ```
+
+### Create, Use and Remove Builder Instances
+
+#### Create
+
+Most Docker setups, unless configured, will use the `docker` Builder Driver by default. More details on it [here](https://docs.docker.com/build/builders/drivers/docker/).
+
+The `docker` driver can handle most situations but for advance features with the Docker, different Builder Drivers are required and this requires a Builder Instance being created first, which can be done manually or with the Plugin. To create a Builder Instance using a chosen Driver, requires the `name`, `driver` and `create` parameters:
+
+```yaml
+steps:
+  - label: ":docker: Build an image"
+    plugins:
+      - docker-compose#v5.4.1:
+          build: app
+          push: app:index.docker.io/myorg/myrepo:my-branch
+          cache-from:
+            - "app:myregistry:port/myrepo/myapp:my-branch"
+            - "app:myregistry:port/myrepo/myapp:latest"
+          driver:
+            name: container
+            driver: docker-container
+            create: true
+```
+
+**If a Builder Instance with the same `name` already exists, it will not be recreated.**
+
+#### Use
+
+By default, Builder Instances specified by `name` or that are created with `create` are not used, and the default Builder Instance on the Agent will be used. To use a Builder Instance, requires the `name` and `use` parameters and the Builder Instance to exist:
+
+```yaml
+steps:
+  - label: ":docker: Build an image"
+    plugins:
+      - docker-compose#v5.4.1:
+          build: app
+          push: app:index.docker.io/myorg/myrepo:my-branch
+          cache-from:
+            - "app:myregistry:port/myrepo/myapp:my-branch"
+            - "app:myregistry:port/myrepo/myapp:latest"
+          driver:
+            name: container
+            use: true
+```
+
+#### Remove
+
+By default, Builder Instances specified by `name` or that are created with `create` are not removed after the Job finishs. To remove a Builder Instance, requires the `name` and `remove` parameters and the Builder Instance to exist:
+
+```yaml
+steps:
+  - label: ":docker: Build an image"
+    plugins:
+      - docker-compose#v5.4.1:
+          build: app
+          push: app:index.docker.io/myorg/myrepo:my-branch
+          cache-from:
+            - "app:myregistry:port/myrepo/myapp:my-branch"
+            - "app:myregistry:port/myrepo/myapp:latest"
+          driver:
+            name: container
+            remove: true
+```
+
+**Removing a Builder Instance by default will remove the daemon running it and its state (which can be used for cache).**
+**To keep the daemon or state, use the `keep-daemon` or `keep-state` parameters.**
+**These parameter are only applicable with specific Drivers, for detail see [`docker buildx rm`](https://docs.docker.com/reference/cli/docker/buildx/rm/).**
+
