@@ -384,9 +384,9 @@ steps:
 **To keep the daemon or state, use the `keep-daemon` or `keep-state` parameters.**
 **These parameter are only applicable with specific Drivers, for detail see [`docker buildx rm`](https://docs.docker.com/reference/cli/docker/buildx/rm/).**
 
-### Reusing caches from remote regestries
+### Reusing caches from remote registries
 
-A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a remote registry, but requires pushing cache and manifests to a registry using a Builder Driver that supports cache exports e.g., `docker-container` - the `docker` driver does not support this by default. This requires use of the `cache-from`, `cache-to`, `name` and `use` parameters but will use the `create` and `driver` parameters to create the Builder Instance across multiple Agents:
+A newly spawned agent won't contain any of the docker caches for the first run which will result in a long build step. To mitigate this you can reuse caches from a remote registry, but requires pushing cache and manifests to a registry using a Builder Driver that supports cache exports e.g., `docker-container` - the `docker` driver does not support this by default. For any remote registry used that requires authenication, see [Authenticated registries](#authenticated-registries) for more details. This requires use of the `cache-from`, `cache-to`, `name` and `use` parameters but will use the `create` and `driver` parameters to create the Builder Instance across multiple Agents:
 
 ```yaml
 steps:
