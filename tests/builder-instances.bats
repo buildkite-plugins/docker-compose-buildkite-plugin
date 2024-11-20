@@ -5,12 +5,6 @@ load '../lib/shared'
 
 # export DOCKER_STUB_DEBUG=/dev/tty
 
-teardown() {
-    if [[ -f "${BATS_MOCK_BINDIR}/docker" ]]; then
-        unstub docker
-    fi
-}
-
 @test "No Builder Instance Parameters" {
 
     stub docker \
@@ -21,6 +15,8 @@ teardown() {
 
     assert_success
     assert_output "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+
+    unstub docker
 }
 
 @test "Create Builder Instance with invalid Name" {
@@ -99,6 +95,8 @@ teardown() {
 
     assert_failure
     assert_output "+++ 🚨 Builder Instance 'builder-name' does not exist"
+
+    unstub docker
 }
 
 @test "Use Builder Instance that Exists" {
@@ -113,6 +111,8 @@ teardown() {
 
     assert_success
     assert_output "~~~ :docker: Using Builder Instance '$BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME'"
+
+    unstub docker
 }
 
 @test "Remove Builder Instance that Exists" {
@@ -130,6 +130,8 @@ teardown() {
 
     assert_success
     assert_output "~~~ :docker: Cleaning up Builder Instance 'builder-name'"
+
+    unstub docker
 }
 
 @test "Remove Builder Instance that Exists with keep-daemon" {
@@ -148,6 +150,8 @@ teardown() {
 
     assert_success
     assert_output "~~~ :docker: Cleaning up Builder Instance 'builder-name'"
+
+    unstub docker
 }
 
 @test "Remove Builder Instance that Exists with keep-daemon and keep-state" {
@@ -167,6 +171,8 @@ teardown() {
 
     assert_success
     assert_output "~~~ :docker: Cleaning up Builder Instance 'builder-name'"
+    
+    unstub docker
 }
 
 @test "Remove Builder Instance that does not Exists" {
@@ -182,4 +188,6 @@ teardown() {
 
     assert_success
     assert_output "~~~ :warning: Cannot remove Builder Instance 'builder-name' as does not exist"
+
+    unstub docker
 }
