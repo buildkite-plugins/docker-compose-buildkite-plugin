@@ -374,6 +374,9 @@ steps:
             - "app:myregistry:port/myrepo/myapp:latest"
           builder:
             name: container
+            driver: docker-container
+            create: true
+            use: true
             remove: true
 ```
 
