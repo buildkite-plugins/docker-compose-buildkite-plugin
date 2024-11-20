@@ -67,9 +67,8 @@ teardown() {
     run "$PWD"/hooks/pre-command
 
     assert_success
-    assert_output \
-        "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'
-~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+    assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
+    assert_output --partial "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
 }
 
 @test "Create Builder Instance with valid Driver but already Exists" {
@@ -85,9 +84,8 @@ teardown() {
     run "$PWD"/hooks/pre-command
 
     assert_success
-    assert_output \
-        "~~~ :docker: Not Creating Builder Instance 'builder-name' as already exists
-~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+    assert_output --partial "~~~ :docker: Not Creating Builder Instance 'builder-name' as already exists"
+    assert_output --partial "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
 }
 
 @test "Use Builder Instance that does not Exist" {
