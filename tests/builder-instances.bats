@@ -65,6 +65,8 @@ load '../lib/shared'
     assert_success
     assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
     assert_output --partial "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+
+    unstub docker
 }
 
 @test "Create Builder Instance with valid Driver but already Exists" {
@@ -82,6 +84,31 @@ load '../lib/shared'
     assert_success
     assert_output --partial "~~~ :docker: Not Creating Builder Instance 'builder-name' as already exists"
     assert_output --partial "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+
+    unstub docker
+}
+
+@test "Create Builder Instance with valid Driver but not used" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=false
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=docker-container
+
+    stub docker \
+        "buildx inspect builder-name : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 0" \
+        "buildx inspect : echo 'Name: test'" \
+        "buildx inspect : echo 'Driver: driver'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
+    assert_output --partial "~~~ :warning: Builder Instance 'builder-name' created but will not be used as 'use: true' parameter not specified"
+    
+    assert_output --partial "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+
+    unstub docker
 }
 
 @test "Use Builder Instance that does not Exist" {

@@ -62,6 +62,9 @@ if [[ "${builder_create}" == "true" ]]; then
 
         echo "~~~ :docker: Creating Builder Instance '${builder_name}' with Driver '${build_driver}'"
         docker buildx create "${builder_instance_args[@]}"
+        if [[ "${builder_use}" == "false" ]]; then
+            echo "~~~ :warning: Builder Instance '${builder_name}' created but will not be used as 'use: true' parameter not specified"
+        fi
     else
         echo "~~~ :docker: Not Creating Builder Instance '${builder_name}' as already exists"
     fi
