@@ -320,3 +320,14 @@ function validate_tag {
     return 1
   fi
 }
+
+function builder_instance_exists() {
+    local builder_name="$1"
+
+    # Check if the specified builder exists by suppressing output and checking the exit status
+    if docker buildx inspect "${builder_name}" >/dev/null 2>&1; then
+        return 0 # Builder exists
+    else
+        return 1 # Builder does not exist
+    fi
+}

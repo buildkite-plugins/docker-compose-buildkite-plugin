@@ -1,0 +1,85 @@
+#!/bin/bash
+set -ueo pipefail
+
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+# shellcheck source=lib/shared.bash
+. "$DIR/../lib/shared.bash"
+
+builder_create="$(plugin_read_config BUILDER_CREATE "false")"
+builder_use="$(plugin_read_config BUILDER_USE "false")"
+builder_name="$(plugin_read_config BUILDER_NAME "")"
+
+if [[ "${builder_create}" == "true" ]] || [[ "${builder_use}" == "true" ]]; then
+    if [[ -z "${builder_name}" ]]; then
+        echo "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
+        exit 1
+    fi
+fi
+
+if [[ "${builder_create}" == "true" ]]; then
+    if ! builder_instance_exists "${builder_name}"; then
+        builder_instance_args=(--name "${builder_name}")
+
+        build_driver="$(plugin_read_config BUILDER_DRIVER "")"
+        valid_drivers="docker-container|kubernetes|remote"
+        if [[ "${build_driver}" =~ ^(${valid_drivers})$ ]]; then
+            builder_instance_args+=(--driver "${build_driver}")
+        else
+            echo "+++ 🚨 Invalid driver: '${build_driver}'"
+            echo "Valid Drivers: ${valid_drivers//|/, }"
+            exit 1
+        fi
+
+        if [[ "$(plugin_read_config BUILDER_BOOTSTRAP "true")" == "true" ]]; then
+            builder_instance_args+=("--bootstrap")
+        fi
+
+        if [[ "$(plugin_read_config BUILDER_DEBUG "false")" == "true" ]]; then
+            builder_instance_args+=("--debug")
+        fi
+
+        driver_opt="$(plugin_read_config BUILDER_DRIVER_OPT "")"
+        if [[ -n "${driver_opt}" ]]; then
+            builder_instance_args+=("--driver-opt ${driver_opt}")
+        fi
+
+        builder_platform="$(plugin_read_config BUILDER_PLATFORM "")"
+        if [[ -n "${builder_platform}" ]]; then
+            builder_instance_args+=("--platform ${builder_platform}")
+        fi
+
+        remote_address="$(plugin_read_config BUILDER_REMOTE_ADDRESS "")"
+        if [[ -n "${remote_address}" ]]; then
+            if [[ "${build_driver}" == "remote" ]]; then
+                builder_instance_args+=("${remote_address}")
+            else
+                echo "+++ 🚨 Builder Driver '${build_driver}' used with 'remote-address' parameter"
+                echo "'remote-address' can only be used with 'remote' driver"
+                exit 1
+            fi
+        fi
+
+        echo "~~~ :docker: Creating Builder Instance '${builder_name}' with Driver '${build_driver}'"
+        docker buildx create "${builder_instance_args[@]}"
+        if [[ "${builder_use}" == "false" ]]; then
+            echo "~~~ :warning: Builder Instance '${builder_name}' created but will not be used as 'use: true' parameter not specified"
+        fi
+    else
+        echo "~~~ :docker: Not Creating Builder Instance '${builder_name}' as already exists"
+    fi
+fi
+
+if [[ "${builder_use}" == "true" ]]; then
+    if builder_instance_exists "${builder_name}"; then
+        echo "~~~ :docker: Using Builder Instance '${builder_name}'"
+        docker buildx use "${builder_name}"
+    else
+        echo "+++ 🚨 Builder Instance '${builder_name}' does not exist"
+        exit 1
+    fi
+else
+    current_builder=$(docker buildx inspect | grep -m 1 "Name" | awk '{print $2}') || true
+    current_builder_driver=$(docker buildx inspect | grep -m 1 "Driver" | awk '{print $2}') || true
+    echo "~~~ :docker: Using Default Builder '${current_builder}' with Driver '${current_builder_driver}'"
+fi

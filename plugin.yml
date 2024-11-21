@@ -23,6 +23,35 @@ configuration:
     build-alias:
       type: [ string, array ]
       minimum: 1
+    builder:
+      type: object
+      properties:
+        bootstrap:
+          type: boolean
+        create:
+          type: boolean
+        debug:
+          type: boolean
+        driver:
+          type: string
+          enum: [ "docker-container", "kubernetes", "remote" ]
+        driver-opt:
+          type: string
+        keep-daemon:
+          type: boolean
+        keep-state:
+          type: boolean
+        name:
+          type: string
+        platform:
+          type: string
+        remote-address:
+          type: string
+        remove:
+          type: boolean
+        use:
+          type: boolean
+      additionalProperties: false
     build-labels:
       type: [ string, array ]
       minimum: 1

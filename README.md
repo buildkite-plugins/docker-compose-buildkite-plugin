@@ -344,6 +344,88 @@ If set to true, docker compose will build with the `--with-dependencies` option 
 
 The default is `false`.
 
+#### `builder` (object)
+
+Defines the properties required for creating, using and removing Builder Instances. If not set, the default Builder Instance on the Agent Instance will be used.
+
+##### `bootstrap` (boolean)
+
+If set to true, will boot builder instance after creation. Optional when using `create`.
+
+The default is `true`.
+
+##### `create` (boolean)
+
+If set to true, will use `docker buildx create` to create a new Builder Instance using the propeties defined. If a Builder Instance with the same `name` already exists, it will not be recreated.
+
+The default is `false`.
+
+##### `debug` (boolean)
+
+If set to true, enables debug logging during creation of builder instance. Optional when using `create`.
+
+The default is `false`.
+
+##### `driver`
+
+If set will create a Builder Instance using the selected Driver and use it. Available Drivers:
+
+- `docker-container` creates a dedicated BuildKit container using Docker.
+- `kubernetes` creates BuildKit pods in a Kubernetes cluster.
+- `remote` connects directly to a manually managed BuildKit daemon.
+
+More details on different [Build Drivers](https://docs.docker.com/build/builders/drivers/).
+
+##### `driver-opt`
+
+Commas separated, Key-Value pairs of driver-specific options to configure the Builder Instance when using `create`. Available options for each Driver:
+
+- [docker-container](https://docs.docker.com/build/builders/drivers/docker-container/)
+- [kubernetes](https://docs.docker.com/build/builders/drivers/kubernetes/)
+- [remote](https://docs.docker.com/build/builders/drivers/remote/)
+
+Example: `memory=100m,cpuset-cpus=1`
+
+##### `keep-daemon` (boolean)
+
+If set to true, will keep the BuildKit daemon running after the buildx context (Builder) is removed. This is useful when you manage BuildKit daemons and buildx contexts independently. Only supported by the `docker-container` and `kubernetes` drivers. Optional when using `remove`.
+
+The default is `false`.
+
+##### `keep-state` (boolean)
+
+If set to true, will keep BuildKit state so it can be reused by a new Builder with the same name, persisting the driver's cache. Currently, only supported by the `docker-container` driver. Optional when using `remove`.
+
+The default is `false`.
+
+##### `name`
+
+Sets the name of the Builder instance to create or use. Required when using `create` or `use` builder paramaters.
+
+##### `platform`
+
+Commas separated, fixed platforms for builder instance. Optional when using `create`.
+
+Example: `linux/amd64,linux/arm64`
+
+##### `remote-address`
+
+Address of remote builder instance. Required when using `driver: remote`.
+
+Example: `tcp://localhost:1234`
+
+##### `remove` (boolean)
+
+If set to true will stop and remove the Builder Instance specified by `name`.
+
+The default is `false`.
+
+##### `use` (boolean)
+
+If set to true will use Builder Instance specified by `name`.
+
+The default is `false`.
+
 ## Developing
 
 To run the tests:

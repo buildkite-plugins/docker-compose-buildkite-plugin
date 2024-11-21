@@ -13,10 +13,35 @@ rm -f "docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 
 # clean up resources after a run command. we do this here so that it will
 # run after a job is cancelled
-if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true")" == "true" ]] ; then
+if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true")" == "true" ]]; then
   # shellcheck source=lib/run.bash
   . "$DIR/../lib/run.bash"
 
   echo "~~~ :docker: Cleaning up after docker-compose" >&2
   compose_cleanup
+fi
+
+# clean up builder instances if specified
+builder_name="$(plugin_read_config BUILDER_NAME "")"
+builder_remove="$(plugin_read_config BUILDER_REMOVE "false")"
+
+if [[ "${builder_remove}" == true ]]; then
+  if builder_instance_exists "${builder_name}"; then
+
+    builder_remove_args=("${builder_name}")
+
+    if [[ "$(plugin_read_config BUILDER_KEEP_DAEMON "false")" == "true" ]]; then
+      builder_remove_args+=("--keep-daemon")
+    fi
+
+    if [[ "$(plugin_read_config BUILDER_KEEP_STATE "false")" == "true" ]]; then
+      builder_remove_args+=("--keep-state")
+    fi
+
+    echo "~~~ :docker: Cleaning up Builder Instance '${builder_name}'"
+    docker buildx stop "${builder_name}"
+    docker buildx rm "${builder_remove_args[@]}"
+  else
+    echo "~~~ :warning: Cannot remove Builder Instance '${builder_name}' as does not exist"
+  fi
 fi
