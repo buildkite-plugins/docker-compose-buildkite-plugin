@@ -396,9 +396,9 @@ steps:
           build: app
           push: app:${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
           cache-from:
-            - type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
+            - "app:type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
           cache-to:
-            - type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
+            - "app:type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
           builder:
             name: container
             use: true
@@ -412,7 +412,7 @@ steps:
       - docker-compose#v5.4.1:
           build: app
           cache-from:
-            - type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache
+            - "app:type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
           builder:
             name: container
             use: true
