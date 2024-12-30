@@ -288,7 +288,7 @@ A list of KEY=VALUE that are passed through as service labels when image is bein
 
 #### `compatibility` (boolean)
 
-If set to true, all docker compose commands will rum with compatibility mode. Equivalent to `--compatibility` in docker compose.
+If set to true, all docker compose commands will run with compatibility mode. Equivalent to `--compatibility` in docker compose.
 
 The default is `false`.
 
