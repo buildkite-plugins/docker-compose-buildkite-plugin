@@ -108,13 +108,13 @@ configuration:
       type: [ boolean, string ]
     no-cache:
       type: boolean
-    progress:
-      type: string
-      enum: [ "auto", "tty", "plain", "json", "quiet" ]
     pre-run-dependencies:
       type: boolean
     prebuilt-image-namespace:
       type: string
+    progress:
+      type: string
+      enum: [ "auto", "tty", "plain", "json", "quiet" ]
     propagate-environment:
       type: boolean
     propagate-uid-gid:
@@ -199,8 +199,8 @@ configuration:
     mount-checkout: [ run ]
     mount-ssh-agent: [ run ]
     no-cache: [ build, run ]
-    progress: [ build, push, run ]
     pre-run-dependencies: [ run ]
+    progress: [ build, push, run ]
     propagate-environment: [ run ]
     propagate-uid-gid: [ run ]
     pull: [ run ]
