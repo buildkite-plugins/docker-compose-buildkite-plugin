@@ -224,6 +224,30 @@ cmd3"
   unstub buildkite-agent
 }
 
+@test "Run with progress=quiet" {
+  export BUILDKITE_COMMAND=pwd
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROGRESS=quiet
+
+  stub docker \
+    "compose --progress quiet -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose --progress quiet -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose --progress quiet -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with use aliases output"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with use aliases output"
+  unstub docker
+  unstub buildkite-agent
+}
+
 @test "Run without a prebuilt image without pulling" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_COMMAND="echo hello world"
