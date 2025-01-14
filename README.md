@@ -2,11 +2,10 @@
 
 A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) that lets you build, run and push build steps using [Docker Compose](https://docs.docker.com/compose/).
 
-* Containers are built, run and linked on demand using Docker Compose
-* Containers are namespaced to each build job, and cleaned up after use
-* Supports pre-building of images, allowing for fast parallel builds across distributed agents
-* Supports pushing tagged images to a repository
-
+- Containers are built, run and linked on demand using Docker Compose
+- Containers are namespaced to each build job, and cleaned up after use
+- Supports pre-building of images, allowing for fast parallel builds across distributed agents
+- Supports pushing tagged images to a repository
 
 ## Examples
 
@@ -30,7 +29,7 @@ The name of the service the command should be run within. If the docker-compose 
 
 #### `push`
 
-A list of services to push.  You can specify just the service name to push or the format `service:registry:tag` to override where the service's image is pushed to. Needless to say, the image for the service must have been built in the very same step or built and pushed previously to ensure it is available for pushing.
+A list of services to push. You can specify just the service name to push or the format `service:registry:tag` to override where the service's image is pushed to. Needless to say, the image for the service must have been built in the very same step or built and pushed previously to ensure it is available for pushing.
 
 :warning: If a service does not have an `image` configuration and no registry/tag are specified in the `push` option, pushing of the service will be skipped by docker.
 
@@ -190,7 +189,7 @@ Note that there is a single build command run for all services so the target val
 
 A list of volumes to mount into the container. If a matching volume exists in the Docker Compose config file, this option will override that definition.
 
-Additionally, volumes may be specified via the agent environment variable `BUILDKITE_DOCKER_DEFAULT_VOLUMES`, a `;` (semicolon)  delimited list of mounts in the `-v` syntax. (Ex. `buildkite:/buildkite;./app:/app`).
+Additionally, volumes may be specified via the agent environment variable `BUILDKITE_DOCKER_DEFAULT_VOLUMES`, a `;` (semicolon) delimited list of mounts in the `-v` syntax. (Ex. `buildkite:/buildkite;./app:/app`).
 
 #### `expand-volume-vars` (run only, boolean, unsafe)
 
@@ -235,6 +234,10 @@ The default is `false`.
 If set to false, runs with `--no-deps` and doesn't start linked services.
 
 The default is `true`.
+
+### `progress` (string)
+
+If set, runs with `--progress VALUE` (can be any of: auto, tty, plain, json, quiet).
 
 #### `pre-run-dependencies` (run only, boolean)
 
@@ -293,8 +296,9 @@ If set to true, all docker compose commands will run with compatibility mode. Eq
 The default is `false`.
 
 Note that [the effect of this option changes depending on your docker compose CLI version](https://docs.docker.com/compose/cli-command-compatibility/#flags-that-will-not-be-implemented):
-* in v1 it translates (composefile) v3 deploy keys to their non-swarm (composefile) v2 equivalents
-* in v2 it will revert some behaviour to v1 as well, including (but not limited to):
+
+- in v1 it translates (composefile) v3 deploy keys to their non-swarm (composefile) v2 equivalents
+- in v2 it will revert some behaviour to v1 as well, including (but not limited to):
   - [Character separator for container names](https://github.com/docker/compose/blob/a0acc20d883ce22b8b0c65786e3bea1328809bbd/cmd/compose/compose.go#L181)
   - [Not normalizing compose models (when running `config`)](https://github.com/docker/compose/blob/2e7644ff21f9ca0ea6fb5e8d41d4f6af32cd7e20/cmd/compose/convert.go#L69)
 

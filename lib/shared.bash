@@ -266,6 +266,10 @@ function run_docker_compose() {
     command+=(--compatibility)
   fi
 
+  if [[ -n "$(plugin_read_config PROGRESS)" ]]; then
+    command+=(--progress "$(plugin_read_config PROGRESS)")
+  fi
+
   for file in $(docker_compose_config_files) ; do
     command+=(-f "$file")
   done
