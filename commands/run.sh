@@ -164,6 +164,23 @@ if [[ "$(plugin_read_config PROPAGATE_AWS_AUTH_TOKENS "false")" =~ ^(true|on|1)$
   fi
 fi
 
+# Propagate gcp auth environment variables into the container e.g. from workload identity federation plugins
+if [[ "$(plugin_read_config PROPAGATE_GCP_AUTH_TOKENS "false")" =~ ^(true|on|1)$ ]] ; then
+  if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]] ; then
+      run_params+=( --env "GOOGLE_APPLICATION_CREDENTIALS" )
+  fi
+  if [[ -n "${CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE:-}" ]] ; then
+      run_params+=( --env "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE" )
+  fi
+  if [[ -n "${BUILDKITE_OIDC_TMPDIR:-}" ]] ; then
+      run_params+=( --env "BUILDKITE_OIDC_TMPDIR" )
+      # Add the OIDC temp dir as a volume
+      run_params+=( --volume "${BUILDKITE_OIDC_TMPDIR}:${BUILDKITE_OIDC_TMPDIR}" )
+  fi
+fi
+
+
+
 # If requested, propagate a set of env vars as listed in a given env var to the
 # container.
 if [[ -n "$(plugin_read_config ENV_PROPAGATION_LIST)" ]]; then
