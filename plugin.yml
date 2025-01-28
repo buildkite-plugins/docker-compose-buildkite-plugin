@@ -115,6 +115,8 @@ configuration:
     progress:
       type: string
       enum: [ "auto", "tty", "plain", "json", "quiet" ]
+    propagate-aws-auth-tokens:
+      type: boolean
     propagate-gcp-auth-tokens:
       type: boolean
     propagate-environment:
