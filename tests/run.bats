@@ -1340,3 +1340,29 @@ cmd3"
 
   unstub docker
 }
+
+@test "Run with propagate gcp auth tokens" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROPAGATE_GCP_AUTH_TOKENS=true
+
+  export BUILDKITE_OIDC_TMPDIR="/tmp/.tmp.Xdasd23"
+  export GOOGLE_APPLICATION_CREDENTIALS="${BUILDKITE_OIDC_TMPDIR}/credentials.json"
+  export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${GOOGLE_APPLICATION_CREDENTIALS}"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo ran myservice dependencies" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --env GOOGLE_APPLICATION_CREDENTIALS --env CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE --env BUILDKITE_OIDC_TMPDIR --volume \"/tmp/.tmp.Xdasd23:/tmp/.tmp.Xdasd23\" -T --rm myservice /bin/sh -e -c 'echo hello world' : echo ran myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice"
+  unstub docker
+  unstub buildkite-agent
+}
