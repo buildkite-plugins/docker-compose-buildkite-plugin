@@ -54,6 +54,17 @@ You need to:
 * delete these options
 * add a `push` or `run` on the very same step
 
+Example change:
+```diff
+-    - docker-compose#v4.16.0:
++    - docker-compose#v5.0.0:
+         build: base
+-        image-name: image-name-build_id
+-        image-repository: image-repo-host/builds
+         push:
++        - image-repo-host/builds:image-name-build_id
+```
+
 ## `cli-version`
 
 If you were using this option to ensure that `docker compose` was used, you should be able to remove it safely. On the other hand, if your build environment only has the old v1 CLI interface (`docker-compose`), you will need to make some changes.
