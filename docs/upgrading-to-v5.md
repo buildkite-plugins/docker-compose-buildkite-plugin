@@ -44,7 +44,7 @@ The plugin should print out the override file used in the step's logs for you to
 
 As per the documentation, the images you want to use as cache must have been built with the `BUILDKIT_INLINE_CACHE=1` build argument. Otherwise, the manifest used by docker to determine if the image contains layers that could be useful to pull will not be present and will not be used.
 
-Note that docker silently ignores any `cache-from` configuration that is not valid or can not be used. 
+Note that docker silently ignores any `cache-from` configuration that is not valid or can not be used.
 
 ## `image-repository` and/or `image-name`
 
@@ -53,6 +53,8 @@ These options were used to push images in `build` steps.
 You need to:
 * delete these options
 * add a `push` or `run` on the very same step
+* combine them into a single entry in the format `repository:tag`
+
 
 Example change:
 ```diff
