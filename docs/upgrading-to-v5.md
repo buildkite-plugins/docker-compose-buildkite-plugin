@@ -53,7 +53,7 @@ These options were used to push images in `build` steps.
 You need to:
 * delete these options
 * add a `push` or `run` on the very same step
-* combine them into a single entry in the format `repository:tag`
+* combine them into a single entry in the format `service:repository:tag`
 
 
 Example change:
@@ -64,7 +64,7 @@ Example change:
 -        image-name: image-name-build_id
 -        image-repository: image-repo-host/builds
          push:
-+        - image-repo-host/builds:image-name-build_id
++        - base:image-repo-host/builds:image-name-build_id
 ```
 
 ## `cli-version`
