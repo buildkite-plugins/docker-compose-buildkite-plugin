@@ -41,12 +41,12 @@ if [[ "${builder_create}" == "true" ]]; then
 
         driver_opt="$(plugin_read_config BUILDER_DRIVER_OPT "")"
         if [[ -n "${driver_opt}" ]]; then
-            builder_instance_args+=("--driver-opt ${driver_opt}")
+            builder_instance_args+=("--driver-opt" "${driver_opt}")
         fi
 
         builder_platform="$(plugin_read_config BUILDER_PLATFORM "")"
         if [[ -n "${builder_platform}" ]]; then
-            builder_instance_args+=("--platform ${builder_platform}")
+            builder_instance_args+=("--platform" "${builder_platform}")
         fi
 
         remote_address="$(plugin_read_config BUILDER_REMOTE_ADDRESS "")"
