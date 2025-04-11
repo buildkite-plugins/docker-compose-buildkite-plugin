@@ -111,6 +111,10 @@ fi
 
 build_params+=(build)
 
+if [[ -n "$(plugin_read_config BUILDER_NAME "")" ]] && [[ "$(plugin_read_config BUILDER_USE_ONCE "false")" == "true" ]]; then
+  build_params+=("--builder" "$(plugin_read_config BUILDER_NAME "")")
+fi
+
 if [[ ! "$(plugin_read_config SKIP_PULL "false")" == "true" ]] ; then
   build_params+=(--pull)
 fi

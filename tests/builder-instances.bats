@@ -25,7 +25,7 @@ load '../lib/shared'
     run "$PWD"/hooks/pre-command
 
     assert_failure
-    assert_output "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
+    assert_output "+++ 🚨 Builder Name cannot be empty when using 'create', 'use', or 'use-once' parameters"
 }
 
 @test "Use Builder Instance with invalid Name" {
@@ -34,7 +34,7 @@ load '../lib/shared'
     run "$PWD"/hooks/pre-command
 
     assert_failure
-    assert_output "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
+    assert_output "+++ 🚨 Builder Name cannot be empty when using 'create', 'use', or 'use-once' parameters"
 }
 
 @test "Create Builder Instance with invalid Driver" {
@@ -104,8 +104,8 @@ load '../lib/shared'
 
     assert_success
     assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
-    assert_output --partial "~~~ :warning: Builder Instance 'builder-name' created but will not be used as 'use: true' parameter not specified"
-    
+    assert_output --partial "~~~ :warning: Builder Instance 'builder-name' created but will not be used as 'use: true' or 'use-once: true' parameter not specified"
+
     assert_output --partial "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
 
     unstub docker
@@ -198,7 +198,7 @@ load '../lib/shared'
 
     assert_success
     assert_output "~~~ :docker: Cleaning up Builder Instance 'builder-name'"
-    
+
     unstub docker
 }
 
