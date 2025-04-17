@@ -8,12 +8,11 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 builder_create="$(plugin_read_config BUILDER_CREATE "false")"
 builder_use="$(plugin_read_config BUILDER_USE "false")"
-builder_use_once="$(plugin_read_config BUILDER_USE_ONCE "false")"
 builder_name="$(plugin_read_config BUILDER_NAME "")"
 
-if [[ "${builder_create}" == "true" ]] || [[ "${builder_use}" == "true" ]] || [[ "${builder_use_once}" == "true" ]]; then
+if [[ "${builder_create}" == "true" ]] || [[ "${builder_use}" == "true" ]]; then
     if [[ -z "${builder_name}" ]]; then
-        echo "+++ 🚨 Builder Name cannot be empty when using 'create', 'use', or 'use-once' parameters"
+        echo "+++ 🚨 Builder Name cannot be empty when using 'create' or 'use' parameters"
         exit 1
     fi
 fi
@@ -63,8 +62,8 @@ if [[ "${builder_create}" == "true" ]]; then
 
         echo "~~~ :docker: Creating Builder Instance '${builder_name}' with Driver '${build_driver}'"
         docker buildx create "${builder_instance_args[@]}"
-        if [[ "${builder_use}" == "false" ]] && [[ "${builder_use_once}" == "false" ]]; then
-            echo "~~~ :warning: Builder Instance '${builder_name}' created but will not be used as 'use: true' or 'use-once: true' parameter not specified"
+        if [[ "${builder_use}" == "false" ]]; then
+            echo "~~~ :warning: Builder Instance '${builder_name}' created but will not be used as 'use: true' parameter not specified"
         fi
     else
         echo "~~~ :docker: Not Creating Builder Instance '${builder_name}' as already exists"
@@ -74,15 +73,12 @@ fi
 if [[ "${builder_use}" == "true" ]]; then
     if builder_instance_exists "${builder_name}"; then
         echo "~~~ :docker: Using Builder Instance '${builder_name}'"
-        docker buildx use "${builder_name}"
     else
         echo "+++ 🚨 Builder Instance '${builder_name}' does not exist"
         exit 1
     fi
-elif [[ "${builder_use_once}" == "false" ]]; then
+else
     current_builder=$(docker buildx inspect | grep -m 1 "Name" | awk '{print $2}') || true
     current_builder_driver=$(docker buildx inspect | grep -m 1 "Driver" | awk '{print $2}') || true
     echo "~~~ :docker: Using Default Builder '${current_builder}' with Driver '${current_builder_driver}'"
-else
-    echo "~~~ :docker: Using Builder Instance '${builder_name}' once"
 fi
