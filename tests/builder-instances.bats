@@ -105,7 +105,7 @@ load '../lib/shared'
     assert_success
     assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
     assert_output --partial "~~~ :warning: Builder Instance 'builder-name' created but will not be used as 'use: true' parameter not specified"
-    
+
     assert_output --partial "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
 
     unstub docker
@@ -131,8 +131,7 @@ load '../lib/shared'
     export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
 
     stub docker \
-        "buildx inspect builder-name : exit 0" \
-        "buildx use builder-name : exit 0"
+        "buildx inspect builder-name : exit 0"
 
     run "$PWD"/hooks/pre-command
 
@@ -198,7 +197,7 @@ load '../lib/shared'
 
     assert_success
     assert_output "~~~ :docker: Cleaning up Builder Instance 'builder-name'"
-    
+
     unstub docker
 }
 

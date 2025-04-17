@@ -73,7 +73,6 @@ fi
 if [[ "${builder_use}" == "true" ]]; then
     if builder_instance_exists "${builder_name}"; then
         echo "~~~ :docker: Using Builder Instance '${builder_name}'"
-        docker buildx use "${builder_name}"
     else
         echo "+++ 🚨 Builder Instance '${builder_name}' does not exist"
         exit 1
