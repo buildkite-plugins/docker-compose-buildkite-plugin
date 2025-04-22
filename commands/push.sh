@@ -21,6 +21,16 @@ fi
 
 pulled_services=("")
 build_services=("")
+push_command=(push)
+pull_command=(pull)
+
+if [ "$(plugin_read_config QUIET_PUSH 'false')" == "true" ]; then
+  push_command+=("--quiet")
+fi
+
+if [ "$(plugin_read_config QUIET_PULL "false")" == "true" ] ; then
+  pull_command+=("--quiet")
+fi
 
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD; then
   build_services=("${result[@]}")
@@ -45,7 +55,7 @@ for line in $(plugin_read_list PUSH) ; do
     # Only pull it down once
     if ! in_array "${service_name}" "${pulled_services[@]}" ; then
       echo "~~~ :docker: Pulling pre-built service ${service_name}" >&2;
-      retry "$push_retries" plugin_prompt_and_run docker pull "$prebuilt_image"
+      retry "$push_retries" plugin_prompt_and_run docker "${pull_command[@]}" "$prebuilt_image"
       pulled_services+=("${service_name}")
     fi
 
@@ -64,7 +74,7 @@ for line in $(plugin_read_list PUSH) ; do
   # push: "service-name"
   if [[ ${#tokens[@]} -eq 1 ]] ; then
     echo "${group_type} :docker: Pushing images for ${service_name}" >&2;
-    retry "$push_retries" run_docker_compose push "${service_name}"
+    retry "$push_retries" run_docker_compose "${push_command[@]}" "${service_name}"
     set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${service_image}"
     target_image="${service_image}" # necessary for build-alias
   # push: "service-name:repo:tag"
@@ -72,7 +82,7 @@ for line in $(plugin_read_list PUSH) ; do
     target_image="$(IFS=:; echo "${tokens[*]:1}")"
     echo "${group_type} :docker: Pushing image $target_image" >&2;
     plugin_prompt_and_run docker tag "$service_image" "$target_image"
-    retry "$push_retries" plugin_prompt_and_run docker push "$target_image"
+    retry "$push_retries" plugin_prompt_and_run docker "${push_command[@]}" "$target_image"
     set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${target_image}"
   fi
 done
