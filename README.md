@@ -273,9 +273,15 @@ Sets `docker-compose` to run with `--verbose`
 
 The default is `false`.
 
-#### `quiet-pull` (run only, boolean)
+#### `quiet-pull` (run/push only, boolean)
 
-Start up dependencies with `--quiet-pull` to prevent even more logs during that portion of the execution.
+During `run`, start up dependencies with `--quiet-pull` to prevent even more logs during that portion of the execution. Will also add `--quiet` if a `docker pull` is executed before a `push` step.
+
+The default is `false`.
+
+#### `quiet-push` (push only, boolean)
+
+Will add `--quiet` to the `docker push` command to prevent such verbose logs.
 
 The default is `false`.
 
