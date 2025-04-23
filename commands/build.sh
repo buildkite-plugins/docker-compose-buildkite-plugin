@@ -115,6 +115,10 @@ if [[ ! "$(plugin_read_config SKIP_PULL "false")" == "true" ]] ; then
   build_params+=(--pull)
 fi
 
+if [[ -n "$(plugin_read_config BUILDER_NAME "")" ]] && [[ "$(plugin_read_config BUILDER_USE "false")" == "true" ]]; then
+  build_params+=("--builder" "$(plugin_read_config BUILDER_NAME "")")
+fi
+
 if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
   build_params+=(--no-cache)
 fi
