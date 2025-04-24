@@ -132,6 +132,8 @@ configuration:
       type: integer
     quiet-pull:
       type: boolean
+    quiet-push:
+      type: boolean
     require-prebuild:
       type: boolean
     rm:
@@ -210,7 +212,8 @@ configuration:
     pull: [ run ]
     pull-retries: [ run ]
     push-retries: [ push ]
-    quiet-pull: [ run ]
+    quiet-pull: [ push, run]
+    quiet-push: [ push ]
     require-prebuild: [ run ]
     rm: [ run ]
     run-image: [ run ]

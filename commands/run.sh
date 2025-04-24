@@ -71,17 +71,21 @@ if [[ ${#prebuilt_services[@]} -gt 0 ]] ; then
   up_params+=(-f "$override_file")
 fi
 
+pull_params+=("pull")
+
 # If there are multiple services to pull, run it in parallel (although this is now the default)
 if [[ ${#pull_services[@]} -gt 1 ]] ; then
-  pull_params+=("pull" "--parallel" "${pull_services[@]}")
-elif [[ ${#pull_services[@]} -eq 1 ]] ; then
-  pull_params+=("pull" "${pull_services[0]}")
+  pull_params+=("--parallel")
+fi
+
+if [ "$(plugin_read_config QUIET_PULL "false")" == "true" ] ; then
+  pull_params+=("--quiet")
 fi
 
 # Pull down specified services
 if [[ ${#pull_services[@]} -gt 0 ]] && [[ "$(plugin_read_config SKIP_PULL "false")" != "true" ]]; then
   echo "~~~ :docker: Pulling services ${pull_services[0]}"
-  retry "$pull_retries" run_docker_compose "${pull_params[@]}"
+  retry "$pull_retries" run_docker_compose "${pull_params[@]}" "${pull_services[@]}"
 fi
 
 # We set a predictable container name so we can find it and inspect it later on
