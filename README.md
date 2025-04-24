@@ -293,13 +293,17 @@ The default is `true`.
 
 #### `run-labels` (run only, boolean)
 
-If set to true, adds useful Docker labels to the primary container. See [Container Labels](#container-labels) for more info.
+If set to true, adds useful Docker labels to the primary container. See [Container Labels](docs/examples.md#container-labels) for more info.
 
 The default is `true`.
 
 #### `build-labels` (build only, string or array)
 
-A list of KEY=VALUE that are passed through as service labels when image is being built. These will be merged with any service labels defined in the compose file.
+A list of `KEY=VALUE` strings that are passed through as service labels when image is being built. These will be merged with any service labels defined in the compose file.
+
+:warning: Important: if any `VALUE` contains a line break it will cause unexpected behaviour (see [issue #476][i476])
+
+[i476]: https://github.com/buildkite-plugins/docker-compose-buildkite-plugin/issues/476
 
 #### `compatibility` (boolean)
 
