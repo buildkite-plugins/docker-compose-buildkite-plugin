@@ -53,3 +53,28 @@ load '../lib/metadata'
   assert_output --partial "buildkite-agent meta-data get docker-compose-plugin-built-image-tag-test"
   unstub buildkite-agent
 }
+
+@test "Set prebuilt image in metadata" {
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-test \* : echo setting metadata to \$4"
+
+  run set_prebuilt_image "docker-compose-plugin-" "test" "new-image"
+
+  assert_success
+
+  assert_output --partial "buildkite-agent meta-data set docker-compose-plugin-built-image-tag-test new-image"
+
+  unstub buildkite-agent
+}
+
+@test "Can skip setting prebuilt image in metadata" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_METADATA=false
+
+  run set_prebuilt_image "docker-compose-plugin-" "test" "new-image"
+
+  assert_success
+
+  refute_output --partial "buildkite-agent meta-data set docker-compose-plugin-built-image-tag-test new-image"
+  assert_output --partial "Not setting metadata for prebuilt image, push-metadata option is set to false"
+}
+
