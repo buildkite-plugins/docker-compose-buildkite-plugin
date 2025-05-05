@@ -31,6 +31,8 @@ The name of the service the command should be run within. If the docker-compose 
 
 A list of services to push. You can specify just the service name to push or the format `service:registry:tag` to override where the service's image is pushed to. Needless to say, the image for the service must have been built in the very same step or built and pushed previously to ensure it is available for pushing.
 
+**Important**: when the image for a service is pushed it sets metadata on the build so that future steps will know to use that image to run that service. This can lead to race conditions when pushing multiple images for a service. Can be turned off with the `push-metadata` option.
+
 :warning: If a service does not have an `image` configuration and no registry/tag are specified in the `push` option, pushing of the service will be skipped by docker.
 
 :warning: The `push` command will fail when the image refers to a remote registry that requires a login and the agent has not been authenticated for it (for example, using the [ecr](https://github.com/buildkite-plugins/ecr-buildkite-plugin) or [docker-login](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) plugins).
@@ -168,6 +170,12 @@ Default: `false`
 #### `pull-retries` (run only, integer)
 
 A number of times to retry failed docker pull. Defaults to 0.
+
+#### `push-metadata` (push only, boolean)
+
+Whether to set the metadata aboout the image for a service being pushed.
+
+Default: `true`.
 
 #### `push-retries` (push only, integer)
 
