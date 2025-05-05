@@ -320,7 +320,7 @@ Note that [the effect of this option changes depending on your docker compose CL
 
 #### `entrypoint` (run only)
 
-Sets the `--entrypoint` argument when running `docker compose`.
+Sets the `--entrypoint` argument when running `docker compose`, can be set to an empty string.
 
 #### `require-prebuild` (run only, boolean)
 
