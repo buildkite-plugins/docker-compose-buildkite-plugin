@@ -86,6 +86,13 @@ function plugin_read_list_into_result() {
   [[ ${#result[@]} -gt 0 ]] || return 1
 }
 
+function plugin_config_exists() {
+  local var="BUILDKITE_PLUGIN_DOCKER_COMPOSE_${1}"
+
+  # Check if the variable is set
+  [ "${!var+is_set}" != "" ]
+}
+
 # Returns the name of the docker compose project for this build
 function docker_compose_project_name() {
   # No dashes or underscores because docker-compose will remove them anyways
