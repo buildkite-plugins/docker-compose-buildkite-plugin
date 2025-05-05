@@ -285,7 +285,7 @@ if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
 fi
 
 # Optionally sets --entrypoint
-if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
+if plugin_config_exists ENTRYPOINT ; then
   run_params+=(--entrypoint)
   run_params+=("$(plugin_read_config ENTRYPOINT)")
 fi
