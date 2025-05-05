@@ -324,7 +324,7 @@ Sets the `--entrypoint` argument when running `docker compose`.
 
 #### `require-prebuild` (run only, boolean)
 
-If no prebuilt image is found for the run step, it will cause the plugin to fail the step.
+Make sure that images for the service being run and all specified in `pull` are found for the run step, fail the step otherwise. Note that specifying a `run-image` will skip this check for the service being run.
 
 The default is `false`.
 
