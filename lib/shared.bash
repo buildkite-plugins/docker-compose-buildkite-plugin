@@ -115,14 +115,12 @@ function docker_compose_config_files() {
   fi
 
   # If COMPOSE_PATH_SEPARATOR is not set, use the default separator
-  SEPARATOR="${COMPOSE_PATH_SEPARATOR:-}"
-  if [ -z ${SEPARATOR} ]; then
-    if is_windows ; then
-      SEPARATOR=";"
-    else
-      SEPARATOR=":"
-    fi
+  if is_windows ; then
+    DEFAULT_SEPARATOR=";"
+  else
+    DEFAULT_SEPARATOR=":"
   fi
+  SEPARATOR="${COMPOSE_PATH_SEPARATOR:-$DEFAULT_SEPARATOR}"
 
   # Process any (deprecated) colon delimited config paths
   for value in "${config_files[@]}" ; do
