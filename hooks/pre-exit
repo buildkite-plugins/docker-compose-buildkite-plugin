@@ -11,6 +11,8 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # remove build override files
 rm -f "docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 
+FAILURES=0
+
 # clean up resources after a run command. we do this here so that it will
 # run after a job is cancelled
 if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true")" == "true" ]]; then
@@ -18,7 +20,9 @@ if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true"
   . "$DIR/../lib/run.bash"
 
   echo "~~~ :docker: Cleaning up after docker-compose" >&2
-  compose_cleanup
+  if ! compose_cleanup; then
+    FAILURES="$?"
+  fi
 fi
 
 # clean up builder instances if specified
