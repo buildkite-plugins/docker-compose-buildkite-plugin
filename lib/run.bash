@@ -1,27 +1,40 @@
 #!/bin/bash
 
 compose_cleanup() {
+  local FAILURES=0
+
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "false" ]]; then
-    # Send all containers a SIGKILL
-    run_docker_compose kill || true
+    SIGNAL="kill"
   else
-    # Send all containers a friendly SIGTERM, followed by a SIGKILL after exceeding the stop_grace_period
-    run_docker_compose stop || true
+    SIGNAL="stop"
+  fi
+
+  # Send all containers the corresponding signal
+  if ! run_docker_compose "${SIGNAL}"; then
+    FAILURES=$((FAILURES + 1))
   fi
 
   # `compose down` doesn't support force removing images
+  RM_PARAMS=(rm --force)
   if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
-    run_docker_compose rm --force -v || true
-  else
-    run_docker_compose rm --force || true
+    RM_PARAMS+=(-v)
+  fi
+
+  if ! run_docker_compose "${RM_PARAMS[@]}"; then
+    FAILURES=$((FAILURES + 1))
   fi
 
   # Stop and remove all the linked services and network
+  DOWN_PARAMS=(down --remove-orphans)
   if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
-    run_docker_compose down --remove-orphans --volumes || true
-  else
-    run_docker_compose down --remove-orphans || true
+    DOWN_PARAMS+=(--volumes)
   fi
+
+  if ! run_docker_compose "${DOWN_PARAMS[@]}"; then
+    FAILURES=$((FAILURES + 1))
+  fi
+
+  return "${FAILURES}"
 }
 
 # Checks for failed containers and writes logs for them the the provided dir
