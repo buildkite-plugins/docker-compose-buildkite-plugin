@@ -49,6 +49,13 @@ for service_name in "${prebuilt_candidates[@]}" ; do
     prebuilt_image="$prebuilt_image_override"
   elif prebuilt_image=$(get_prebuilt_image "$prebuilt_image_namespace" "$service_name") ; then
      echo "~~~ :docker: Found a pre-built image for $service_name"
+  else
+    echo "+++ 🚨 No pre-built image found from a previous 'build' step for service ${service_name} and config file."
+
+    if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]]; then
+      echo "The step specified that it was required"
+      exit 1
+    fi
   fi
 
   if [[ -n "$prebuilt_image" ]] ; then
@@ -285,7 +292,7 @@ if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
 fi
 
 # Optionally sets --entrypoint
-if [[ -n "$(plugin_read_config ENTRYPOINT)" ]] ; then
+if plugin_config_exists ENTRYPOINT ; then
   run_params+=(--entrypoint)
   run_params+=("$(plugin_read_config ENTRYPOINT)")
 fi
@@ -349,15 +356,6 @@ if [[ "$(plugin_read_config SERVICE_PORTS "false")" == "true" ]]; then
 fi
 
 run_params+=("$run_service")
-
-if [[ ! -f "$override_file" ]] ; then
-  echo "+++ 🚨 No pre-built image found from a previous 'build' step for this service and config file."
-
-  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]]; then
-    echo "The step specified that it was required"
-    exit 1
-  fi
-fi
 
 up_params+=("up")  # this ensures that the array has elements to avoid issues with bash 4.3
 

@@ -26,6 +26,7 @@ steps:
 
 The plugin will honor the value of the `COMPOSE_FILE` environment variable if one exists (for example, at the pipeline or step level). But you can also specify custom Docker Compose config files with the `config` option:
 
+
 ```yml
 steps:
   - command: test.sh
