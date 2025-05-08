@@ -56,6 +56,12 @@ function set_prebuilt_image() {
   local service="$2"
   local image="$3"
 
+  # assumes that the lib/shared.bash has already been sourced
+  if [ "$(plugin_read_config PUSH_METADATA "true")" != "true" ]; then
+    plugin_prompt "Not setting metadata for prebuilt image, push-metadata option is set to false"
+    return 0
+  fi
+
   plugin_set_metadata "$namespace" "$(prebuilt_image_meta_data_key "$service")" "$image"
 }
 
