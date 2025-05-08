@@ -13,6 +13,8 @@ You can learn a lot about how this plugin is used by browsing the [documentation
 
 ## Configuration
 
+Important: this plugin assumes that your docker compose file is called `docker-compose.yml`. If your file is called diferently, make sure to set plugin's `config` option or - more generally - set the pipeline-level environment variable `COMPOSE_FILE` with the right value. This is due to the possible usage of a custom-named override files in some situations and can not be worked around due to limitations of docker's `-f` option.
+
 ### Main Commands
 
 You will need to specify at least one of the following to use this extension.
