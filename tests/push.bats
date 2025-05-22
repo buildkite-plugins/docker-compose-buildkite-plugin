@@ -92,7 +92,60 @@ setup_file() {
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah" \
     "pull myimage : echo pulled prebuilt image" \
     "image inspect \* : echo found \$3" \
-    "tag myimage my.repository/myservice:-llamas : exit 1" \
+    "tag myimage my.repository/myservice:-llamas : exit 1"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "Pulling pre-built service"
+  refute_output --partial "tagged image"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Push a prebuilt image with a repository and a tag containing a variable and the expand option on" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH="myservice:my.repository/myservice:\$MY_VAR"
+  export MY_VAR="llamas"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXPAND_PUSH_VARS=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "pull myimage : echo pulled prebuilt image" \
+    "image inspect myimage : exit 0" \
+    "tag myimage my.repository/myservice:llamas : echo tagged image" \
+    "push my.repository/myservice:llamas : echo pushed myservice"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo tagged \$4"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "pulled prebuilt image"
+  assert_output --partial "tagged image"
+  assert_output --partial "pushed myservice"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Push a prebuilt image with a repository and a tag containing a variable and the expand option off" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH="myservice:my.repository/myservice:\$MY_VAR"
+  export MY_VAR="llamas"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXPAND_PUSH_VARS=false
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : echo blah" \
+    "pull myimage : echo pulled prebuilt image" \
+    "image inspect \* : echo found \$3" \
+    'tag myimage my.repository/myservice:\$MY_VAR : exit 1'
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
@@ -161,7 +214,7 @@ setup_file() {
     "meta-data exists docker-compose-plugin-built-image-tag-helper : exit 1"
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" 
+    "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml"
 
   run "$PWD"/hooks/command
 

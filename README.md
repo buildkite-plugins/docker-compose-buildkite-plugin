@@ -207,6 +207,14 @@ A list of volumes to mount into the container. If a matching volume exists in th
 
 Additionally, volumes may be specified via the agent environment variable `BUILDKITE_DOCKER_DEFAULT_VOLUMES`, a `;` (semicolon) delimited list of mounts in the `-v` syntax. (Ex. `buildkite:/buildkite;./app:/app`).
 
+#### `expand-push-vars` (push only, boolean, unsafe)
+
+When set to true, it will activate interpolation of variables in the elements within the `push` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be used as the target..
+
+:warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
+
+Note that rules regarding [environment variable interpolation](https://buildkite.com/docs/pipelines/environment-variables#runtime-variable-interpolation) apply here. That means that `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` will be at run time. All things being equal, you likely want to use `$$VARIABLE_NAME` on the variables mentioned in this option.
+
 #### `expand-volume-vars` (run only, boolean, unsafe)
 
 When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
