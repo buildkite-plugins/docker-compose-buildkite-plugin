@@ -92,7 +92,7 @@ setup_file() {
     "compose -f docker-compose.yml -p buildkite1111 config : echo blah" \
     "pull myimage : echo pulled prebuilt image" \
     "image inspect \* : echo found \$3" \
-    "tag myimage my.repository/myservice:-llamas : exit 1" \
+    "tag myimage my.repository/myservice:-llamas : exit 1"
 
   stub buildkite-agent \
     "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
