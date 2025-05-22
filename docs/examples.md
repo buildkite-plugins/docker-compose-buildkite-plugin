@@ -26,7 +26,6 @@ steps:
 
 The plugin will honor the value of the `COMPOSE_FILE` environment variable if one exists (for example, at the pipeline or step level). But you can also specify custom Docker Compose config files with the `config` option:
 
-
 ```yml
 steps:
   - command: test.sh
@@ -266,6 +265,8 @@ steps:
             - app:index.docker.io/myorg/myrepo/myapp
             - app:index.docker.io/myorg/myrepo/myapp:latest
 ```
+
+If you want to use environment variables in the `push` element, you will need to activate the (unsafe) option `expand-push-vars` (and most likely escape it using `$$VARIABLE_NAME` to ensure they are not interpolated when the pipeline is uploaded).
 
 ### Reusing caches from images
 
