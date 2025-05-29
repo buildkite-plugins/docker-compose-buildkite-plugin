@@ -3,12 +3,9 @@
 load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared.bash'
 
-GIT_STUB_STDIN="$BATS_TEST_TMPDIR/git_stdin"
-
-
 @test "expand_var works" {
   export MY_VAR="llamas"
-  export MY_STRING="foo:bar:\$MY_VAR"
+  MY_STRING="foo:bar:\$MY_VAR"
 
   run expand_var "$MY_STRING"
 
@@ -18,7 +15,7 @@ GIT_STUB_STDIN="$BATS_TEST_TMPDIR/git_stdin"
 
 @test "expand_var works via envsubst" {
   export MY_VAR="llamas"
-  export MY_STRING="foo:bar:\$MY_VAR"
+  MY_STRING="foo:bar:\$MY_VAR"
 
   ENVSUB_STUB_STDIN="$BATS_TEST_TMPDIR/envsubst_input"
   stub envsubst  "cat > '$ENVSUB_STUB_STDIN'; echo 'foo:bar:llamas'"
@@ -38,13 +35,14 @@ GIT_STUB_STDIN="$BATS_TEST_TMPDIR/git_stdin"
 
 @test "expand_var works via envsubst with an allowlist" {
   export MY_VAR="llamas"
-  export MY_STRING="foo:bar:\$MY_VAR"
-  export ALLOWLIST="\$MY_VAR"
+  MY_STRING="foo:bar:\$MY_VAR"
+  ALLOWLIST='$MY_VAR'
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXPAND_VARS_ALLOWLIST="$ALLOWLIST"
 
   ENVSUB_STUB_STDIN="$BATS_TEST_TMPDIR/envsubst_input"
   stub envsubst  "'$ALLOWLIST' : cat > '$ENVSUB_STUB_STDIN'; echo 'foo:bar:llamas'"
 
-  run expand_var_with_envsubst "$MY_STRING" "$ALLOWLIST"
+  run expand_var_with_envsubst "$MY_STRING"
 
   assert_success
   assert_output "foo:bar:llamas"
@@ -59,16 +57,18 @@ GIT_STUB_STDIN="$BATS_TEST_TMPDIR/git_stdin"
 
 @test "expand_var works via envsubst with an allowlist not including the var" {
   export MY_VAR="llamas"
-  export MY_STRING="foo:bar:\$MY_VAR:\$MY_OTHER_VAR"
-  export ALLOWLIST="\$MY_OTHER_VAR"
+  export MY_OTHER_VAR="more_llamas"
+  MY_STRING="foo:bar:\$MY_VAR:\$MY_OTHER_VAR"
+  ALLOWLIST='$MY_OTHER_VAR'
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_EXPAND_VARS_ALLOWLIST="$ALLOWLIST"
 
   ENVSUB_STUB_STDIN="$BATS_TEST_TMPDIR/envsubst_input"
-  stub envsubst  "'$ALLOWLIST' : cat > '$ENVSUB_STUB_STDIN'; echo 'foo:bar:\$MY_VAR:llamas'"
+  stub envsubst  "'$ALLOWLIST' : cat > '$ENVSUB_STUB_STDIN'; echo 'foo:bar:\$MY_VAR:more_llamas'"
 
-  run expand_var_with_envsubst "$MY_STRING" "$ALLOWLIST"
+  run expand_var_with_envsubst "$MY_STRING"
 
   assert_success
-  assert_output "foo:bar:\$MY_VAR:llamas"
+  assert_output "foo:bar:\$MY_VAR:more_llamas"
 
   run cat "$ENVSUB_STUB_STDIN"
 
@@ -80,7 +80,7 @@ GIT_STUB_STDIN="$BATS_TEST_TMPDIR/git_stdin"
 
 @test "expand_var works via eval" {
   export MY_VAR="llamas"
-  export MY_STRING="foo:bar:\$MY_VAR"
+  MY_STRING="foo:bar:\$MY_VAR"
 
   run expand_var_with_eval "$MY_STRING"
 

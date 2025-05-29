@@ -211,19 +211,19 @@ Additionally, volumes may be specified via the agent environment variable `BUILD
 
 When set to true, it will activate interpolation of variables in the elements within the `push` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be used as the target..
 
-:warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
+:warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline. On a system with `envsubst` available, that tool will be used in preference to `eval`. See `expand-vars-allowlist` to restrict the variables allowed to be substituted when using `envsubst`.
 
 Note that rules regarding [environment variable interpolation](https://buildkite.com/docs/pipelines/environment-variables#runtime-variable-interpolation) apply here. That means that `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` will be at run time. All things being equal, you likely want to use `$$VARIABLE_NAME` on the variables mentioned in this option.
 
-#### `expand-push-vars-allowlist` (push only, string, when using expand-push-vars on a system with envsubst)
+#### `expand-vars-allowlist` (push or run, string, when using one of the `expand-*-vars` options, and on a system with `envsubst`)
 
-On a system with `envsubst`, that tool will be used instead of `eval`, and this variable can be used to define the commands `SHELL-FORMAT` argument, which defines the environment variable allowlist so that unexpected interpolations are not permitted.
+This variable is used to define the commands `SHELL-FORMAT` argument to `envsubst`, which defines the environment variable allowlist so that unexpected interpolations are not permitted. It is only relevant when using `expand-push-vars` or `expand-volume-vars`
 
 #### `expand-volume-vars` (run only, boolean, unsafe)
 
 When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
 
-:warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
+:warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline. On a system with `envsubst` available, that tool will be used in preference to `eval`. See `expand-vars-allowlist` to restrict the variables allowed to be substituted when using `envsubst`.
 
 Note that rules regarding [environment variable interpolation](https://buildkite.com/docs/pipelines/environment-variables#runtime-variable-interpolation) apply here. That means that `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` will be at run time. All things being equal, you likely want to use `$$VARIABLE_NAME` on the variables mentioned in this option.
 

@@ -41,12 +41,7 @@ prebuilt_image_namespace="$(plugin_read_config PREBUILT_IMAGE_NAMESPACE 'docker-
 # Then we figure out what to push, and where
 for line in $(plugin_read_list PUSH) ; do
   if [[ "$(plugin_read_config EXPAND_PUSH_VARS 'false')" == "true" ]]; then
-    allowlist="$(plugin_read_config EXPAND_PUSH_VARS_ALLOWLIST '')"
-    if [[ "$allowlist" == "" ]]; then
-      push_target="$(expand_var "$line")"
-    else
-      push_target="$(expand_var "$line" "$allowlist")"
-    fi
+    push_target="$(expand_var "$line")"
   else
     push_target="$line"
   fi

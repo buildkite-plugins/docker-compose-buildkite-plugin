@@ -92,7 +92,7 @@ expand_relative_volume_path() {
   local path
 
   if [[ "$(plugin_read_config EXPAND_VOLUME_VARS 'false')" == "true" ]]; then
-    path=$(eval echo "$1")
+    path="$(expand_var "$1")"
   else
     path="$1"
   fi

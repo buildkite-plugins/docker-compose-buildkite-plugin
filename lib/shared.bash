@@ -334,9 +334,12 @@ function expand_var() {
 }
 
 function expand_var_with_envsubst() {
-  str="$1"
-  shift
-  envsubst "$@" <<<"${str}"
+  allowlist="$(plugin_read_config 'EXPAND_VARS_ALLOWLIST' '')"
+  if [[ "$allowlist" == "" ]]; then
+    envsubst <<<"$1"
+  else
+    envsubst "$allowlist" <<<"$1"
+  fi
 }
 
 function expand_var_with_eval() {
