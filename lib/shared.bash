@@ -327,25 +327,16 @@ function retry {
 function expand_var() {
   # Try to use the safest approach possible
   if command -v envsubst > /dev/null; then
-    if [[ $# -eq 1 ]]; then
-      # safer
-      expand_var_with_envsubst "$1"
-    else
-      # safest
-      expand_var_with_envsubst "$1" "$2"
-    fi
+    expand_var_with_envsubst "$@"
   else
-    # unsafe
     expand_var_with_eval "$1"
   fi
 }
 
 function expand_var_with_envsubst() {
-  if [[ $# -eq 1 ]]; then
-    echo "$1" | envsubst
-  else
-    echo "$1" | envsubst "$2"
-  fi
+  str="$1"
+  shift
+  envsubst "$@" <<<"${str}"
 }
 
 function expand_var_with_eval() {

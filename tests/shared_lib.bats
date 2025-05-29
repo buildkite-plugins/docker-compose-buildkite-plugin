@@ -3,6 +3,8 @@
 load "${BATS_PLUGIN_PATH}/load.bash"
 load '../lib/shared.bash'
 
+GIT_STUB_STDIN="$BATS_TEST_TMPDIR/git_stdin"
+
 
 @test "expand_var works" {
   export MY_VAR="llamas"
