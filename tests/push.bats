@@ -12,6 +12,80 @@ setup_file() {
   export BUILDKITE_BUILD_NUMBER=1
 }
 
+@test "Push a single service with an image in its config and store digest" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo tagged \$4" \
+    "meta-data set docker-compose-plugin-built-image-digest-app \* : echo digest \$4"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0" \
+    "compose -f docker-compose.yml -p buildkite1111 push app : echo pushed app" \
+    "inspect --format={{range .RepoDigests}}{{.}}{{\"\n\"}}{{end}} somewhere.dkr.ecr.some-region.amazonaws.com/blah : echo somewhere.dkr.ecr.some-region.amazonaws.com/blah@sha256:abcd1234"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "pushed app"
+  assert_output --partial "Stored image digest for app: sha256:abcd1234"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Push a prebuilt image with a repository and a tag and store digest" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : echo ''" \
+    "pull myimage : echo pulled prebuilt image" \
+    "image inspect myimage : exit 0" \
+    "tag myimage my.repository/myservice:llamas : echo tagged image" \
+    "push my.repository/myservice:llamas : echo pushed myservice" \
+    "inspect --format={{range .RepoDigests}}{{.}}{{\"\n\"}}{{end}} my.repository/myservice:llamas : echo my.repository/myservice:llamas@sha256:efgh5678"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice \* : echo tagged \$4" \
+    "meta-data set docker-compose-plugin-built-image-digest-myservice \* : echo digest \$4"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "pulled prebuilt image"
+  assert_output --partial "tagged image"
+  assert_output --partial "pushed myservice"
+  assert_output --partial "Stored image digest for myservice: sha256:efgh5678"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Push without digest available shows warning" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo tagged \$4"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0" \
+    "compose -f docker-compose.yml -p buildkite1111 push app : echo pushed app" \
+    "inspect --format={{range .RepoDigests}}{{.}}{{\"\n\"}}{{end}} somewhere.dkr.ecr.some-region.amazonaws.com/blah : echo"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "pushed app"
+  assert_output --partial "Could not retrieve digest for image: somewhere.dkr.ecr.some-region.amazonaws.com/blah"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
 @test "Push a single service with an image in its config" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
 

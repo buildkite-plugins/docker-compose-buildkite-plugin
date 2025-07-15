@@ -80,6 +80,7 @@ for line in $(plugin_read_list PUSH) ; do
   if [[ ${#tokens[@]} -eq 1 ]] ; then
     echo "${group_type} :docker: Pushing images for ${service_name}" >&2;
     retry "$push_retries" run_docker_compose "${push_command[@]}" "${service_name}"
+    store_image_digest "${prebuilt_image_namespace}" "${service_name}" "${service_image}"
     set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${service_image}"
     target_image="${service_image}" # necessary for build-alias
   # push: "service-name:repo:tag"
@@ -88,6 +89,7 @@ for line in $(plugin_read_list PUSH) ; do
     echo "${group_type} :docker: Pushing image $target_image" >&2;
     plugin_prompt_and_run docker tag "$service_image" "$target_image"
     retry "$push_retries" plugin_prompt_and_run docker "${push_command[@]}" "$target_image"
+    store_image_digest "${prebuilt_image_namespace}" "${service_name}" "${target_image}"
     set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${target_image}"
   fi
 done
