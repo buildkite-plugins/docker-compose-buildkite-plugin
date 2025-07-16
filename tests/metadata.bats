@@ -78,3 +78,26 @@ load '../lib/metadata'
   assert_output --partial "Not setting metadata for prebuilt image, push-metadata option is set to false"
 }
 
+@test "Get image digest from metadata" {
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-digest-test : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-digest-test : echo sha256:abcd1234"
+
+  run get_image_digest "docker-compose-plugin-" "test"
+
+  assert_success
+  assert_output --partial "sha256:abcd1234"
+
+  unstub buildkite-agent
+}
+
+@test "Get image digest from metadata when not present" {
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-digest-test : exit 1"
+
+  run get_image_digest "docker-compose-plugin-" "test"
+
+  assert_failure
+
+  unstub buildkite-agent
+}

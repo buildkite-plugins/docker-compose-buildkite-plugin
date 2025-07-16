@@ -179,6 +179,28 @@ Whether to set the metadata aboout the image for a service being pushed.
 
 Default: `true`.
 
+#### Image Digest Storage
+
+When images are pushed, the plugin automatically extracts and stores the image digest (SHA256 hash) in Buildkite metadata. This allows you to reference the exact image that was pushed in later pipeline steps.
+
+The digest is stored with the key `docker-compose-plugin-built-image-digest-<service>` (or using your custom `prebuilt-image-namespace` if configured).
+
+**Example of retrieving the digest in a later step:**
+
+```bash
+# Get the digest for a service called "app"
+DIGEST=$(buildkite-agent meta-data get "docker-compose-plugin-built-image-digest-app")
+echo "App image digest: $DIGEST"
+
+# Use the digest to reference the exact image
+docker pull myregistry/app@$DIGEST
+```
+
+The digest storage follows the same rules as other metadata:
+- It's disabled when `push-metadata` is set to `false`
+- It uses the same namespace as other plugin metadata
+- It provides a warning if the digest cannot be retrieved
+
 #### `push-retries` (push only, integer)
 
 A number of times to retry failed docker push. Defaults to 0.
