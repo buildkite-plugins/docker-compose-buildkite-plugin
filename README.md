@@ -13,7 +13,7 @@ You can learn a lot about how this plugin is used by browsing the [documentation
 
 ## Configuration
 
-Important: this plugin assumes that your docker compose file is called `docker-compose.yml`. If your file is called diferently, make sure to set plugin's `config` option or - more generally - set the pipeline-level environment variable `COMPOSE_FILE` with the right value. This is due to the possible usage of a custom-named override files in some situations and can not be worked around due to limitations of docker's `-f` option.
+Important: this plugin assumes that your docker compose file is called `docker-compose.yml`. If your file is called differently, make sure to set plugin's `config` option or - more generally - set the pipeline-level environment variable `COMPOSE_FILE` with the right value. This is due to the possible usage of a custom-named override files in some situations and can not be worked around due to limitations of docker's `-f` option.
 
 ### Main Commands
 
@@ -87,7 +87,7 @@ If you set this to `VALUE`, and `VALUE` is an environment variable containing a 
 
 Whether or not to automatically propagate all pipeline environment variables into the run container. Avoiding the need to be specified with environment.
 
-**Important**: only pipeline environment variables will be propagated (what you see in the BuildKite UI, those listed in `$BUILDKITE_ENV_FILE`). This does not include variables exported in preceeding `environment` hooks. If you wish for those to be propagated you will need to list them specifically or use `env-propagation-list`.
+**Important**: only pipeline environment variables will be propagated (what you see in the Buildkite UI, those listed in `$BUILDKITE_ENV_FILE`). This does not include variables exported in preceding `environment` hooks. If you wish for those to be propagated you will need to list them specifically or use `env-propagation-list`.
 
 #### `propagate-aws-auth-tokens` (run only, boolean)
 
@@ -175,7 +175,7 @@ A number of times to retry failed docker pull. Defaults to 0.
 
 #### `push-metadata` (push only, boolean)
 
-Whether to set the metadata aboout the image for a service being pushed.
+Whether to set the metadata about the image for a service being pushed.
 
 Default: `true`.
 
