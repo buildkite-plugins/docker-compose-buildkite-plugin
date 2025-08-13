@@ -13,7 +13,7 @@ You can learn a lot about how this plugin is used by browsing the [documentation
 
 ## Configuration
 
-Important: this plugin assumes that your docker compose file is called `docker-compose.yml`. If your file is called diferently, make sure to set plugin's `config` option or - more generally - set the pipeline-level environment variable `COMPOSE_FILE` with the right value. This is due to the possible usage of a custom-named override files in some situations and can not be worked around due to limitations of docker's `-f` option.
+Important: this plugin assumes that your Docker Compose file is named `docker-compose.yml`. If your file is named differently, make sure to set the plugin's `config` option or - more generally - set the pipeline-level environment variable `COMPOSE_FILE` with the right value. This is due to the possible usage of custom-named override files in some situations and can not be worked around due to limitations of Docker's `-f` option.
 
 ### Main Commands
 
@@ -35,7 +35,7 @@ A list of services to push. You can specify just the service name to push or the
 
 **Important**: when the image for a service is pushed it sets metadata on the build so that future steps will know to use that image to run that service. This can lead to race conditions when pushing multiple images for a service. Can be turned off with the `push-metadata` option.
 
-:warning: If a service does not have an `image` configuration and no registry/tag are specified in the `push` option, pushing of the service will be skipped by docker.
+:warning: If a service does not have an `image` configuration and no registry/tag are specified in the `push` option, pushing of the service will be skipped by Docker.
 
 :warning: The `push` command will fail when the image refers to a remote registry that requires a login and the agent has not been authenticated for it (for example, using the [ecr](https://github.com/buildkite-plugins/ecr-buildkite-plugin) or [docker-login](https://github.com/buildkite-plugins/docker-login-buildkite-plugin) plugins).
 
@@ -87,11 +87,11 @@ If you set this to `VALUE`, and `VALUE` is an environment variable containing a 
 
 Whether or not to automatically propagate all pipeline environment variables into the run container. Avoiding the need to be specified with environment.
 
-**Important**: only pipeline environment variables will be propagated (what you see in the BuildKite UI, those listed in `$BUILDKITE_ENV_FILE`). This does not include variables exported in preceeding `environment` hooks. If you wish for those to be propagated you will need to list them specifically or use `env-propagation-list`.
+**Important**: only pipeline environment variables will be propagated (what you see in the Buildkite UI, those listed in `$BUILDKITE_ENV_FILE`). This does not include variables exported in preceding `environment` hooks. If you wish for those to be propagated you will need to list them specifically or use `env-propagation-list`.
 
 #### `propagate-aws-auth-tokens` (run only, boolean)
 
-Whether or not to automatically propagate aws authentication environment variables into the docker container. Avoiding the need to be specified with `environment`. This is useful for example if you are using an assume role plugin or you want to pass the role of an agent running in ECS or EKS to the docker container.
+Whether or not to automatically propagate aws authentication environment variables into the Docker container. Avoiding the need to be specified with `environment`. This is useful for example if you are using an assume role plugin or you want to pass the role of an agent running in ECS or EKS to the Docker container.
 
 Will propagate `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `AWS_REGION`, `AWS_DEFAULT_REGION`, `AWS_STS_REGIONAL_ENDPOINTS`, `AWS_WEB_IDENTITY_TOKEN_FILE`, `AWS_ROLE_ARN`, `AWS_CONTAINER_CREDENTIALS_FULL_URI`, `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`, and `AWS_CONTAINER_AUTHORIZATION_TOKEN`, only if they are set already.
 
@@ -99,7 +99,7 @@ When the `AWS_WEB_IDENTITY_TOKEN_FILE` is specified, it will also mount it autom
 
 #### `propagate-gcp-auth-tokens` (run only, boolean)
 
-Whether or not to automatically propagate gcp auth credentials into the docker container. Avoiding the need to be specified with `environment`. This is useful if you are using a workload identity federation to impersonate a service account and you want to pass it to the docker container. This is compatible with the `gcp-workload-identity-federation` plugin.
+Whether or not to automatically propagate gcp auth credentials into the Docker container. Avoiding the need to be specified with `environment`. This is useful if you are using a workload identity federation to impersonate a service account and you want to pass it to the Docker container. This is compatible with the `gcp-workload-identity-federation` plugin.
 
 Will propagate `GOOGLE_APPLICATION_CREDENTIALS`, `CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE` and `BUILDKITE_OIDC_TMPDIR` and also mount the dir specified by `BUILDKITE_OIDC_TMPDIR` into the container.
 
@@ -121,7 +121,7 @@ Example: `[ "powershell", "-Command" ]`
 
 Whether to skip the repository checkout phase. This is useful for steps that use a pre-built image and will fail if there is no pre-built image.
 
-**Important**: as the code repository will not be available in the step, you need to ensure that any files used (like the docker compose files or scripts to be executed) are present in some other way (like using artifacts or pre-baked into the images used).
+**Important**: as the code repository will not be available in the step, you need to ensure that any files used (like the Docker Compose files or scripts to be executed) are present in some other way (like using artifacts or pre-baked into the images used).
 
 #### `skip-pull` (build and run only, boolean)
 
@@ -175,7 +175,7 @@ A number of times to retry failed docker pull. Defaults to 0.
 
 #### `push-metadata` (push only, boolean)
 
-Whether to set the metadata aboout the image for a service being pushed.
+Whether to set the metadata about the image for a service being pushed.
 
 Default: `true`.
 
@@ -197,7 +197,7 @@ They will be mapped directly to `cache-to` elements in the build according to th
 
 #### `target` (build only)
 
-Allow for intermediate builds as if building with docker's `--target VALUE` options.
+Allow for intermediate builds as if building with Docker's `--target VALUE` options.
 
 Note that there is a single build command run for all services so the target value will apply to all of them.
 
@@ -281,7 +281,7 @@ The default is `true`.
 
 #### `use-aliases` (run only, boolean)
 
-If set to true, docker compose will use the service's network aliases in the network(s) the container connects to.
+If set to true, Docker Compose will use the service's network aliases in the network(s) the container connects to.
 
 The default is `false`.
 
@@ -305,7 +305,7 @@ The default is `false`.
 
 #### `rm` (run only, boolean)
 
-If set to true, docker compose will remove the primary container after run. Equivalent to `--rm` in docker-compose.
+If set to true, Docker Compose will remove the primary container after run. Equivalent to `--rm` in docker-compose.
 
 The default is `true`.
 
@@ -325,11 +325,11 @@ A list of `KEY=VALUE` strings that are passed through as service labels when ima
 
 #### `compatibility` (boolean)
 
-If set to true, all docker compose commands will run with compatibility mode. Equivalent to `--compatibility` in docker compose.
+If set to true, all Docker Compose commands will run with compatibility mode. Equivalent to `--compatibility` in Docker Compose.
 
 The default is `false`.
 
-Note that [the effect of this option changes depending on your docker compose CLI version](https://docs.docker.com/compose/cli-command-compatibility/#flags-that-will-not-be-implemented):
+Note that [the effect of this option changes depending on your Docker Compose CLI version](https://docs.docker.com/compose/cli-command-compatibility/#flags-that-will-not-be-implemented):
 
 - in v1 it translates (composefile) v3 deploy keys to their non-swarm (composefile) v2 equivalents
 - in v2 it will revert some behaviour to v1 as well, including (but not limited to):
@@ -348,7 +348,7 @@ The default is `false`.
 
 #### `service-ports` (run only, boolean)
 
-If set to true, docker compose will run with the service ports enabled and mapped to the host. Equivalent to `--service-ports` in docker-compose.
+If set to true, Docker Compose will run with the service ports enabled and mapped to the host. Equivalent to `--service-ports` in docker-compose.
 
 The default is `false`.
 
@@ -368,17 +368,17 @@ If set to `1`, plugin will use `docker-compose` (that is deprecated and unsuppor
 
 #### `buildkit` (build only, boolean)
 
-Assuming you have a compatible docker installation and configuration in the agent, activating this option would setup the environment for the `docker compose build` call to use BuildKit. Note that this should only be necessary if you are using `cli-version` 1 (version 2 already uses buildkit by default).
+Assuming you have a compatible Docker installation and configuration in the agent, activating this option would setup the environment for the `docker compose build` call to use BuildKit. Note that this should only be necessary if you are using `cli-version` 1 (version 2 already uses buildkit by default).
 
 You may want to also add `BUILDKIT_INLINE_CACHE=1` to your build arguments (`args` option in this plugin), but know that [there are known issues with it](https://github.com/moby/buildkit/issues/2274).
 
 #### `ssh` (build only, boolean or string)
 
-It will add the `--ssh` option to the build command with the passed value (if `true` it will use `default`). Note that it assumes you have a compatible docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).
+It will add the `--ssh` option to the build command with the passed value (if `true` it will use `default`). Note that it assumes you have a compatible Docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).
 
 #### `with-dependencies` (build only, boolean)
 
-If set to true, docker compose will build with the `--with-dependencies` option which will also build dependencies transitively.
+If set to true, Docker Compose will build with the `--with-dependencies` option which will also build dependencies transitively.
 
 The default is `false`.
 
