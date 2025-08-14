@@ -33,6 +33,7 @@ if [ "$(plugin_read_config QUIET_PULL "false")" == "true" ] ; then
 fi
 
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD; then
+  # shellcheck disable=SC2154
   build_services=("${result[@]}")
 fi
 
