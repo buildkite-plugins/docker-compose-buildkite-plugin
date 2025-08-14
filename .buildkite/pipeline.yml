@@ -27,6 +27,15 @@ steps:
         tty: true
         command: ["bats", "tests", "tests/v1"]
 
+  - label: "Security Scan"
+    key: security_scan
+    plugins:
+      - secrets#v1.0.0:
+          variables:
+            GITHUB_TOKEN: GITHUB_TOKEN
+      - ossf-scorecard#v1.0.0:
+          github_token: $$GITHUB_TOKEN
+
   # The rest of the steps are integration tests
 
   - label: run, with links that fail
