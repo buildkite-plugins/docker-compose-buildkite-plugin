@@ -127,6 +127,12 @@ if [[ "$(plugin_read_config PROPAGATE_ENVIRONMENT "false")" =~ ^(true|on|1)$ ]] 
     while read -r var; do
       run_params+=("-e" "${var%%=*}")
     done < "${BUILDKITE_ENV_FILE}"
+    
+    # Also ensure tracing variables are auto-propagated if they exist
+    [[ -n "${BUILDKITE_TRACING_BACKEND:-}" ]] && run_params+=( --env "BUILDKITE_TRACING_BACKEND" )
+    [[ -n "${BUILDKITE_TRACING_SERVICE_NAME:-}" ]] && run_params+=( --env "BUILDKITE_TRACING_SERVICE_NAME" )
+    [[ -n "${BUILDKITE_TRACING_PROPAGATE_TRACEPARENT:-}" ]] && run_params+=( --env "BUILDKITE_TRACING_PROPAGATE_TRACEPARENT" )
+    [[ -n "${BUILDKITE_TRACING_TRACEPARENT:-}" ]] && run_params+=( --env "BUILDKITE_TRACING_TRACEPARENT" )
   else
     echo -n "🚨 Not propagating environment variables to container as \$BUILDKITE_ENV_FILE is not set"
   fi
@@ -189,8 +195,6 @@ if [[ "$(plugin_read_config PROPAGATE_GCP_AUTH_TOKENS "false")" =~ ^(true|on|1)$
       run_params+=( --volume "${BUILDKITE_OIDC_TMPDIR}:${BUILDKITE_OIDC_TMPDIR}" )
   fi
 fi
-
-
 
 # If requested, propagate a set of env vars as listed in a given env var to the
 # container.
