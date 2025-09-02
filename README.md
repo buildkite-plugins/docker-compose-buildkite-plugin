@@ -386,6 +386,8 @@ The default is `false`.
 
 Defines the properties required for creating, using and removing Builder Instances. If not set, the default Builder Instance on the Agent Instance will be used.
 
+#### `Options to use with builder below` 
+
 ##### `bootstrap` (boolean)
 
 If set to true, will boot builder instance after creation. Optional when using `create`.
