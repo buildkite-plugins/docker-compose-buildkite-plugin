@@ -382,9 +382,11 @@ If set to true, Docker Compose will build with the `--with-dependencies` option 
 
 The default is `false`.
 
-#### `builder` (object)
+### `builder` (object)
 
 Defines the properties required for creating, using and removing Builder Instances. If not set, the default Builder Instance on the Agent Instance will be used.
+
+#### `Options to use for configuring builder instances` 
 
 ##### `bootstrap` (boolean)
 
