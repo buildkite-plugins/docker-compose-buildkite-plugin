@@ -400,6 +400,12 @@ If set to true, will use `docker buildx create` to create a new Builder Instance
 
 The default is `false`.
 
+##### `create-retries` (integer)
+
+Number of times to retry creating the builder instance if it fails. This is useful to handle transient errors during builder creation.
+
+The default is `3`.
+
 ##### `debug` (boolean)
 
 If set to true, enables debug logging during creation of builder instance. Optional when using `create`.

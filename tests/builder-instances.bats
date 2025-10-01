@@ -217,3 +217,71 @@ load '../lib/shared'
 
     unstub docker
 }
+
+@test "Create Builder Instance with retry on failure" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=docker-container
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE_RETRIES=3
+
+    stub docker \
+        "buildx inspect builder-name : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 0" \
+        "buildx inspect : echo 'Name: test'" \
+        "buildx inspect : echo 'Driver: driver'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
+    assert_output --partial "Exited with 1"
+    assert_output --partial "Retrying"
+    assert_output --partial "~~~ :docker: Using Default Builder 'test' with Driver 'driver'"
+
+    unstub docker
+}
+
+@test "Create Builder Instance with retry exhausted" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=docker-container
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE_RETRIES=2
+
+    stub docker \
+        "buildx inspect builder-name : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 1"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_failure
+    assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
+    assert_output --partial "Exited with 1"
+    assert_output --partial "Failed 2 retries"
+
+    unstub docker
+}
+
+@test "Create Builder Instance with default retry count" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=docker-container
+
+    stub docker \
+        "buildx inspect builder-name : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 0" \
+        "buildx inspect : echo 'Name: test'" \
+        "buildx inspect : echo 'Driver: driver'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
+    assert_output --partial "Retrying"
+
+    unstub docker
+}

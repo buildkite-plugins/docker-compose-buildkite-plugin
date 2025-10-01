@@ -9,6 +9,7 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 builder_create="$(plugin_read_config BUILDER_CREATE "false")"
 builder_use="$(plugin_read_config BUILDER_USE "false")"
 builder_name="$(plugin_read_config BUILDER_NAME "")"
+builder_create_retries="$(plugin_read_config BUILDER_CREATE_RETRIES "3")"
 
 if [[ "${builder_create}" == "true" ]] || [[ "${builder_use}" == "true" ]]; then
     if [[ -z "${builder_name}" ]]; then
@@ -61,7 +62,7 @@ if [[ "${builder_create}" == "true" ]]; then
         fi
 
         echo "~~~ :docker: Creating Builder Instance '${builder_name}' with Driver '${build_driver}'"
-        docker buildx create "${builder_instance_args[@]}"
+        retry "${builder_create_retries}" docker buildx create "${builder_instance_args[@]}"
         if [[ "${builder_use}" == "false" ]]; then
             echo "~~~ :warning: Builder Instance '${builder_name}' created but will not be used as 'use: true' parameter not specified"
         fi
