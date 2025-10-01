@@ -30,6 +30,8 @@ configuration:
           type: boolean
         create:
           type: boolean
+        create-retries:
+          type: integer
         debug:
           type: boolean
         driver:
