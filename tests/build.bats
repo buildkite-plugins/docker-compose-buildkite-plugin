@@ -62,6 +62,27 @@ setup_file() {
   unstub docker
 }
 
+@test "Build with builder setup" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=mybuilder
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_SETUP="echo configuring"
+
+  stub bash \
+    "-euo pipefail -c echo configuring : echo ran setup"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull --builder mybuilder myservice : echo built myservice"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Running builder setup"
+  assert_output --partial "built myservice"
+
+  unstub bash
+  unstub docker
+}
+
 @test "Build with no-cache" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_NO_CACHE=true

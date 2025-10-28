@@ -105,6 +105,12 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
+builder_setup_command="$(plugin_read_config BUILDER_SETUP "")"
+if [[ -n "${builder_setup_command}" ]]; then
+  echo "~~~ :docker: Running builder setup"
+  plugin_prompt_and_must_run bash -euo pipefail -c "${builder_setup_command}"
+fi
+
 if [[ -f "${override_file}" ]]; then
   build_params+=(-f "${override_file}")
 fi
