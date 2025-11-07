@@ -315,3 +315,49 @@ setup_file() {
   unstub docker
   unstub buildkite-agent
 }
+
+@test "Push with disable-host-otel-tracing enabled" {
+  export BUILDKITE_BUILD_ID="1111"
+  export BUILDKITE_JOB_ID="1111"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING=true
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo tagged \$4"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0" \
+    "compose -f docker-compose.yml -p buildkite1111 push app : echo pushed app with OTEL disabled"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "pushed app with OTEL disabled"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Push with disable-host-otel-tracing disabled" {
+  export BUILDKITE_BUILD_ID="1111"
+  export BUILDKITE_JOB_ID="1111"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING=false
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo tagged \$4"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0" \
+    "compose -f docker-compose.yml -p buildkite1111 push app : echo pushed app with OTEL enabled"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "pushed app with OTEL enabled"
+
+  unstub docker
+  unstub buildkite-agent
+}

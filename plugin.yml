@@ -86,6 +86,8 @@ configuration:
       minimum: 1
     dependencies:
       type: boolean
+    disable-host-otel-tracing:
+      type: boolean
     entrypoint:
       type: string
     env:

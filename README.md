@@ -285,6 +285,12 @@ If set to true, Docker Compose will use the service's network aliases in the net
 
 The default is `false`.
 
+#### `disable-host-otel-tracing` (boolean)
+
+Disables OpenTelemetry (OTEL) tracing on host-side docker-compose. This prevents unwanted "compose" traces from appearing in telemetry while preserving container-level tracing. This setting only affects the host execution environment and does not propagate the `OTEL_SDK_DISABLED` variable into containers.
+
+The default is `false`.
+
 #### `verbose` (boolean)
 
 Sets `docker-compose` to run with `--verbose`
@@ -386,7 +392,7 @@ The default is `false`.
 
 Defines the properties required for creating, using and removing Builder Instances. If not set, the default Builder Instance on the Agent Instance will be used.
 
-#### `Options to use for configuring builder instances` 
+#### `Options to use for configuring builder instances`
 
 ##### `bootstrap` (boolean)
 
