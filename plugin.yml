@@ -202,7 +202,6 @@ configuration:
     cache-to: [ build ]
     command: [ run ]
     dependencies: [ run ]
-    disable-host-otel-tracing: [ build, push, run ]
     entrypoint: [ run ]
     env: [ run ]
     env-propagation-list: [ run ]
