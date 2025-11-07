@@ -86,6 +86,8 @@ configuration:
       minimum: 1
     dependencies:
       type: boolean
+    disable-host-otel-tracing:
+      type: boolean
     entrypoint:
       type: string
     env:
@@ -200,6 +202,7 @@ configuration:
     cache-to: [ build ]
     command: [ run ]
     dependencies: [ run ]
+    disable-host-otel-tracing: [ build, push, run ]
     entrypoint: [ run ]
     env: [ run ]
     env-propagation-list: [ run ]
