@@ -79,6 +79,21 @@ steps:
 
 If you want to use environment variables in the `volumes` element, you will need to activate the (unsafe) option `expand-volume-vars` (and most likely escape it using `$$VARIABLE_NAME` to ensure they are not interpolated when the pipeline is uploaded).
 
+### Disabling Host-Side OTEL Tracing
+
+If you have OpenTelemetry (OTEL) tracing enabled in your environment and want to prevent noise from host-side docker-compose command traces while preserving container-level tracing, you can use the `disable-host-otel-tracing` option:
+
+```yml
+steps:
+  - command: test.sh
+    plugins:
+      - docker-compose#v5.11.1:
+          run: app
+          disable-host-otel-tracing: true
+```
+
+This sets `OTEL_SDK_DISABLED=true` for the docker-compose commands executed by the plugin, which prevents the creation of spans for operations like `docker-compose up`, `docker-compose run`, and `docker-compose push`. Containers will continue to generate traces.
+
 ### Environment
 
 By default, docker-compose makes whatever environment variables it gets available for
