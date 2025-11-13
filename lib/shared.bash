@@ -22,11 +22,14 @@ function plugin_prompt_and_run() {
   plugin_prompt "$@"
 
   if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] && [[ "$1" == "docker-compose" || "$1" == "docker" && "$2" == "compose" ]]; then
-    echo "~~~ :twisted_rightwards_arrows: Linking docker-compose traces to parent Buildkite trace"
-    
-    local parent_service_name="${OTEL_SERVICE_NAME:-buildkite-agent}"
-    
-    OTEL_SERVICE_NAME="$parent_service_name" \
+    echo "~~~ :mag: Debugging OTEL environment and trying different approaches"
+    echo "OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-<not set>}"
+    echo "TRACEPARENT: ${TRACEPARENT:-<not set>}"
+
+    echo "Approach 1: Disabling docker-compose OTEL completely"
+    OTEL_SDK_DISABLED=true \
+    DOCKER_OTEL_ENABLED=false \
+    COMPOSE_OTEL_ENABLED=false \
     "$@"
   else
     "$@"
