@@ -325,6 +325,11 @@ function run_docker_compose() {
     )
   else
     # Enable docker-compose OTEL tracing (requires explicit flag)
+    echo "DEBUG: Enabling docker-compose OTEL tracing"
+    echo "DEBUG: TRACEPARENT=${TRACEPARENT:-NOT SET}"
+    echo "DEBUG: OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-NOT SET}"
+    echo "DEBUG: OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-NOT SET}"
+    echo "DEBUG: COMPOSE_EXPERIMENTAL_OTEL will be set to 1"
     export COMPOSE_EXPERIMENTAL_OTEL=1
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
