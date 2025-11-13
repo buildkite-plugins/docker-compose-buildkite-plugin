@@ -257,10 +257,17 @@ if [[ "${push_on_build}" == "true" ]]; then
       echo "~~~ :docker: Setting prebuilt image metadata for ${service_name}: ${target_image}"
       set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${target_image}"
     else
-      # For services without explicit tags, use the default compose image name
-      default_image="$(default_compose_image_for_service "${service_name}")"
-      echo "~~~ :docker: Setting prebuilt image metadata for ${service_name}: ${default_image}"
-      set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${default_image}"
+      # For services without explicit tags, get the image name from compose config
+      compose_image="$(compose_image_for_service "${service_name}")"
+      if [[ -n "${compose_image}" ]]; then
+        echo "~~~ :docker: Setting prebuilt image metadata for ${service_name}: ${compose_image}"
+        set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${compose_image}"
+      else
+        # Fall back to default compose image name if no image is set
+        default_image="$(default_compose_image_for_service "${service_name}")"
+        echo "~~~ :docker: Setting prebuilt image metadata for ${service_name}: ${default_image}"
+        set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${default_image}"
+      fi
     fi
   done
   
