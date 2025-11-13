@@ -328,10 +328,8 @@ function run_docker_compose() {
   if [[ "$disable_otel_config" == "true" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
 
-    OTEL_EXPORTER_OTLP_ENDPOINT="" \
-    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT="" \
+    COMPOSE_EXPERIMENTAL_OTEL=0 \
     OTEL_SDK_DISABLED=true \
-    OTEL_TRACES_EXPORTER=none \
     plugin_prompt_and_run "${command[@]}" "$@"
   else
     plugin_prompt_and_run "${command[@]}" "$@"
