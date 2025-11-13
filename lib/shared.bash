@@ -23,7 +23,8 @@ function plugin_prompt_and_run() {
 
   if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] && [[ "$1" == "docker-compose" || "$1" == "docker" && "$2" == "compose" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
-        env -u OTEL_EXPORTER_OTLP_ENDPOINT \
+    
+    env -u OTEL_EXPORTER_OTLP_ENDPOINT \
         -u OTEL_EXPORTER_OTLP_TRACES_ENDPOINT \
         -u OTEL_EXPORTER_OTLP_PROTOCOL \
         -u OTEL_EXPORTER_OTLP_TRACES_PROTOCOL \
@@ -33,6 +34,7 @@ function plugin_prompt_and_run() {
         -u TRACEPARENT \
         -u TRACESTATE \
         OTEL_SDK_DISABLED=true \
+        OTEL_EXPORTER_OTLP_ENDPOINT="http://0.0.0.0:1" \
         "$@"
   else
     "$@"
