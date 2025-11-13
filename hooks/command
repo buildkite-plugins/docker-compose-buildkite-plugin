@@ -1,6 +1,12 @@
 #!/bin/bash
 set -ueo pipefail
 
+echo "DEBUG [command]: TRACEPARENT at hook start: ${TRACEPARENT:-NOT SET}"
+echo "DEBUG [command]: BUILDKITE_TRACING_BACKEND: ${BUILDKITE_TRACING_BACKEND:-NOT SET}"
+echo "DEBUG [command]: BUILDKITE_TRACE_CONTEXT: ${BUILDKITE_TRACE_CONTEXT:-NOT SET}"
+echo "DEBUG [command]: All OTEL/TRACE/BUILDKITE_TRACING vars:"
+env | grep -E "(OTEL|TRACE|BUILDKITE_TRACING)" || echo "  (none)"
+
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 # shellcheck source=lib/shared.bash
