@@ -293,11 +293,18 @@ function run_docker_compose() {
 
   if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] ; then
     echo "~~~ :warning: OTEL tracing disabled for docker-compose command"
-    # Try to bypass agent instrumentation by using exec in a subshell with OTEL disabled
     (
       export OTEL_SDK_DISABLED=true
       export OTEL_TRACES_EXPORTER=none
+      export OTEL_METRICS_EXPORTER=none
+      export OTEL_LOGS_EXPORTER=none
+      unset OTEL_EXPORTER_OTLP_ENDPOINT
+      unset OTEL_EXPORTER_OTLP_HEADERS
+      unset OTEL_SERVICE_NAME
+      unset OTEL_RESOURCE_ATTRIBUTES
       unset BUILDKITE_TRACING_BACKEND
+      unset TRACEPARENT
+      unset TRACESTATE
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
