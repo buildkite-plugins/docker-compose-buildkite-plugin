@@ -361,3 +361,54 @@ setup_file() {
   unstub docker
   unstub buildkite-agent
 }
+
+@test "Push skips when metadata exists with push-on-build" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD=true
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo my.repository/myservice:llamas"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Image for myservice was already pushed during build (push-on-build)"
+
+  unstub buildkite-agent
+}
+
+@test "Push fails when metadata missing with push-on-build" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD=true
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "+++ 🚨 No prebuilt-image nor built image found for service to push: myservice. With push-on-build enabled, ensure service was built successfully."
+
+  unstub buildkite-agent
+}
+
+@test "Push skips multiple services with push-on-build" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_0=service1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=service2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD=true
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-service1 : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-service1 : echo my.repository/service1:latest" \
+    "meta-data exists docker-compose-plugin-built-image-tag-service2 : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-service2 : echo my.repository/service2:latest"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Image for service1 was already pushed during build (push-on-build)"
+  assert_output --partial "Image for service2 was already pushed during build (push-on-build)"
+
+  unstub buildkite-agent
+}
