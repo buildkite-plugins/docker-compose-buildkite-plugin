@@ -76,9 +76,36 @@ get_caches_to_service() {
 # Run through all images in the build property, either a single item or a list
 # and build up a list of service name, image name and optional cache-froms and cache-tos to
 # write into a docker-compose override file
+
+# If push-on-build is enabled, build a map of services to their push targets
+declare -A service_push_images
+if [[ "${push_on_build}" == "true" ]]; then
+  for line in $(plugin_read_list PUSH) ; do
+    if [[ "$(plugin_read_config EXPAND_PUSH_VARS 'false')" == "true" ]]; then
+      push_target=$(eval echo "$line")
+    else
+      push_target="$line"
+    fi
+    
+    IFS=':' read -r -a tokens <<< "$push_target"
+    service_name=${tokens[0]}
+    
+    # Store only the first push target for each service (for the override file)
+    if [[ -z "${service_push_images[$service_name]:-}" ]] && [[ ${#tokens[@]} -gt 1 ]]; then
+      target_image="$(IFS=:; echo "${tokens[*]:1}")"
+      service_push_images[$service_name]="$target_image"
+    fi
+  done
+fi
+
 for service_name in $(plugin_read_list BUILD) ; do
   target="$(plugin_read_config TARGET "")"
   image_name="" # no longer used here
+  
+  # If push-on-build, set the image name from push targets
+  if [[ "${push_on_build}" == "true" ]] && [[ -n "${service_push_images[$service_name]:-}" ]]; then
+    image_name="${service_push_images[$service_name]}"
+  fi
 
   cache_from=()
   for cache_line in $(get_caches_for_service "$service_name" "$push_on_build"); do
@@ -95,7 +122,7 @@ for service_name in $(plugin_read_list BUILD) ; do
     [[ -n "${label:-}" ]] && labels+=("${label}")
   done <<< "$(plugin_read_list BUILD_LABELS)"
 
-  if [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_to[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
+  if [[ -n "${image_name}" ]] || [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_to[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]]; then
     build_images+=("$service_name" "${image_name}" "${target}")
 
     build_images+=("${#cache_from[@]}")
@@ -177,7 +204,7 @@ done <<< "$(plugin_read_list ARGS)"
 
 # Handle push-on-build for multi-arch builds
 if [[ "${push_on_build}" == "true" ]]; then
-  # Read push targets and parse them
+  # Validate all push targets are in build list and collect metadata info
   push_targets=()
   service_to_tags=()
   
@@ -197,19 +224,13 @@ if [[ "${push_on_build}" == "true" ]]; then
       exit 1
     fi
     
-    # If service:registry:tag format, add --tag parameter
-    if [[ ${#tokens[@]} -gt 1 ]] ; then
-      target_image="$(IFS=:; echo "${tokens[*]:1}")"
-      build_params+=("-t" "${target_image}")
-      # Store first tag for each service for metadata
-      if ! in_array "${service_name}" "${push_targets[@]}"; then
-        push_targets+=("${service_name}")
+    # Store first tag for each service for metadata (images are set in override file)
+    if ! in_array "${service_name}" "${push_targets[@]}"; then
+      push_targets+=("${service_name}")
+      if [[ ${#tokens[@]} -gt 1 ]] ; then
+        target_image="$(IFS=:; echo "${tokens[*]:1}")"
         service_to_tags+=("${service_name}:${target_image}")
-      fi
-    else
-      # Just service name, store for metadata later
-      if ! in_array "${service_name}" "${push_targets[@]}"; then
-        push_targets+=("${service_name}")
+      else
         service_to_tags+=("${service_name}:")
       fi
     fi

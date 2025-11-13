@@ -27,6 +27,8 @@ fi
 
 # Dispatch to the command file
 if in_array "BUILD" "${commands[@]}" ; then
+  # shellcheck source=lib/push.bash
+  . "$DIR/../lib/push.bash"
   # shellcheck source=commands/build.sh
   . "$DIR/../commands/build.sh"
 fi

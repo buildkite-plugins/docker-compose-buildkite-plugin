@@ -364,7 +364,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull -t my.repository/myservice:llamas --push myservice : echo built and pushed myservice"
+    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice"
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata"
@@ -397,7 +397,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
 
   stub docker \
-    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull -t my.repository/myservice:llamas --push myservice : echo built and pushed myservice"
+    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice"
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata"
@@ -419,7 +419,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice:my.repository/myservice:latest
 
   stub docker \
-    "compose -f docker-compose.yml -p buildkite1111 build --pull -t my.repository/myservice:llamas -t my.repository/myservice:latest --push myservice : echo built and pushed myservice"
+    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice"
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata"
