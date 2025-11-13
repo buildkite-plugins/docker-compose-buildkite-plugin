@@ -330,10 +330,10 @@ function run_docker_compose() {
 
     local wrapped_command=(
       env
-      -u TRACEPARENT
-      -u TRACESTATE
-      -u OTEL_EXPORTER_OTLP_ENDPOINT
-      -u OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+      TRACEPARENT="${TRACEPARENT:-}"
+      TRACESTATE="${TRACESTATE:-}"
+      OTEL_EXPORTER_OTLP_ENDPOINT=""
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=""
       OTEL_SDK_DISABLED=true
       OTEL_TRACES_EXPORTER=none
       "${command[@]}"
