@@ -298,13 +298,15 @@ function run_docker_compose() {
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
     echo "DEBUG: TRACEPARENT: ${TRACEPARENT:-NOT SET}"
 
-    env -u TRACEPARENT \
-        -u TRACESTATE \
-        -u OTEL_EXPORTER_OTLP_ENDPOINT \
-        -u OTEL_EXPORTER_OTLP_TRACES_ENDPOINT \
-        OTEL_SDK_DISABLED=true \
-        OTEL_TRACES_EXPORTER=none \
-        plugin_prompt_and_run "${command[@]}" "$@"
+    (
+      unset TRACEPARENT
+      unset TRACESTATE
+      unset OTEL_EXPORTER_OTLP_ENDPOINT
+      unset OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+      export OTEL_SDK_DISABLED=true
+      export OTEL_TRACES_EXPORTER=none
+      plugin_prompt_and_run "${command[@]}" "$@"
+    )
   else
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
