@@ -42,7 +42,10 @@ function plugin_prompt_and_run() {
         -u BUILDKITE_TRACING_BACKEND \
         OTEL_SDK_DISABLED=true \
         OTEL_TRACES_SAMPLER=always_off \
-        NO_PROXY="localhost,127.0.0.1,0.0.0.0" \
+        OTEL_PROPAGATORS=none \
+        OTEL_TRACES_EXPORTER=none \
+        OTEL_METRICS_EXPORTER=none \
+        OTEL_LOGS_EXPORTER=none \
         "$@"
   else
     echo "DEBUG: NOT disabling OTEL (condition not met)"
