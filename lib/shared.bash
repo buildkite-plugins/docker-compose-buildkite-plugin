@@ -21,36 +21,7 @@ function plugin_prompt_and_run() {
 
   plugin_prompt "$@"
 
-  local disable_otel="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
-
-  echo "DEBUG: disable_otel='$disable_otel', \$1='$1', \$2='${2:-}'"
-
-  if [[ "$disable_otel" == "true" ]] && [[ "$1" == "docker-compose" || ( "$1" == "docker" && "$2" == "compose" ) ]]; then
-    echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
-    echo "DEBUG: All OTEL env vars before:"
-    env | grep -E "(OTEL|TRACE)" || echo "  (none found)"
-
-    env -u OTEL_EXPORTER_OTLP_ENDPOINT \
-        -u OTEL_EXPORTER_OTLP_TRACES_ENDPOINT \
-        -u OTEL_EXPORTER_OTLP_PROTOCOL \
-        -u OTEL_EXPORTER_OTLP_TRACES_PROTOCOL \
-        -u OTEL_TRACES_EXPORTER \
-        -u OTEL_EXPORTER_OTLP_HEADERS \
-        -u OTEL_EXPORTER_OTLP_TRACES_HEADERS \
-        -u TRACEPARENT \
-        -u TRACESTATE \
-        -u BUILDKITE_TRACING_BACKEND \
-        OTEL_SDK_DISABLED=true \
-        OTEL_TRACES_SAMPLER=always_off \
-        OTEL_PROPAGATORS=none \
-        OTEL_TRACES_EXPORTER=none \
-        OTEL_METRICS_EXPORTER=none \
-        OTEL_LOGS_EXPORTER=none \
-        "$@"
-  else
-    echo "DEBUG: NOT disabling OTEL (condition not met)"
-    "$@"
-  fi
+  "$@"
   exit_code=$?
 
   # Sometimes docker-compose pull leaves unfinished ansi codes
@@ -327,6 +298,9 @@ function run_docker_compose() {
 
   if [[ "$disable_otel_config" == "true" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
+    echo "DEBUG: TRACEPARENT before: ${TRACEPARENT:-NOT SET}"
+    echo "DEBUG: All OTEL vars:"
+    env | grep -E "(OTEL|TRACE)" || echo "  (none)"
 
     COMPOSE_EXPERIMENTAL_OTEL=0 \
     OTEL_SDK_DISABLED=true \
