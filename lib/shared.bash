@@ -292,7 +292,8 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
-  local disable_otel_config="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
+  local disable_otel_config
+  disable_otel_config="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
 
   if [[ "$disable_otel_config" == "true" ]]; then
     # Disable docker-compose OTEL tracing by clearing environment variables
