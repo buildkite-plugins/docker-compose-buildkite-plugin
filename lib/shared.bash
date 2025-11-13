@@ -302,13 +302,8 @@ function run_docker_compose() {
 
   # Set OTEL service name to match the agent's service name so docker-compose
   # spans appear under buildkite-agent service instead of separate "compose" service
-  # Use OTEL_RESOURCE_ATTRIBUTES which is the standard way to set service name
   if [[ -n "${BUILDKITE_TRACING_SERVICE_NAME:-}" ]]; then
-    if [[ -z "${OTEL_RESOURCE_ATTRIBUTES:-}" ]]; then
-      export OTEL_RESOURCE_ATTRIBUTES="service.name=${BUILDKITE_TRACING_SERVICE_NAME}"
-    elif [[ ! "${OTEL_RESOURCE_ATTRIBUTES}" =~ service\.name ]]; then
-      export OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES},service.name=${BUILDKITE_TRACING_SERVICE_NAME}"
-    fi
+    export OTEL_SERVICE_NAME="${BUILDKITE_TRACING_SERVICE_NAME}"
   fi
 
   if [[ "$disable_otel_config" == "true" ]]; then
@@ -316,7 +311,7 @@ function run_docker_compose() {
 
     # Disable OTEL for docker-compose process by unsetting all OTEL variables
     # We save them first so they can still be passed to containers via -e flags
-    (
+    (/Users/user/Downloads/pipeline-1_build_1043_otel-disabled.log
       # Unset OTEL variables to prevent docker-compose from creating traces
       unset TRACEPARENT
       unset TRACESTATE
