@@ -300,10 +300,15 @@ function run_docker_compose() {
     export TRACEPARENT="$BUILDKITE_TRACING_TRACEPARENT"
   fi
 
-  # Set OTEL_SERVICE_NAME to match the agent's service name so docker-compose
+  # Set OTEL service name to match the agent's service name so docker-compose
   # spans appear under buildkite-agent service instead of separate "compose" service
-  if [[ -z "${OTEL_SERVICE_NAME:-}" ]] && [[ -n "${BUILDKITE_TRACING_SERVICE_NAME:-}" ]]; then
-    export OTEL_SERVICE_NAME="$BUILDKITE_TRACING_SERVICE_NAME"
+  # Use OTEL_RESOURCE_ATTRIBUTES which is the standard way to set service name
+  if [[ -n "${BUILDKITE_TRACING_SERVICE_NAME:-}" ]]; then
+    if [[ -z "${OTEL_RESOURCE_ATTRIBUTES:-}" ]]; then
+      export OTEL_RESOURCE_ATTRIBUTES="service.name=${BUILDKITE_TRACING_SERVICE_NAME}"
+    elif [[ ! "${OTEL_RESOURCE_ATTRIBUTES}" =~ service\.name ]]; then
+      export OTEL_RESOURCE_ATTRIBUTES="${OTEL_RESOURCE_ATTRIBUTES},service.name=${BUILDKITE_TRACING_SERVICE_NAME}"
+    fi
   fi
 
   if [[ "$disable_otel_config" == "true" ]]; then
@@ -324,13 +329,13 @@ function run_docker_compose() {
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
-    # Enable docker-compose OTEL tracing (requires explicit flag)
-    echo "DEBUG: Enabling docker-compose OTEL tracing"
+    # Docker Compose will auto-detect OTEL configuration from environment variables
+    # Don't explicitly set COMPOSE_EXPERIMENTAL_OTEL=1 as it might conflict
+    echo "DEBUG: Docker Compose OTEL auto-detection enabled via environment variables"
     echo "DEBUG: TRACEPARENT=${TRACEPARENT:-NOT SET}"
     echo "DEBUG: OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-NOT SET}"
+    echo "DEBUG: OTEL_RESOURCE_ATTRIBUTES=${OTEL_RESOURCE_ATTRIBUTES:-NOT SET}"
     echo "DEBUG: OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-NOT SET}"
-    echo "DEBUG: COMPOSE_EXPERIMENTAL_OTEL will be set to 1"
-    export COMPOSE_EXPERIMENTAL_OTEL=1
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
