@@ -294,17 +294,31 @@ function run_docker_compose() {
 
   local disable_otel_config="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
 
+  # If we have BUILDKITE_TRACING_TRACEPARENT but not TRACEPARENT, set it
+  # This allows containers to link their spans to the Buildkite trace
+  if [[ -n "${BUILDKITE_TRACING_TRACEPARENT:-}" ]] && [[ -z "${TRACEPARENT:-}" ]]; then
+    export TRACEPARENT="$BUILDKITE_TRACING_TRACEPARENT"
+  fi
+
   if [[ "$disable_otel_config" == "true" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
     echo "DEBUG: TRACEPARENT: ${TRACEPARENT:-NOT SET}"
 
     (
+      # Preserve TRACEPARENT for containers but disable for docker-compose
+      local SAVED_TRACEPARENT="${TRACEPARENT:-}"
       unset TRACEPARENT
       unset TRACESTATE
       unset OTEL_EXPORTER_OTLP_ENDPOINT
       unset OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
       export OTEL_SDK_DISABLED=true
       export OTEL_TRACES_EXPORTER=none
+
+      # Restore TRACEPARENT so it can be passed to containers via -e TRACEPARENT
+      if [[ -n "$SAVED_TRACEPARENT" ]]; then
+        export TRACEPARENT="$SAVED_TRACEPARENT"
+      fi
+
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
