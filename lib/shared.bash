@@ -326,43 +326,20 @@ function run_docker_compose() {
   echo "DEBUG: BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING env: '${BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING:-<not set>}'"
 
   if [[ "$disable_otel_config" == "true" ]]; then
-    echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces by removing ALL trace context"
-    echo "DEBUG: Current OTEL/trace env vars:"
-    env | grep -E "(OTEL|TRACE|BAGGAGE|B3|UBER)" | while read line; do echo "  $line"; done || echo "  (none found)"
+    echo "~~~ :link: Associating docker-compose traces with Buildkite trace"
+    echo "DEBUG: Current TRACEPARENT: ${TRACEPARENT:-<not set>}"
+    echo "DEBUG: Current OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-<not set>}"
 
     local wrapped_command=(
       env
-      -u TRACEPARENT
-      -u TRACESTATE
-      -u BAGGAGE
-      -u B3
-      -u X_B3_TRACEID
-      -u X_B3_SPANID
-      -u X_B3_SAMPLED
-      -u UBER_TRACE_ID
-      -u BUILDKITE_TRACING_BACKEND
-      -u BUILDKITE_TRACING_SERVICE_NAME
-      -u BUILDKITE_TRACING_TRACEPARENT
-      -u BUILDKITE_TRACE_CONTEXT
-      -u OTEL_EXPORTER_OTLP_ENDPOINT
-      -u OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-      -u OTEL_EXPORTER_OTLP_HEADERS
-      -u OTEL_EXPORTER_OTLP_TRACES_HEADERS
-      -u OTEL_SERVICE_NAME
-      -u OTEL_RESOURCE_ATTRIBUTES
-      OTEL_SDK_DISABLED=true
-      OTEL_TRACES_EXPORTER=none
-      OTEL_METRICS_EXPORTER=none
-      OTEL_LOGS_EXPORTER=none
-      OTEL_PROPAGATORS=none
-      OTEL_TRACES_SAMPLER=always_off
+      OTEL_SERVICE_NAME="buildkite-plugin-docker-compose"
       "${command[@]}"
     )
 
-    echo "DEBUG: Full wrapped command: ${wrapped_command[*]}"
+    echo "DEBUG: Overriding OTEL_SERVICE_NAME to: buildkite-plugin-docker-compose"
     plugin_prompt_and_run "${wrapped_command[@]}" "$@"
   else
-    echo "DEBUG: NOT disabling OTEL (feature not enabled)"
+    echo "DEBUG: NOT modifying OTEL behavior (feature not enabled)"
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
