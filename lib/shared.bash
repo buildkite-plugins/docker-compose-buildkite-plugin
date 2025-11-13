@@ -296,7 +296,7 @@ function run_docker_compose() {
 
   if [[ "$disable_otel_config" == "true" ]]; then
     # Disable docker-compose OTEL tracing by clearing environment variables
-    # Note: Containers will still receive OTEL vars via the 'environment' plugin config
+    # builkite-agent spans will still be created, but this will elminate docker-compose cli/run etc spans
     (
       unset TRACEPARENT
       unset TRACESTATE
@@ -304,18 +304,10 @@ function run_docker_compose() {
       unset OTEL_EXPORTER_OTLP_HEADERS
       unset OTEL_EXPORTER_OTLP_PROTOCOL
       unset OTEL_SERVICE_NAME
-      
+
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
-    # Enable docker-compose OTEL tracing
-    # Docker Compose will create spans under service name "compose" (separate from agent traces)
-    
-    # Set TRACEPARENT from Buildkite if available (for container span linking)
-    if [[ -n "${BUILDKITE_TRACING_TRACEPARENT:-}" ]] && [[ -z "${TRACEPARENT:-}" ]]; then
-      export TRACEPARENT="$BUILDKITE_TRACING_TRACEPARENT"
-    fi
-    
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
