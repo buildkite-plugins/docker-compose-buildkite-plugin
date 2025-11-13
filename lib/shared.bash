@@ -305,18 +305,38 @@ function run_docker_compose() {
     echo "DEBUG: TRACEPARENT: ${TRACEPARENT:-NOT SET}"
 
     (
-      # Preserve TRACEPARENT for containers but disable for docker-compose
+      # Save variables that need to be passed to containers
       local SAVED_TRACEPARENT="${TRACEPARENT:-}"
+      local SAVED_TRACESTATE="${TRACESTATE:-}"
+      local SAVED_OTEL_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
+      local SAVED_OTEL_HEADERS="${OTEL_EXPORTER_OTLP_HEADERS:-}"
+      local SAVED_OTEL_PROTOCOL="${OTEL_EXPORTER_OTLP_PROTOCOL:-}"
+      
+      # Unset everything to disable docker-compose tracing
       unset TRACEPARENT
       unset TRACESTATE
       unset OTEL_EXPORTER_OTLP_ENDPOINT
+      unset OTEL_EXPORTER_OTLP_HEADERS
+      unset OTEL_EXPORTER_OTLP_PROTOCOL
       unset OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
       export OTEL_SDK_DISABLED=true
       export OTEL_TRACES_EXPORTER=none
 
-      # Restore TRACEPARENT so it can be passed to containers via -e TRACEPARENT
+      # Restore all variables so they can be passed to containers via -e flags
       if [[ -n "$SAVED_TRACEPARENT" ]]; then
         export TRACEPARENT="$SAVED_TRACEPARENT"
+      fi
+      if [[ -n "$SAVED_TRACESTATE" ]]; then
+        export TRACESTATE="$SAVED_TRACESTATE"
+      fi
+      if [[ -n "$SAVED_OTEL_ENDPOINT" ]]; then
+        export OTEL_EXPORTER_OTLP_ENDPOINT="$SAVED_OTEL_ENDPOINT"
+      fi
+      if [[ -n "$SAVED_OTEL_HEADERS" ]]; then
+        export OTEL_EXPORTER_OTLP_HEADERS="$SAVED_OTEL_HEADERS"
+      fi
+      if [[ -n "$SAVED_OTEL_PROTOCOL" ]]; then
+        export OTEL_EXPORTER_OTLP_PROTOCOL="$SAVED_OTEL_PROTOCOL"
       fi
 
       plugin_prompt_and_run "${command[@]}" "$@"
