@@ -324,15 +324,13 @@ function run_docker_compose() {
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
-    # Enable docker-compose OTEL tracing explicitly
-    # Docker Compose requires COMPOSE_EXPERIMENTAL_OTEL=1 to create traces
-    echo "DEBUG: Docker Compose OTEL tracing enabled"
+    # Let Docker Compose auto-detect OTEL configuration from environment variables
+    # Setting OTEL_SERVICE_NAME will make compose spans appear under buildkite-agent service
+    echo "DEBUG: Docker Compose OTEL auto-detection (not setting COMPOSE_EXPERIMENTAL_OTEL)"
     echo "DEBUG: TRACEPARENT=${TRACEPARENT:-NOT SET}"
     echo "DEBUG: OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-NOT SET}"
-    echo "DEBUG: OTEL_RESOURCE_ATTRIBUTES=${OTEL_RESOURCE_ATTRIBUTES:-NOT SET}"
     echo "DEBUG: OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-NOT SET}"
-    echo "DEBUG: Setting COMPOSE_EXPERIMENTAL_OTEL=1"
-    export COMPOSE_EXPERIMENTAL_OTEL=1
+    echo "DEBUG: OTEL_EXPORTER_OTLP_HEADERS=${OTEL_EXPORTER_OTLP_HEADERS:-NOT SET}"
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
