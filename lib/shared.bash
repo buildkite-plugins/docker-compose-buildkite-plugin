@@ -302,12 +302,19 @@ function run_docker_compose() {
 
   if [[ "$disable_otel_config" == "true" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
-    echo "DEBUG: TRACEPARENT: ${TRACEPARENT:-NOT SET}"
-    echo "DEBUG: OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-NOT SET}"
-    echo "DEBUG: OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-NOT SET}"
 
+    # Disable OTEL for docker-compose process by unsetting all OTEL variables
+    # We save them first so they can still be passed to containers via -e flags
     (
+      # Unset OTEL variables to prevent docker-compose from creating traces
+      unset TRACEPARENT
+      unset TRACESTATE
+      unset OTEL_EXPORTER_OTLP_ENDPOINT
+      unset OTEL_EXPORTER_OTLP_HEADERS
+      unset OTEL_EXPORTER_OTLP_PROTOCOL
+      unset OTEL_SERVICE_NAME
       export COMPOSE_EXPERIMENTAL_OTEL=0
+      
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
