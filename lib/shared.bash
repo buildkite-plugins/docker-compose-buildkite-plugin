@@ -294,6 +294,7 @@ function run_docker_compose() {
   if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] ; then
     echo "~~~ :warning: OTEL tracing disabled for docker-compose command"
     env OTEL_SDK_DISABLED=true plugin_prompt_and_run "${command[@]}" "$@"
+    env OTEL_SDK_DISABLED=true OTEL_TRACES_EXPORTER=none plugin_prompt_and_run "${command[@]}" "$@"
   else
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
