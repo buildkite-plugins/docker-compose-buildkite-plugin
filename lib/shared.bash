@@ -293,18 +293,18 @@ function run_docker_compose() {
   command+=(-p "$(docker_compose_project_name)")
 
   local disable_otel_config="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
-  echo "DEBUG: DISABLE_HOST_OTEL_TRACING config value: '$disable_otel_config'"
-  echo "DEBUG: BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING env: '${BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING:-<not set>}'"
 
   if [[ "$disable_otel_config" == "true" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
-    echo "DEBUG: TRACEPARENT before: ${TRACEPARENT:-NOT SET}"
-    echo "DEBUG: All OTEL vars:"
-    env | grep -E "(OTEL|TRACE)" || echo "  (none)"
+    echo "DEBUG: TRACEPARENT: ${TRACEPARENT:-NOT SET}"
 
-    COMPOSE_EXPERIMENTAL_OTEL=0 \
-    OTEL_SDK_DISABLED=true \
-    plugin_prompt_and_run "${command[@]}" "$@"
+    env -u TRACEPARENT \
+        -u TRACESTATE \
+        -u OTEL_EXPORTER_OTLP_ENDPOINT \
+        -u OTEL_EXPORTER_OTLP_TRACES_ENDPOINT \
+        OTEL_SDK_DISABLED=true \
+        OTEL_TRACES_EXPORTER=none \
+        plugin_prompt_and_run "${command[@]}" "$@"
   else
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
