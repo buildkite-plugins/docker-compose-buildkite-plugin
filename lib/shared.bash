@@ -329,13 +329,15 @@ function run_docker_compose() {
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
-    # Docker Compose will auto-detect OTEL configuration from environment variables
-    # Don't explicitly set COMPOSE_EXPERIMENTAL_OTEL=1 as it might conflict
-    echo "DEBUG: Docker Compose OTEL auto-detection enabled via environment variables"
+    # Enable docker-compose OTEL tracing explicitly
+    # Docker Compose requires COMPOSE_EXPERIMENTAL_OTEL=1 to create traces
+    echo "DEBUG: Docker Compose OTEL tracing enabled"
     echo "DEBUG: TRACEPARENT=${TRACEPARENT:-NOT SET}"
     echo "DEBUG: OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-NOT SET}"
     echo "DEBUG: OTEL_RESOURCE_ATTRIBUTES=${OTEL_RESOURCE_ATTRIBUTES:-NOT SET}"
     echo "DEBUG: OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-NOT SET}"
+    echo "DEBUG: Setting COMPOSE_EXPERIMENTAL_OTEL=1"
+    export COMPOSE_EXPERIMENTAL_OTEL=1
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
