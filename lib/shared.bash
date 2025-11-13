@@ -20,6 +20,7 @@ function plugin_prompt_and_run() {
   local exit_code
 
   plugin_prompt "$@"
+
   "$@"
   exit_code=$?
 
@@ -40,11 +41,6 @@ function plugin_read_config() {
   local default="${2:-}"
   echo "${!var:-$default}"
 }
-
-# Disable OTEL tracing for host-side commands
-if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] ; then
-  export OTEL_SDK_DISABLED=true
-fi
 
 # Reads either a value or a list from plugin config
 function plugin_read_list() {
@@ -296,7 +292,25 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
-  plugin_prompt_and_run "${command[@]}" "$@"
+  local disable_otel_config
+  disable_otel_config="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
+
+  if [[ "$disable_otel_config" == "true" ]]; then
+    # Disable docker-compose OTEL tracing by clearing environment variables
+    # builkite-agent spans will still be created, but this will elminate docker-compose cli/run etc spans
+    (
+      unset TRACEPARENT
+      unset TRACESTATE
+      unset OTEL_EXPORTER_OTLP_ENDPOINT
+      unset OTEL_EXPORTER_OTLP_HEADERS
+      unset OTEL_EXPORTER_OTLP_PROTOCOL
+      unset OTEL_SERVICE_NAME
+
+      plugin_prompt_and_run "${command[@]}" "$@"
+    )
+  else
+    plugin_prompt_and_run "${command[@]}" "$@"
+  fi
 }
 
 function in_array() {
