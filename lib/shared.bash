@@ -305,8 +305,7 @@ function run_docker_compose() {
     echo "DEBUG: TRACEPARENT: ${TRACEPARENT:-NOT SET}"
 
     (
-      export OTEL_SDK_DISABLED=true
-      export OTEL_TRACES_EXPORTER=none
+      export COMPOSE_EXPERIMENTAL_OTEL=0
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
