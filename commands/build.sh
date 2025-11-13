@@ -17,8 +17,20 @@ if [[ "$(plugin_read_config BUILDKIT "true")" == "true" ]]; then
   export BUILDKIT_PROGRESS=plain
 fi
 
+# Check if push-on-build is enabled
+push_on_build="$(plugin_read_config BUILDER_PUSH_ON_BUILD "false")"
+
+# Log cache-from conversion for multi-arch builds
+if [[ "${push_on_build}" == "true" ]]; then
+  cache_from_count=$(plugin_read_list CACHE_FROM | wc -l)
+  if [[ "${cache_from_count}" -gt 0 ]]; then
+    echo "~~~ :docker: Converting cache-from registry references to type=registry format for multi-arch build"
+  fi
+fi
+
 get_caches_for_service() {
   local service="$1"
+  local push_on_build="${2:-false}"
 
   # Read any cache-from parameters provided
   # If no-cache is set skip pulling the cache-from images
@@ -29,7 +41,17 @@ get_caches_for_service() {
       service_image=$(IFS=':'; echo "${tokens[*]:1}")
 
       if [ "${service_name}" == "${service}" ]; then
-        echo "$service_image"
+        # Auto-convert cache-from to registry format for multi-arch builds
+        if [[ "${push_on_build}" == "true" ]]; then
+          # Check if CACHE-SPEC contains / or . (indicates registry) AND doesn't already start with type=
+          if [[ "${service_image}" =~ [/.] ]] && [[ ! "${service_image}" =~ ^type= ]]; then
+            echo "type=registry,ref=${service_image}"
+          else
+            echo "$service_image"
+          fi
+        else
+          echo "$service_image"
+        fi
       fi
     done
   fi
@@ -59,7 +81,7 @@ for service_name in $(plugin_read_list BUILD) ; do
   image_name="" # no longer used here
 
   cache_from=()
-  for cache_line in $(get_caches_for_service "$service_name"); do
+  for cache_line in $(get_caches_for_service "$service_name" "$push_on_build"); do
     cache_from+=("$cache_line")
   done
 
@@ -153,5 +175,84 @@ while read -r arg ; do
   [[ -n "${arg:-}" ]] && build_params+=("--build-arg" "${arg}")
 done <<< "$(plugin_read_list ARGS)"
 
+# Handle push-on-build for multi-arch builds
+if [[ "${push_on_build}" == "true" ]]; then
+  # Read push targets and parse them
+  push_targets=()
+  service_to_tags=()
+  
+  for line in $(plugin_read_list PUSH) ; do
+    if [[ "$(plugin_read_config EXPAND_PUSH_VARS 'false')" == "true" ]]; then
+      push_target=$(eval echo "$line")
+    else
+      push_target="$line"
+    fi
+    
+    IFS=':' read -r -a tokens <<< "$push_target"
+    service_name=${tokens[0]}
+    
+    # Validate service in push list exists in build list
+    if ! in_array "${service_name}" "${services[@]}"; then
+      echo "+++ 🚨 Service '${service_name}' specified in push but not in build. With push-on-build, all pushed services must be built."
+      exit 1
+    fi
+    
+    # If service:registry:tag format, add --tag parameter
+    if [[ ${#tokens[@]} -gt 1 ]] ; then
+      target_image="$(IFS=:; echo "${tokens[*]:1}")"
+      build_params+=("-t" "${target_image}")
+      # Store first tag for each service for metadata
+      if ! in_array "${service_name}" "${push_targets[@]}"; then
+        push_targets+=("${service_name}")
+        service_to_tags+=("${service_name}:${target_image}")
+      fi
+    else
+      # Just service name, store for metadata later
+      if ! in_array "${service_name}" "${push_targets[@]}"; then
+        push_targets+=("${service_name}")
+        service_to_tags+=("${service_name}:")
+      fi
+    fi
+  done
+  
+  # Add --push flag for multi-arch builds
+  build_params+=(--push)
+fi
+
 echo "${group_type} :docker: Building services ${services[*]}"
 run_docker_compose "${build_params[@]}" "${services[@]}"
+
+# Set metadata after successful build when using push-on-build
+if [[ "${push_on_build}" == "true" ]]; then
+  prebuilt_image_namespace="$(plugin_read_config PREBUILT_IMAGE_NAMESPACE 'docker-compose-plugin-')"
+  
+  for entry in "${service_to_tags[@]}"; do
+    IFS=':' read -r -a parts <<< "$entry"
+    service_name="${parts[0]}"
+    # Get everything after the first colon as the image
+    target_image="$(IFS=:; echo "${parts[*]:1}")"
+    
+    if [[ -n "${target_image}" ]]; then
+      echo "~~~ :docker: Setting prebuilt image metadata for ${service_name}: ${target_image}"
+      set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${target_image}"
+    else
+      # For services without explicit tags, use the default compose image name
+      default_image="$(default_compose_image_for_service "${service_name}")"
+      echo "~~~ :docker: Setting prebuilt image metadata for ${service_name}: ${default_image}"
+      set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${default_image}"
+    fi
+  done
+  
+  # Process build-alias services using existing loop
+  for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
+    # For build-alias, use the first pushed service's image
+    if [[ ${#service_to_tags[@]} -gt 0 ]]; then
+      IFS=':' read -r -a parts <<< "${service_to_tags[0]}"
+      target_image="$(IFS=:; echo "${parts[*]:1}")"
+      if [[ -n "${target_image}" ]]; then
+        echo "~~~ :docker: Setting prebuilt image metadata for alias ${service_alias}: ${target_image}"
+        set_prebuilt_image "${prebuilt_image_namespace}" "${service_alias}" "${target_image}"
+      fi
+    fi
+  done
+fi

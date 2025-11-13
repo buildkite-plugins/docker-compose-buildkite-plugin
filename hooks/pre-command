@@ -83,3 +83,22 @@ else
     current_builder_driver=$(docker buildx inspect | grep -m 1 "Driver" | awk '{print $2}') || true
     echo "~~~ :docker: Using Default Builder '${current_builder}' with Driver '${current_builder_driver}'"
 fi
+
+# Validate push-on-build requires correct driver
+builder_push_on_build="$(plugin_read_config BUILDER_PUSH_ON_BUILD "false")"
+if [[ "${builder_push_on_build}" == "true" ]]; then
+    # Get the current driver - either from created builder or from builder_use
+    if [[ "${builder_create}" == "true" ]]; then
+        current_driver="${build_driver}"
+    elif [[ "${builder_use}" == "true" ]]; then
+        current_driver=$(docker buildx inspect "${builder_name}" | grep -m 1 "Driver" | awk '{print $2}') || true
+    else
+        current_driver="${current_builder_driver}"
+    fi
+    
+    if [[ "${current_driver}" != "remote" ]] && [[ "${current_driver}" != "docker-container" ]]; then
+        echo "+++ 🚨 push-on-build requires builder driver to be 'remote' or 'docker-container'"
+        echo "Current driver: '${current_driver}'"
+        exit 1
+    fi
+fi
