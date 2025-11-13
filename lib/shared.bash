@@ -321,9 +321,15 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
-  if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]]; then
+  local disable_otel_config="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
+  echo "DEBUG: DISABLE_HOST_OTEL_TRACING config value: '$disable_otel_config'"
+  echo "DEBUG: BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING env: '${BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING:-<not set>}'"
+
+  if [[ "$disable_otel_config" == "true" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces by removing ALL trace context"
-    
+    echo "DEBUG: Current OTEL/trace env vars:"
+    env | grep -E "(OTEL|TRACE|BAGGAGE|B3|UBER)" | while read line; do echo "  $line"; done || echo "  (none found)"
+
     local wrapped_command=(
       env
       -u TRACEPARENT
@@ -352,9 +358,11 @@ function run_docker_compose() {
       OTEL_TRACES_SAMPLER=always_off
       "${command[@]}"
     )
-    
+
+    echo "DEBUG: Full wrapped command: ${wrapped_command[*]}"
     plugin_prompt_and_run "${wrapped_command[@]}" "$@"
   else
+    echo "DEBUG: NOT disabling OTEL (feature not enabled)"
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
