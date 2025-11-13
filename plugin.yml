@@ -51,6 +51,8 @@ configuration:
           type: string
         remove:
           type: boolean
+        setup:
+          type: string
         use:
           type: boolean
       additionalProperties: false

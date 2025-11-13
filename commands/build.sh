@@ -105,6 +105,12 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
+builder_setup_command="$(plugin_read_config BUILDER_SETUP "")"
+if [[ -n "${builder_setup_command}" ]]; then
+  echo "~~~ :docker: Running builder setup"
+  plugin_prompt_and_must_run bash -euo pipefail -c "${builder_setup_command}"
+fi
+
 if [[ -f "${override_file}" ]]; then
   build_params+=(-f "${override_file}")
 fi
@@ -115,8 +121,9 @@ if [[ ! "$(plugin_read_config SKIP_PULL "false")" == "true" ]] ; then
   build_params+=(--pull)
 fi
 
-if [[ -n "$(plugin_read_config BUILDER_NAME "")" ]] && [[ "$(plugin_read_config BUILDER_USE "false")" == "true" ]]; then
-  build_params+=("--builder" "$(plugin_read_config BUILDER_NAME "")")
+builder_name="$(plugin_read_config BUILDER_NAME "")"
+if [[ -n "${builder_name}" ]]; then
+  build_params+=("--builder" "${builder_name}")
 fi
 
 if [[ "$(plugin_read_config NO_CACHE "false")" == "true" ]] ; then
