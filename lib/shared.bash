@@ -294,17 +294,9 @@ function run_docker_compose() {
 
   local disable_otel_config="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
 
-  # If we have BUILDKITE_TRACING_TRACEPARENT but not TRACEPARENT, set it
-  # This allows containers to link their spans to the Buildkite trace
-  if [[ -n "${BUILDKITE_TRACING_TRACEPARENT:-}" ]] && [[ -z "${TRACEPARENT:-}" ]]; then
-    export TRACEPARENT="$BUILDKITE_TRACING_TRACEPARENT"
-  fi
-
   if [[ "$disable_otel_config" == "true" ]]; then
-    echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
-
-    # Disable OTEL for docker-compose process by unsetting all OTEL variables
-    # Run in subshell so original environment is preserved for containers
+    # Disable docker-compose OTEL tracing by clearing environment variables
+    # Note: Containers will still receive OTEL vars via the 'environment' plugin config
     (
       unset TRACEPARENT
       unset TRACESTATE
@@ -316,19 +308,13 @@ function run_docker_compose() {
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
-    # Docker Compose auto-detects OTEL from environment variables
-    # The key requirement: OTEL_EXPORTER_OTLP_ENDPOINT must be set
-    echo "~~~ :chart_with_upwards_trend: Docker Compose OTEL tracing enabled"
+    # Enable docker-compose OTEL tracing
+    # Docker Compose will create spans under service name "compose" (separate from agent traces)
     
-    # Verify OTEL variables are present (required for Docker Compose to create spans)
-    if [[ -z "${OTEL_EXPORTER_OTLP_ENDPOINT:-}" ]]; then
-      echo "⚠️  WARNING: OTEL_EXPORTER_OTLP_ENDPOINT not set - Docker Compose won't create spans"
-      echo "⚠️  This requires Buildkite agent v3.107.2+ with propagate-agent-config-vars experiment"
+    # Set TRACEPARENT from Buildkite if available (for container span linking)
+    if [[ -n "${BUILDKITE_TRACING_TRACEPARENT:-}" ]] && [[ -z "${TRACEPARENT:-}" ]]; then
+      export TRACEPARENT="$BUILDKITE_TRACING_TRACEPARENT"
     fi
-    
-    echo "TRACEPARENT: ${TRACEPARENT:-NOT SET}"
-    echo "OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-NOT SET}"
-    echo "OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-NOT SET}"
     
     plugin_prompt_and_run "${command[@]}" "$@"
   fi

@@ -1,10 +1,6 @@
 #!/bin/bash
 set -ueo pipefail
 
-echo "DEBUG [pre-command]: TRACEPARENT at hook start: ${TRACEPARENT:-NOT SET}"
-echo "DEBUG [pre-command]: OTEL vars at hook start:"
-env | grep -E "(OTEL|TRACE)" || echo "  (none)"
-
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 # shellcheck source=lib/shared.bash
