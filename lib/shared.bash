@@ -300,37 +300,36 @@ function run_docker_compose() {
     export TRACEPARENT="$BUILDKITE_TRACING_TRACEPARENT"
   fi
 
-  # Set OTEL service name to match the agent's service name so docker-compose
-  # spans appear under buildkite-agent service instead of separate "compose" service
-  if [[ -n "${BUILDKITE_TRACING_SERVICE_NAME:-}" ]]; then
-    export OTEL_SERVICE_NAME="${BUILDKITE_TRACING_SERVICE_NAME}"
-  fi
-
   if [[ "$disable_otel_config" == "true" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
 
     # Disable OTEL for docker-compose process by unsetting all OTEL variables
-    # We save them first so they can still be passed to containers via -e flags
-    (/Users/user/Downloads/pipeline-1_build_1043_otel-disabled.log
-      # Unset OTEL variables to prevent docker-compose from creating traces
+    # Run in subshell so original environment is preserved for containers
+    (
       unset TRACEPARENT
       unset TRACESTATE
       unset OTEL_EXPORTER_OTLP_ENDPOINT
       unset OTEL_EXPORTER_OTLP_HEADERS
       unset OTEL_EXPORTER_OTLP_PROTOCOL
       unset OTEL_SERVICE_NAME
-      export COMPOSE_EXPERIMENTAL_OTEL=0
       
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
-    # Let Docker Compose auto-detect OTEL configuration from environment variables
-    # Setting OTEL_SERVICE_NAME will make compose spans appear under buildkite-agent service
-    echo "DEBUG: Docker Compose OTEL auto-detection (not setting COMPOSE_EXPERIMENTAL_OTEL)"
-    echo "DEBUG: TRACEPARENT=${TRACEPARENT:-NOT SET}"
-    echo "DEBUG: OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-NOT SET}"
-    echo "DEBUG: OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-NOT SET}"
-    echo "DEBUG: OTEL_EXPORTER_OTLP_HEADERS=${OTEL_EXPORTER_OTLP_HEADERS:-NOT SET}"
+    # Docker Compose auto-detects OTEL from environment variables
+    # The key requirement: OTEL_EXPORTER_OTLP_ENDPOINT must be set
+    echo "~~~ :chart_with_upwards_trend: Docker Compose OTEL tracing enabled"
+    
+    # Verify OTEL variables are present (required for Docker Compose to create spans)
+    if [[ -z "${OTEL_EXPORTER_OTLP_ENDPOINT:-}" ]]; then
+      echo "⚠️  WARNING: OTEL_EXPORTER_OTLP_ENDPOINT not set - Docker Compose won't create spans"
+      echo "⚠️  This requires Buildkite agent v3.107.2+ with propagate-agent-config-vars experiment"
+    fi
+    
+    echo "TRACEPARENT: ${TRACEPARENT:-NOT SET}"
+    echo "OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-NOT SET}"
+    echo "OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-NOT SET}"
+    
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
