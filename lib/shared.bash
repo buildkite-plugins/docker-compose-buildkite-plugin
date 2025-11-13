@@ -324,6 +324,8 @@ function run_docker_compose() {
       plugin_prompt_and_run "${command[@]}" "$@"
     )
   else
+    # Enable docker-compose OTEL tracing (requires explicit flag)
+    export COMPOSE_EXPERIMENTAL_OTEL=1
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
