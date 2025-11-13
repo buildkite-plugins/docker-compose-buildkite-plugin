@@ -21,9 +21,15 @@ function plugin_prompt_and_run() {
 
   plugin_prompt "$@"
 
-  if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] && [[ "$1" == "docker-compose" || "$1" == "docker" && "$2" == "compose" ]]; then
+  local disable_otel="$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")"
+
+  echo "DEBUG: disable_otel='$disable_otel', \$1='$1', \$2='${2:-}'"
+
+  if [[ "$disable_otel" == "true" ]] && [[ "$1" == "docker-compose" || ( "$1" == "docker" && "$2" == "compose" ) ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
-    
+    echo "DEBUG: All OTEL env vars before:"
+    env | grep -E "(OTEL|TRACE)" || echo "  (none found)"
+
     env -u OTEL_EXPORTER_OTLP_ENDPOINT \
         -u OTEL_EXPORTER_OTLP_TRACES_ENDPOINT \
         -u OTEL_EXPORTER_OTLP_PROTOCOL \
@@ -33,10 +39,13 @@ function plugin_prompt_and_run() {
         -u OTEL_EXPORTER_OTLP_TRACES_HEADERS \
         -u TRACEPARENT \
         -u TRACESTATE \
+        -u BUILDKITE_TRACING_BACKEND \
         OTEL_SDK_DISABLED=true \
-        OTEL_EXPORTER_OTLP_ENDPOINT="http://0.0.0.0:1" \
+        OTEL_TRACES_SAMPLER=always_off \
+        NO_PROXY="localhost,127.0.0.1,0.0.0.0" \
         "$@"
   else
+    echo "DEBUG: NOT disabling OTEL (condition not met)"
     "$@"
   fi
   exit_code=$?
