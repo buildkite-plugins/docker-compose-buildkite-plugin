@@ -441,3 +441,62 @@ steps:
 The first Step will build the Image using a Builder Instance with the `docker-container` driver and push the image cache to the remote registry, as specified by `cache-to`, with additional cache export options being used to export all the layers of intermediate steps with the image manifests. More details cache export options [here](https://github.com/moby/buildkit?tab=readme-ov-file#registry-push-image-and-cache-separately).
 
 The second Step will build the Image using a Builder Instance with the `docker-container` driver and use remote registry for the image cache, as specified by `cache-from`, speeding up Image building process.
+
+### Multi-arch builds with remote builder
+
+The following example demonstrates building multi-architecture Docker images (linux/amd64 and linux/arm64) using a remote builder with the `push-on-build` option. This is required for multi-platform builds as they cannot be stored in the local Docker daemon.
+
+```yml
+steps:
+  - label: ":docker: Build multi-arch image"
+    plugins:
+      - ecr#v2.7.0:
+          login: true
+      - docker-compose#v5.12.0:
+          build: app
+          push: app:${ECR_REGISTRY}/myapp:${BUILDKITE_COMMIT}
+          cache-from:
+            - app:${ECR_REGISTRY}/myapp:cache
+          cache-to:
+            - app:type=registry,ref=${ECR_REGISTRY}/myapp:cache,mode=max
+          builder:
+            name: multi-arch-builder
+            create: true
+            driver: docker-container
+            platform: linux/amd64,linux/arm64
+            push-on-build: true
+```
+
+Key features of this configuration:
+- **`push-on-build: true`**: Enables integrated push during build, which is required for multi-platform images
+- **`driver: docker-container`**: Uses the docker-container driver (or `remote`) which supports multi-platform builds
+- **`platform`**: Specifies the target platforms for the build
+- **Cache references**: Registry-based cache references are automatically converted to `type=registry,ref=` format when `push-on-build` is enabled
+- The `push` step will automatically skip since the image was already pushed during the build
+
+For builds with multiple services and tags:
+
+```yml
+steps:
+  - label: ":docker: Build and push services"
+    plugins:
+      - ecr#v2.7.0:
+          login: true
+      - docker-compose#v5.12.0:
+          build:
+            - web
+            - api
+          push:
+            - web:${ECR_REGISTRY}/web:${BUILDKITE_COMMIT}
+            - web:${ECR_REGISTRY}/web:latest
+            - api:${ECR_REGISTRY}/api:${BUILDKITE_COMMIT}
+          builder:
+            name: multi-arch-builder
+            use: true
+            push-on-build: true
+```
+
+In this example:
+- Multiple services (`web` and `api`) are built and pushed with multiple tags
+- The builder instance is reused from a previous step with `use: true`
+- All services specified in `push` must be included in `build` when using `push-on-build`

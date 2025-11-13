@@ -478,6 +478,39 @@ If set to true will use Builder Instance specified by `name`.
 
 The default is `false`.
 
+##### `push-on-build` (boolean)
+
+If set to true, enables integrated push during the build process, which is required for multi-platform builds with `driver: remote` or `driver: docker-container`. When enabled, the `--push` flag is added to the build command, pushing images directly to the registry during the build process.
+
+**Important**: Multi-platform images cannot be stored in the local Docker daemon, so this option is required when building for multiple architectures. The driver must be set to `remote` or `docker-container` for this option to work.
+
+When `push-on-build` is enabled:
+- All services specified in `push` must also be specified in `build`
+- Images are automatically pushed during the build process
+- Prebuilt image metadata is set automatically after successful build
+- The subsequent `push` step will skip services that were already pushed during build
+- Cache-from registry references are automatically converted to `type=registry,ref=` format for compatibility with multi-arch builds
+
+The default is `false`.
+
+Example:
+```yaml
+steps:
+  - label: "Build multi-arch image"
+    plugins:
+      - docker-compose#v5.0.0:
+          build: myservice
+          push: myservice:my.registry/myservice:latest
+          builder:
+            create: true
+            name: multi-arch-builder
+            driver: docker-container
+            platform: linux/amd64,linux/arm64
+            push-on-build: true
+          cache-from:
+            - myservice:my.registry/myservice:cache
+```
+
 ## Developing
 
 To run the tests:
