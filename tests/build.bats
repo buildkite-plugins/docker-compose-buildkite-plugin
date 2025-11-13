@@ -419,7 +419,8 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice:my.repository/myservice:latest
 
   stub docker \
-    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice"
+    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice" \
+    "buildx imagetools create --tag my.repository/myservice:latest my.repository/myservice:llamas : echo tagged additional image"
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata"
@@ -429,6 +430,36 @@ setup_file() {
   assert_success
   assert_output --partial "built and pushed myservice"
   assert_output --partial "Setting prebuilt image metadata for myservice: my.repository/myservice:llamas"
+  assert_output --partial "Tagging and pushing additional images for myservice"
+  assert_output --partial "Pushing additional tag: my.repository/myservice:latest"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Build with push-on-build and three tags" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_0=myservice:my.repository/myservice:commit-abc123
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice:my.repository/myservice:branch-main
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_2=myservice:my.repository/myservice:latest
+
+  stub docker \
+    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice" \
+    "buildx imagetools create --tag my.repository/myservice:branch-main my.repository/myservice:commit-abc123 : echo tagged second image" \
+    "buildx imagetools create --tag my.repository/myservice:latest my.repository/myservice:commit-abc123 : echo tagged third image"
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:commit-abc123 : echo set metadata"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "built and pushed myservice"
+  assert_output --partial "Setting prebuilt image metadata for myservice: my.repository/myservice:commit-abc123"
+  assert_output --partial "Tagging and pushing additional images for myservice"
+  assert_output --partial "Pushing additional tag: my.repository/myservice:branch-main"
+  assert_output --partial "Pushing additional tag: my.repository/myservice:latest"
 
   unstub docker
   unstub buildkite-agent

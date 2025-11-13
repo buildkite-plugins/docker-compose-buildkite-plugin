@@ -487,20 +487,24 @@ If set to true, enables integrated push during the build process, which is requi
 When `push-on-build` is enabled:
 - All services specified in `push` must also be specified in `build`
 - Images are automatically pushed during the build process
+- Multiple tags per service are supported: the first tag is pushed during build, additional tags are created using `docker buildx imagetools create`
 - Prebuilt image metadata is set automatically after successful build
 - The subsequent `push` step will skip services that were already pushed during build
 - Cache-from registry references are automatically converted to `type=registry,ref=` format for compatibility with multi-arch builds
 
 The default is `false`.
 
-Example:
+Example with multiple tags:
 ```yaml
 steps:
   - label: "Build multi-arch image"
     plugins:
       - docker-compose#v5.0.0:
           build: myservice
-          push: myservice:my.registry/myservice:latest
+          push:
+            - myservice:my.registry/myservice:${BUILDKITE_COMMIT}
+            - myservice:my.registry/myservice:${BUILDKITE_BRANCH}
+            - myservice:my.registry/myservice:latest
           builder:
             create: true
             name: multi-arch-builder

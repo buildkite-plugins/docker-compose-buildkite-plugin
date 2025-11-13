@@ -204,9 +204,10 @@ done <<< "$(plugin_read_list ARGS)"
 
 # Handle push-on-build for multi-arch builds
 if [[ "${push_on_build}" == "true" ]]; then
-  # Validate all push targets are in build list and collect metadata info
+  # Validate all push targets are in build list and collect all tags for each service
+  declare -A service_first_tag
+  declare -A service_additional_tags
   push_targets=()
-  service_to_tags=()
   
   for line in $(plugin_read_list PUSH) ; do
     if [[ "$(plugin_read_config EXPAND_PUSH_VARS 'false')" == "true" ]]; then
@@ -224,14 +225,23 @@ if [[ "${push_on_build}" == "true" ]]; then
       exit 1
     fi
     
-    # Store first tag for each service for metadata (images are set in override file)
+    # Track unique services
     if ! in_array "${service_name}" "${push_targets[@]}"; then
       push_targets+=("${service_name}")
-      if [[ ${#tokens[@]} -gt 1 ]] ; then
-        target_image="$(IFS=:; echo "${tokens[*]:1}")"
-        service_to_tags+=("${service_name}:${target_image}")
+    fi
+    
+    # Store first tag for override file, additional tags for manual push
+    if [[ ${#tokens[@]} -gt 1 ]] ; then
+      target_image="$(IFS=:; echo "${tokens[*]:1}")"
+      if [[ -z "${service_first_tag[$service_name]:-}" ]]; then
+        service_first_tag[$service_name]="$target_image"
       else
-        service_to_tags+=("${service_name}:")
+        # Append additional tags with delimiter
+        if [[ -z "${service_additional_tags[$service_name]:-}" ]]; then
+          service_additional_tags[$service_name]="$target_image"
+        else
+          service_additional_tags[$service_name]="${service_additional_tags[$service_name]}|${target_image}"
+        fi
       fi
     fi
   done
@@ -243,19 +253,31 @@ fi
 echo "${group_type} :docker: Building services ${services[*]}"
 run_docker_compose "${build_params[@]}" "${services[@]}"
 
-# Set metadata after successful build when using push-on-build
+# Handle additional tags and set metadata after successful build when using push-on-build
 if [[ "${push_on_build}" == "true" ]]; then
   prebuilt_image_namespace="$(plugin_read_config PREBUILT_IMAGE_NAMESPACE 'docker-compose-plugin-')"
+  push_retries="$(plugin_read_config PUSH_RETRIES "0")"
   
-  for entry in "${service_to_tags[@]}"; do
-    IFS=':' read -r -a parts <<< "$entry"
-    service_name="${parts[0]}"
-    # Get everything after the first colon as the image
-    target_image="$(IFS=:; echo "${parts[*]:1}")"
+  for service_name in "${push_targets[@]}"; do
+    # Get the first tag (which was already pushed by docker compose build --push)
+    first_tag="${service_first_tag[$service_name]:-}"
     
-    if [[ -n "${target_image}" ]]; then
-      echo "~~~ :docker: Setting prebuilt image metadata for ${service_name}: ${target_image}"
-      set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${target_image}"
+    if [[ -n "${first_tag}" ]]; then
+      source_image="${first_tag}"
+      echo "~~~ :docker: Setting prebuilt image metadata for ${service_name}: ${source_image}"
+      set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${source_image}"
+      
+      # Push additional tags if any exist
+      additional_tags="${service_additional_tags[$service_name]:-}"
+      if [[ -n "${additional_tags}" ]]; then
+        echo "~~~ :docker: Tagging and pushing additional images for ${service_name}"
+        IFS='|' read -r -a tags_array <<< "$additional_tags"
+        for additional_tag in "${tags_array[@]}"; do
+          echo "~~~ :docker: Pushing additional tag: ${additional_tag}"
+          # Use docker buildx imagetools create to create additional tags from the multi-arch image
+          retry "$push_retries" plugin_prompt_and_run docker buildx imagetools create --tag "${additional_tag}" "${source_image}"
+        done
+      fi
     else
       # For services without explicit tags, get the image name from compose config
       compose_image="$(compose_image_for_service "${service_name}")"
@@ -274,12 +296,12 @@ if [[ "${push_on_build}" == "true" ]]; then
   # Process build-alias services using existing loop
   for service_alias in $(plugin_read_list BUILD_ALIAS) ; do
     # For build-alias, use the first pushed service's image
-    if [[ ${#service_to_tags[@]} -gt 0 ]]; then
-      IFS=':' read -r -a parts <<< "${service_to_tags[0]}"
-      target_image="$(IFS=:; echo "${parts[*]:1}")"
-      if [[ -n "${target_image}" ]]; then
-        echo "~~~ :docker: Setting prebuilt image metadata for alias ${service_alias}: ${target_image}"
-        set_prebuilt_image "${prebuilt_image_namespace}" "${service_alias}" "${target_image}"
+    if [[ ${#push_targets[@]} -gt 0 ]]; then
+      first_service="${push_targets[0]}"
+      first_tag="${service_first_tag[$first_service]:-}"
+      if [[ -n "${first_tag}" ]]; then
+        echo "~~~ :docker: Setting prebuilt image metadata for alias ${service_alias}: ${first_tag}"
+        set_prebuilt_image "${prebuilt_image_namespace}" "${service_alias}" "${first_tag}"
       fi
     fi
   done

@@ -498,5 +498,9 @@ steps:
 
 In this example:
 - Multiple services (`web` and `api`) are built and pushed with multiple tags
+- The `web` service gets two tags: one with the commit hash and one as `latest`
+- The first tag for each service is pushed during the build, additional tags are created afterward using `docker buildx imagetools create`
+- The builder instance is reused from a previous step with `use: true`
+- All services specified in `push` must be included in `build` when using `push-on-build`
 - The builder instance is reused from a previous step with `use: true`
 - All services specified in `push` must be included in `build` when using `push-on-build`
