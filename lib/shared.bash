@@ -327,6 +327,31 @@ function retry {
   done
 }
 
+# Expands the env vars in a string, using envsubst if present, falling back to
+# eval when it's missing.
+function expand_var() {
+  # Try to use the safest approach possible
+  if command -v envsubst > /dev/null; then
+    expand_var_with_envsubst "$@"
+  else
+    expand_var_with_eval "$1"
+  fi
+}
+
+function expand_var_with_envsubst() {
+  allowlist="$(plugin_read_config 'EXPAND_VARS_ALLOWLIST' '')"
+  if [[ "$allowlist" == "" ]]; then
+    envsubst <<<"$1"
+  else
+    envsubst "$allowlist" <<<"$1"
+  fi
+}
+
+function expand_var_with_eval() {
+  echo "$(eval echo "$1")"
+}
+
+
 function is_windows() {
   [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]]
 }
