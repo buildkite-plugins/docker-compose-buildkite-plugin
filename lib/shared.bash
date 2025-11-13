@@ -300,6 +300,12 @@ function run_docker_compose() {
     export TRACEPARENT="$BUILDKITE_TRACING_TRACEPARENT"
   fi
 
+  # Set OTEL_SERVICE_NAME to match the agent's service name so docker-compose
+  # spans appear under buildkite-agent service instead of separate "compose" service
+  if [[ -z "${OTEL_SERVICE_NAME:-}" ]] && [[ -n "${BUILDKITE_TRACING_SERVICE_NAME:-}" ]]; then
+    export OTEL_SERVICE_NAME="$BUILDKITE_TRACING_SERVICE_NAME"
+  fi
+
   if [[ "$disable_otel_config" == "true" ]]; then
     echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
 
