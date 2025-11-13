@@ -326,19 +326,18 @@ function run_docker_compose() {
   echo "DEBUG: BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING env: '${BUILDKITE_PLUGIN_DOCKER_COMPOSE_DISABLE_HOST_OTEL_TRACING:-<not set>}'"
 
   if [[ "$disable_otel_config" == "true" ]]; then
-    echo "~~~ :no_entry_sign: Disabling docker-compose OTEL instrumentation"
-    echo "DEBUG: Current TRACEPARENT: ${TRACEPARENT:-<not set>}"
+    echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces"
 
     local wrapped_command=(
       env
+      -u TRACEPARENT
+      -u TRACESTATE
       OTEL_SDK_DISABLED=true
       "${command[@]}"
     )
 
-    echo "DEBUG: Setting OTEL_SDK_DISABLED=true for docker-compose command"
     plugin_prompt_and_run "${wrapped_command[@]}" "$@"
   else
-    echo "DEBUG: NOT modifying OTEL behavior (feature not enabled)"
     plugin_prompt_and_run "${command[@]}" "$@"
   fi
 }
