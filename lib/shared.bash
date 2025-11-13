@@ -22,15 +22,11 @@ function plugin_prompt_and_run() {
   plugin_prompt "$@"
 
   if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] && [[ "$1" == "docker-compose" || "$1" == "docker" && "$2" == "compose" ]]; then
-    echo "~~~ :warning: OTEL tracing disabled for docker-compose command"
-    OTEL_SDK_DISABLED=true \
-    OTEL_TRACES_EXPORTER=none \
-    OTEL_METRICS_EXPORTER=none \
-    OTEL_LOGS_EXPORTER=none \
-    OTEL_EXPORTER_OTLP_ENDPOINT="" \
-    OTEL_SERVICE_NAME="" \
-    OTEL_RESOURCE_ATTRIBUTES="" \
-    BUILDKITE_TRACING_BACKEND="" \
+    echo "~~~ :twisted_rightwards_arrows: Linking docker-compose traces to parent Buildkite trace"
+    
+    local parent_service_name="${OTEL_SERVICE_NAME:-buildkite-agent}"
+    
+    OTEL_SERVICE_NAME="$parent_service_name" \
     "$@"
   else
     "$@"
@@ -305,25 +301,7 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
-  if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] ; then
-    echo "~~~ :warning: OTEL tracing disabled for docker-compose command"
-    (
-      export OTEL_SDK_DISABLED=true
-      export OTEL_TRACES_EXPORTER=none
-      export OTEL_METRICS_EXPORTER=none
-      export OTEL_LOGS_EXPORTER=none
-      unset OTEL_EXPORTER_OTLP_ENDPOINT
-      unset OTEL_EXPORTER_OTLP_HEADERS
-      unset OTEL_SERVICE_NAME
-      unset OTEL_RESOURCE_ATTRIBUTES
-      unset BUILDKITE_TRACING_BACKEND
-      unset TRACEPARENT
-      unset TRACESTATE
-      plugin_prompt_and_run "${command[@]}" "$@"
-    )
-  else
-    plugin_prompt_and_run "${command[@]}" "$@"
-  fi
+  plugin_prompt_and_run "${command[@]}" "$@"
 }
 
 function in_array() {
