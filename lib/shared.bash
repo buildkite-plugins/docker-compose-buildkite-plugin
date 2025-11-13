@@ -20,7 +20,21 @@ function plugin_prompt_and_run() {
   local exit_code
 
   plugin_prompt "$@"
-  "$@"
+
+  if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] && [[ "$1" == "docker-compose" || "$1" == "docker" && "$2" == "compose" ]]; then
+    echo "~~~ :warning: OTEL tracing disabled for docker-compose command"
+    OTEL_SDK_DISABLED=true \
+    OTEL_TRACES_EXPORTER=none \
+    OTEL_METRICS_EXPORTER=none \
+    OTEL_LOGS_EXPORTER=none \
+    OTEL_EXPORTER_OTLP_ENDPOINT="" \
+    OTEL_SERVICE_NAME="" \
+    OTEL_RESOURCE_ATTRIBUTES="" \
+    BUILDKITE_TRACING_BACKEND="" \
+    "$@"
+  else
+    "$@"
+  fi
   exit_code=$?
 
   # Sometimes docker-compose pull leaves unfinished ansi codes
