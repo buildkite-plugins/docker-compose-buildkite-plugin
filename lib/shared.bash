@@ -41,11 +41,6 @@ function plugin_read_config() {
   echo "${!var:-$default}"
 }
 
-# Disable OTEL tracing for host-side commands
-if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] ; then
-  export OTEL_SDK_DISABLED=true
-fi
-
 # Reads either a value or a list from plugin config
 function plugin_read_list() {
   prefix_read_list "BUILDKITE_PLUGIN_DOCKER_COMPOSE_$1"
@@ -296,7 +291,11 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
-  plugin_prompt_and_run "${command[@]}" "$@"
+  if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]] ; then
+    OTEL_SDK_DISABLED=true plugin_prompt_and_run "${command[@]}" "$@"
+  else
+    plugin_prompt_and_run "${command[@]}" "$@"
+  fi
 }
 
 function in_array() {
