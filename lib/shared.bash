@@ -321,6 +321,20 @@ function run_docker_compose() {
 
   command+=(-p "$(docker_compose_project_name)")
 
+  if [[ "$(plugin_read_config DISABLE_HOST_OTEL_TRACING "false")" == "true" ]]; then
+    echo "~~~ :no_entry_sign: Disabling docker-compose OTEL traces (in run_docker_compose)"
+    export OTEL_SDK_DISABLED=true
+    export OTEL_TRACES_EXPORTER=none
+    export OTEL_METRICS_EXPORTER=none
+    export OTEL_LOGS_EXPORTER=none
+    export OTEL_PROPAGATORS=none
+    export OTEL_TRACES_SAMPLER=always_off
+    unset OTEL_EXPORTER_OTLP_ENDPOINT
+    unset OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+    unset TRACEPARENT
+    unset TRACESTATE
+  fi
+
   plugin_prompt_and_run "${command[@]}" "$@"
 }
 
