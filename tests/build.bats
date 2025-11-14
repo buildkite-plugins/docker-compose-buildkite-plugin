@@ -368,6 +368,7 @@ setup_file() {
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo my.repository/myservice:llamas"
 
   run "$PWD"/hooks/command
@@ -402,6 +403,7 @@ setup_file() {
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo my.repository/myservice:llamas"
 
   run "$PWD"/hooks/command
@@ -426,6 +428,9 @@ setup_file() {
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo my.repository/myservice:llamas" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo my.repository/myservice:llamas"
 
   run "$PWD"/hooks/command
@@ -454,6 +459,11 @@ setup_file() {
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:commit-abc123 : echo set metadata" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo my.repository/myservice:commit-abc123" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo my.repository/myservice:commit-abc123" \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
     "meta-data get docker-compose-plugin-built-image-tag-myservice : echo my.repository/myservice:commit-abc123"
 
   run "$PWD"/hooks/command
