@@ -4,6 +4,9 @@ env:
   # registry for doing all the push/pull testing.
   IMAGE_REPO: "localhost:5005/docker-compose-test"
 
+agents:
+  queue: "build"
+
 steps:
   - label: ":shell: Shellcheck"
     plugins:
