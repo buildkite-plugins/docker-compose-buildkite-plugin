@@ -2,4 +2,4 @@
 set -ueo pipefail
 
 echo "~~~ Stopping test Docker registry"
-docker container stop docker-compose-plugin-registry && docker container rm -v docker-compose-plugin-registry
+docker container stop "docker-compose-plugin-registry-${BUILDKITE_STEP_ID}" && docker container rm -v "docker-compose-plugin-registry-${BUILDKITE_STEP_ID}"
