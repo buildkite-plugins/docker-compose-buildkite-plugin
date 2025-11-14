@@ -47,6 +47,8 @@ configuration:
           type: string
         platform:
           type: string
+        push-on-build:
+          type: boolean
         remote-address:
           type: string
         remove:
