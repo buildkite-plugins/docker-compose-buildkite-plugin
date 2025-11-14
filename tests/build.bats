@@ -364,7 +364,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
 
   stub docker \
-    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice"
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --push myservice : echo built and pushed myservice"
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata"
@@ -397,7 +397,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
 
   stub docker \
-    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice"
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --push myservice : echo built and pushed myservice"
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice my.repository/myservice:llamas : echo set metadata"
@@ -419,7 +419,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_1=myservice:my.repository/myservice:latest
 
   stub docker \
-    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --push myservice : echo built and pushed myservice" \
     "buildx imagetools create --tag my.repository/myservice:latest my.repository/myservice:llamas : echo tagged additional image"
 
   stub buildkite-agent \
@@ -445,7 +445,7 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_2=myservice:my.repository/myservice:latest
 
   stub docker \
-    "compose -f docker-compose.buildkite-1-override.yml -f docker-compose.yml -p buildkite1111 build --pull --push myservice : echo built and pushed myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --push myservice : echo built and pushed myservice" \
     "buildx imagetools create --tag my.repository/myservice:branch-main my.repository/myservice:commit-abc123 : echo tagged second image" \
     "buildx imagetools create --tag my.repository/myservice:latest my.repository/myservice:commit-abc123 : echo tagged third image"
 
