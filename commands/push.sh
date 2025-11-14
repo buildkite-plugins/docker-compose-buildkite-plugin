@@ -38,6 +38,7 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD; then
 fi
 
 prebuilt_image_namespace="$(plugin_read_config PREBUILT_IMAGE_NAMESPACE 'docker-compose-plugin-')"
+push_on_build="$(plugin_read_config BUILDER_PUSH_ON_BUILD "false")"
 
 # Then we figure out what to push, and where
 for line in $(plugin_read_list PUSH) ; do
@@ -48,6 +49,18 @@ for line in $(plugin_read_list PUSH) ; do
   fi
   IFS=':' read -r -a tokens <<< "$push_target"
   service_name=${tokens[0]}
+  
+  # Check if image was already pushed during build with push-on-build
+  if [[ "${push_on_build}" == "true" ]]; then
+    if prebuilt_image="$(get_prebuilt_image "$prebuilt_image_namespace" "$service_name" 2>/dev/null)"; then
+      echo "~~~ :docker: Image for ${service_name} was already pushed during build (push-on-build)"
+      continue
+    else
+      echo "+++ 🚨 No prebuilt-image nor built image found for service to push: ${service_name}. With push-on-build enabled, ensure service was built successfully."
+      exit 1
+    fi
+  fi
+  
   service_image="$(compose_image_for_service "$service_name")"
 
   if [ -n "${service_image}" ]; then # service has an image

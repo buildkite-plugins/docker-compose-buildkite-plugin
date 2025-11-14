@@ -9,7 +9,7 @@ fi
 
 echo "~~~ Starting test Docker registry"
 docker run -d \
-  -p 5005:5000 \
-  --name docker-compose-plugin-registry \
+  -p "500${BUILDKITE_AGENT_NAME: -1}":5000 \
+  --name "docker-compose-plugin-registry-${BUILDKITE_STEP_ID}" \
   -v "$(pwd)/tmp/registry:/var/lib/registry" \
   registry:2

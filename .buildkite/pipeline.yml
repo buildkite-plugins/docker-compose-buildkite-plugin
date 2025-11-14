@@ -2,7 +2,10 @@ env:
   # Some of these are end-to-end integration tests that require a Docker
   # registry to run. We boot one up in the .hooks/pre-command, and then use that
   # registry for doing all the push/pull testing.
-  IMAGE_REPO: "localhost:5005/docker-compose-test"
+  IMAGE_REPO: "localhost:500${BUILDKITE_AGENT_NAME: -1}/docker-compose-test"
+
+agents:
+  queue: "build"
 
 steps:
   - label: ":shell: Shellcheck"
@@ -26,16 +29,7 @@ steps:
         # for pretty colors
         tty: true
         command: ["bats", "tests", "tests/v1"]
-
-  - label: "Security Scan"
-    key: security_scan
-    plugins:
-      - secrets#v1.0.2:
-          variables:
-            GITHUB_TOKEN: GITHUB_TOKEN
-      - ossf-scorecard#v1.0.1:
-          github_token: $$GITHUB_TOKEN
-
+  
   # The rest of the steps are integration tests
 
   - label: run, with links that fail

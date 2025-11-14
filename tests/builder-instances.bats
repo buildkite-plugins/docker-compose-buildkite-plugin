@@ -285,3 +285,77 @@ load '../lib/shared'
 
     unstub docker
 }
+
+@test "push-on-build with docker-container driver succeeds" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=docker-container
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD=true
+
+    stub docker \
+        "buildx inspect builder-name : exit 1" \
+        "buildx create --name builder-name --driver docker-container --bootstrap : exit 0" \
+        "buildx inspect : echo 'Name: test'" \
+        "buildx inspect : echo 'Driver: driver'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'docker-container'"
+
+    unstub docker
+}
+
+@test "push-on-build with remote driver succeeds" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_CREATE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_DRIVER=remote
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_REMOTE_ADDRESS=tcp://localhost:1234
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD=true
+
+    stub docker \
+        "buildx inspect builder-name : exit 1" \
+        "buildx create --name builder-name --driver remote --bootstrap tcp://localhost:1234 : exit 0" \
+        "buildx inspect : echo 'Name: test'" \
+        "buildx inspect : echo 'Driver: driver'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output --partial "~~~ :docker: Creating Builder Instance 'builder-name' with Driver 'remote'"
+
+    unstub docker
+}
+
+@test "push-on-build with docker driver fails" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD=true
+
+    stub docker \
+        "buildx inspect : echo 'Name: test'" \
+        "buildx inspect : echo 'Driver: docker'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_failure
+    assert_output --partial "+++ 🚨 push-on-build requires builder driver to be 'remote' or 'docker-container'"
+    assert_output --partial "Current driver: 'docker'"
+
+    unstub docker
+}
+
+@test "push-on-build with used builder checks driver" {
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=builder-name
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD=true
+
+    stub docker \
+        "buildx inspect builder-name : exit 0" \
+        "buildx inspect builder-name : echo 'Driver: docker-container'"
+
+    run "$PWD"/hooks/pre-command
+
+    assert_success
+    assert_output --partial "~~~ :docker: Using Builder Instance 'builder-name'"
+
+    unstub docker
+}
