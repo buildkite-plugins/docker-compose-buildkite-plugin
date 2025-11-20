@@ -100,6 +100,8 @@ configuration:
       type: string
     expand-push-vars:
       type: boolean
+    expand-vars-allowlist:
+      type: string
     expand-volume-vars:
       type: boolean
     graceful-shutdown:
@@ -207,6 +209,7 @@ configuration:
     env-propagation-list: [ run ]
     environment: [ run ]
     expand-push-vars: [ push ]
+    expand-vars-allowlist: [ push, run ]
     expand-volume-vars: [ volumes ]
     graceful-shutdown: [ run ]
     leave-volumes: [ run ]
