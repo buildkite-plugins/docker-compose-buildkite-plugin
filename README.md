@@ -205,7 +205,11 @@ Platforms are specified in the format `os/architecture[/variant]`, for example:
 - `linux/arm64`
 - `linux/arm/v7`
 
-When multiple platforms are specified, the build will create a multi-architecture image manifest. This requires using a builder with the `docker-container` or `remote` driver, and typically requires the `push-on-build: true` option since multi-platform images cannot be loaded into the local Docker daemon.
+**Important**: Multi-platform images cannot be loaded into the local Docker daemon and must be pushed directly to a registry. When platforms are specified:
+
+- You **must** also configure `push` targets with registry locations
+- The plugin automatically enables push-on-build behavior
+- A builder with the `docker-container` or `remote` driver is required
 
 Example:
 
@@ -222,7 +226,6 @@ steps:
           builder:
             create: true
             driver: docker-container
-            push-on-build: true
 ```
 
 #### `target` (build only)

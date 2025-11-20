@@ -20,6 +20,21 @@ fi
 # Check if push-on-build is enabled
 push_on_build="$(plugin_read_config BUILDER_PUSH_ON_BUILD "false")"
 
+# Check if platforms are specified - if so, we need to enable push-on-build
+# because multi-platform images cannot be loaded into local Docker daemon
+platforms_count=$(plugin_read_list PLATFORMS | wc -l)
+if [[ "${platforms_count}" -gt 0 ]]; then
+  if [[ "${push_on_build}" != "true" ]]; then
+    echo "~~~ :docker: Multi-platform build detected - automatically enabling push-on-build"
+    echo "Note: Multi-platform images cannot be loaded into local Docker daemon and must be pushed to a registry."
+    push_on_build="true"
+    # Export so push.sh can see this value
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD="true"
+  else
+    echo "~~~ :docker: Multi-platform build with push-on-build enabled"
+  fi
+fi
+
 # Log cache-from conversion for multi-arch builds
 if [[ "${push_on_build}" == "true" ]]; then
   cache_from_count=$(plugin_read_list CACHE_FROM | wc -l)
@@ -214,6 +229,15 @@ done <<< "$(plugin_read_list ARGS)"
 
 # Handle push-on-build for multi-arch builds
 if [[ "${push_on_build}" == "true" ]]; then
+  # Validate that push targets are configured when platforms are specified
+  push_count=$(plugin_read_list PUSH | wc -l)
+  if [[ "${platforms_count}" -gt 0 ]] && [[ "${push_count}" -eq 0 ]]; then
+    echo "+++ 🚨 Multi-platform build requires push targets to be configured."
+    echo "Multi-platform images cannot be loaded into the local Docker daemon."
+    echo "Please add push configuration with registry targets for your services."
+    exit 1
+  fi
+  
   # Validate all push targets are in build list and collect all tags for each service
   declare -A service_first_tag
   declare -A service_additional_tags

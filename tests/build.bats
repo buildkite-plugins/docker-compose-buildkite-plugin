@@ -484,34 +484,88 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS_0=linux/amd64
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS_1=linux/arm64
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=helloworld:my.registry/helloworld:latest
 
   stub docker \
-    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --push helloworld : echo built and pushed helloworld"
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml my.registry/helloworld:latest : echo meta-data set" \
+    "meta-data exists docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml : echo my.registry/helloworld:latest"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "- linux/amd64"
   assert_output --partial "- linux/arm64"
-  assert_output --partial "built helloworld"
+  assert_output --partial "built and pushed helloworld"
 
   unstub docker
+  unstub buildkite-agent
 }
 
 @test "Build with single platform override" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS=linux/amd64
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=helloworld:my.registry/helloworld:latest
 
   stub docker \
-    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --push helloworld : echo built and pushed helloworld"
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml my.registry/helloworld:latest : echo meta-data set" \
+    "meta-data exists docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml : echo my.registry/helloworld:latest"
 
   run "$PWD"/hooks/command
 
   assert_success
   assert_output --partial "platforms:"
   assert_output --partial "- linux/amd64"
-  assert_output --partial "built helloworld"
+  assert_output --partial "built and pushed helloworld"
 
   unstub docker
+  unstub buildkite-agent
+}
+
+@test "Build with platforms requires push targets" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS_0=linux/amd64
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS_1=linux/arm64
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "Multi-platform build requires push targets to be configured"
+  assert_output --partial "Multi-platform images cannot be loaded into the local Docker daemon"
+}
+
+@test "Build with platforms and push automatically enables push-on-build" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS_0=linux/amd64
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS_1=linux/arm64
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=helloworld:my.registry/helloworld:latest
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull --push helloworld : echo built and pushed helloworld"
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml my.registry/helloworld:latest : echo meta-data set" \
+    "meta-data exists docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-helloworld-tests/composefiles/docker-compose.v3.2.yml : echo my.registry/helloworld:latest"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Multi-platform build detected - automatically enabling push-on-build"
+  assert_output --partial "- linux/amd64"
+  assert_output --partial "- linux/arm64"
+  assert_output --partial "built and pushed helloworld"
+
+  unstub docker
+  unstub buildkite-agent
 }
