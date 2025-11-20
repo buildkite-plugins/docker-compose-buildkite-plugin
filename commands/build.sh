@@ -22,8 +22,7 @@ push_on_build="$(plugin_read_config BUILDER_PUSH_ON_BUILD "false")"
 
 # Check if platforms are specified - if so, we need to enable push-on-build
 # because multi-platform images cannot be loaded into local Docker daemon
-platforms_count=$(plugin_read_list PLATFORMS | wc -l)
-if [[ "${platforms_count}" -gt 0 ]]; then
+if [[ -n "$(plugin_read_list PLATFORMS)" ]]; then
   if [[ "${push_on_build}" != "true" ]]; then
     echo "~~~ :docker: Multi-platform build detected - automatically enabling push-on-build"
     echo "Note: Multi-platform images cannot be loaded into local Docker daemon and must be pushed to a registry."
@@ -32,6 +31,8 @@ if [[ "${platforms_count}" -gt 0 ]]; then
     export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD="true"
   else
     echo "~~~ :docker: Multi-platform build with push-on-build enabled"
+    # Ensure the variable is exported even if already set
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_PUSH_ON_BUILD="true"
   fi
 fi
 
@@ -138,9 +139,24 @@ for service_name in $(plugin_read_list BUILD) ; do
   done <<< "$(plugin_read_list BUILD_LABELS)"
 
   platforms=()
-  while read -r platform ; do
-    [[ -n "${platform:-}" ]] && platforms+=("${platform}")
-  done <<< "$(plugin_read_list PLATFORMS)"
+  platforms_input="$(plugin_read_list PLATFORMS)"
+  if [[ -n "${platforms_input}" ]]; then
+    # Handle both comma-separated format and array format
+    if [[ "${platforms_input}" == *","* ]]; then
+      # Comma-separated format: "linux/amd64,linux/arm64"
+      IFS=',' read -ra platforms <<< "${platforms_input}"
+      # Trim whitespace from each platform
+      for i in "${!platforms[@]}"; do
+        platforms[$i]="${platforms[$i]# }"
+        platforms[$i]="${platforms[$i]% }"
+      done
+    else
+      # Array format or single platform
+      while read -r platform ; do
+        [[ -n "${platform:-}" ]] && platforms+=("${platform}")
+      done <<< "${platforms_input}"
+    fi
+  fi
 
   if [[ -n "${image_name}" ]] || [[ -n "${target}" ]] || [[ "${#labels[@]}" -gt 0 ]] || [[ "${#cache_to[@]}" -gt 0 ]] || [[ "${#cache_from[@]}" -gt 0 ]] || [[ "${#platforms[@]}" -gt 0 ]]; then
     build_images+=("$service_name" "${image_name}" "${target}")
@@ -230,8 +246,7 @@ done <<< "$(plugin_read_list ARGS)"
 # Handle push-on-build for multi-arch builds
 if [[ "${push_on_build}" == "true" ]]; then
   # Validate that push targets are configured when platforms are specified
-  push_count=$(plugin_read_list PUSH | wc -l)
-  if [[ "${platforms_count}" -gt 0 ]] && [[ "${push_count}" -eq 0 ]]; then
+  if [[ -n "$(plugin_read_list PLATFORMS)" ]] && [[ -z "$(plugin_read_list PUSH)" ]]; then
     echo "+++ 🚨 Multi-platform build requires push targets to be configured."
     echo "Multi-platform images cannot be loaded into the local Docker daemon."
     echo "Please add push configuration with registry targets for your services."
