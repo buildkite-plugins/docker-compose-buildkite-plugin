@@ -478,3 +478,40 @@ setup_file() {
   unstub docker
   unstub buildkite-agent
 }
+
+@test "Build with platforms override" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS_0=linux/amd64
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS_1=linux/arm64
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "- linux/amd64"
+  assert_output --partial "- linux/arm64"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with single platform override" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PLATFORMS=linux/amd64
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "platforms:"
+  assert_output --partial "- linux/amd64"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}

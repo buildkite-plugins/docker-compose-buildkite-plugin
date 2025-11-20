@@ -216,7 +216,17 @@ function build_image_override_file_with_version() {
       done
     fi
 
-    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]] && [[ "$cache_to_amt" -eq 0 ]] && [[ "$labels_amt" -eq 0 ]]; then
+    # load platforms array
+    platforms_amt="${1:-0}"
+    [[ -n "${1:-}" ]] && shift; # remove the value if not empty
+    if [[ "${platforms_amt}" -gt 0 ]]; then
+      platforms=()
+      for _ in $(seq 1 "$platforms_amt"); do
+        platforms+=( "$1" ); shift
+      done
+    fi
+
+    if [[ -z "$image_name" ]] && [[ -z "$target" ]] && [[ "$cache_from_amt" -eq 0 ]] && [[ "$cache_to_amt" -eq 0 ]] && [[ "$labels_amt" -eq 0 ]] && [[ "$platforms_amt" -eq 0 ]]; then
       # should not print out an empty service
       continue
     fi
@@ -227,12 +237,19 @@ function build_image_override_file_with_version() {
       printf "    image: %s\\n" "$image_name"
     fi
 
-    if [[ "$cache_from_amt" -gt 0 ]] || [[ "$cache_to_amt" -gt 0 ]] || [[ -n "$target" ]] || [[ "$labels_amt" -gt 0 ]]; then
+    if [[ "$cache_from_amt" -gt 0 ]] || [[ "$cache_to_amt" -gt 0 ]] || [[ -n "$target" ]] || [[ "$labels_amt" -gt 0 ]] || [[ "$platforms_amt" -gt 0 ]]; then
       printf "    build:\\n"
     fi
 
     if [[ -n "$target" ]]; then
       printf "      target: %s\\n" "$target"
+    fi
+
+    if [[ "$platforms_amt" -gt 0 ]] ; then
+      printf "      platforms:\\n"
+      for platform in "${platforms[@]}"; do
+        printf "        - %s\\n" "${platform}"
+      done
     fi
 
     if [[ "$cache_from_amt" -gt 0 ]] ; then
