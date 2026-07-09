@@ -4,13 +4,13 @@ compose_cleanup() {
   local FAILURES=0
 
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "false" ]]; then
-    SIGNAL="kill"
+    SIGNAL_PARAMS=(kill)
   else
-    SIGNAL="stop"
+    SIGNAL_PARAMS=(stop --timeout 30)
   fi
 
   # Send all containers the corresponding signal
-  if ! run_docker_compose "${SIGNAL}"; then
+  if ! run_docker_compose "${SIGNAL_PARAMS[@]}"; then
     FAILURES=$((FAILURES + 1))
   fi
 
@@ -25,7 +25,7 @@ compose_cleanup() {
   fi
 
   # Stop and remove all the linked services and network
-  DOWN_PARAMS=(down --remove-orphans)
+  DOWN_PARAMS=(down --remove-orphans --timeout 30)
   if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
     DOWN_PARAMS+=(--volumes)
   fi
