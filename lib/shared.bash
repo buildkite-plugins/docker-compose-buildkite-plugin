@@ -35,6 +35,21 @@ function plugin_prompt_and_must_run() {
   plugin_prompt_and_run "$@" || exit $?
 }
 
+# Runs a command with a wall-clock deadline, killing it if it does not finish in time.
+# Portable alternative to the `timeout` command which is not available on all platforms.
+function run_with_deadline() {
+  local seconds="$1"; shift
+  "$@" &
+  local cmd_pid=$!
+  ( sleep "$seconds" && kill "$cmd_pid" 2>/dev/null ) &
+  local watcher_pid=$!
+  wait "$cmd_pid" 2>/dev/null
+  local status=$?
+  kill "$watcher_pid" 2>/dev/null
+  wait "$watcher_pid" 2>/dev/null || true
+  return "$status"
+}
+
 # Shorthand for reading env config
 function plugin_read_config() {
   local var="BUILDKITE_PLUGIN_DOCKER_COMPOSE_${1}"

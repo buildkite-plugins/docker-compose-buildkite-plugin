@@ -11,18 +11,29 @@ setup () {
   }
 }
 
+@test "run_with_deadline allows a fast command to complete" {
+  run run_with_deadline 5 echo "done"
+  assert_success
+  assert_output "done"
+}
+
+@test "run_with_deadline terminates a command that exceeds the deadline" {
+  run run_with_deadline 1 sleep 100
+  assert_failure
+}
+
 @test "Default cleanup of docker-compose" {
   stub stubbed_run_docker_compose \
     "kill : echo \$@" \
     "rm --force -v : echo \$@" \
-    "down --remove-orphans --timeout 30 --volumes : echo \$@"
+    "down --remove-orphans --volumes : echo \$@"
 
   run compose_cleanup
 
   assert_success
   assert_equal "${lines[0]}" "kill"
   assert_equal "${lines[1]}" "rm --force -v"
-  assert_equal "${lines[2]}" "down --remove-orphans --timeout 30 --volumes"
+  assert_equal "${lines[2]}" "down --remove-orphans --volumes"
 
   unstub stubbed_run_docker_compose
 }
@@ -30,16 +41,16 @@ setup () {
 @test "Possible to gracefully shutdown containers in docker-compose cleanup" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_GRACEFUL_SHUTDOWN=1
   stub stubbed_run_docker_compose \
-    "stop --timeout 30 : echo \$@" \
+    "stop : echo \$@" \
     "rm --force -v : echo \$@" \
-    "down --remove-orphans --timeout 30 --volumes : echo \$@"
+    "down --remove-orphans --volumes : echo \$@"
 
   run compose_cleanup
 
   assert_success
-  assert_equal "${lines[0]}" "stop --timeout 30"
+  assert_equal "${lines[0]}" "stop"
   assert_equal "${lines[1]}" "rm --force -v"
-  assert_equal "${lines[2]}" "down --remove-orphans --timeout 30 --volumes"
+  assert_equal "${lines[2]}" "down --remove-orphans --volumes"
 
   unstub stubbed_run_docker_compose
 }
@@ -50,14 +61,14 @@ setup () {
   stub stubbed_run_docker_compose \
     "kill : echo \$@" \
     "rm --force : echo \$@" \
-    "down --remove-orphans --timeout 30 : echo \$@"
+    "down --remove-orphans : echo \$@"
 
   run compose_cleanup
 
   assert_success
   assert_equal "${lines[0]}" "kill"
   assert_equal "${lines[1]}" "rm --force"
-  assert_equal "${lines[2]}" "down --remove-orphans --timeout 30"
+  assert_equal "${lines[2]}" "down --remove-orphans"
 
   unstub stubbed_run_docker_compose
 }
@@ -66,14 +77,14 @@ setup () {
   stub stubbed_run_docker_compose \
     "kill : exit 1" \
     "rm --force -v : echo \$@" \
-    "down --remove-orphans --timeout 30 --volumes : echo \$@"
+    "down --remove-orphans --volumes : echo \$@"
 
   run compose_cleanup
 
   assert_failure 1
 
   assert_equal "${lines[0]}" "rm --force -v"
-  assert_equal "${lines[1]}" "down --remove-orphans --timeout 30 --volumes"
+  assert_equal "${lines[1]}" "down --remove-orphans --volumes"
 
   unstub stubbed_run_docker_compose
 }
@@ -82,14 +93,14 @@ setup () {
   stub stubbed_run_docker_compose \
     "kill : echo \$@" \
     "rm --force -v : exit 1" \
-    "down --remove-orphans --timeout 30 --volumes : echo \$@"
+    "down --remove-orphans --volumes : echo \$@"
 
   run compose_cleanup
 
   assert_failure 1
 
   assert_equal "${lines[0]}" "kill"
-  assert_equal "${lines[1]}" "down --remove-orphans --timeout 30 --volumes"
+  assert_equal "${lines[1]}" "down --remove-orphans --volumes"
 
   unstub stubbed_run_docker_compose
 }
@@ -98,7 +109,7 @@ setup () {
   stub stubbed_run_docker_compose \
     "kill : echo \$@" \
     "rm --force -v : echo \$@" \
-    "down --remove-orphans --timeout 30 --volumes : exit 1"
+    "down --remove-orphans --volumes : exit 1"
 
   run compose_cleanup
 
@@ -114,7 +125,7 @@ setup () {
   stub stubbed_run_docker_compose \
     "kill : exit 1" \
     "rm --force -v : echo \$@" \
-    "down --remove-orphans --timeout 30 --volumes : exit 1"
+    "down --remove-orphans --volumes : exit 1"
 
   run compose_cleanup
 
