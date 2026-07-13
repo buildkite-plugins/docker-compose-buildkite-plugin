@@ -30,6 +30,15 @@ setup () {
   ! pgrep -f "sleep 9999" >/dev/null 2>&1
 }
 
+@test "run_with_deadline kills TERM-resistant processes via SIGKILL escalation" {
+  local start=$SECONDS
+  # bash ignores SIGTERM; only SIGKILL from the escalation path can stop it
+  run run_with_deadline 2 bash -c 'trap "" TERM; while true; do sleep 9998; done'
+  assert_failure
+  [[ $((SECONDS - start)) -lt 6 ]]
+  ! pgrep -f "sleep 9998" >/dev/null 2>&1
+}
+
 @test "Default cleanup of docker-compose" {
   stub stubbed_run_docker_compose \
     "kill : echo \$@" \
