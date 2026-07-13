@@ -35,20 +35,36 @@ function plugin_prompt_and_must_run() {
   plugin_prompt_and_run "$@" || exit $?
 }
 
-# Runs a command with a wall-clock deadline, killing it if it does not finish in time.
-# Portable alternative to the `timeout` command which is not available on all platforms.
-function run_with_deadline() {
+# Runs a command with a wall-clock deadline, killing its entire process group if it
+# does not finish in time. Uses a subshell with job control so each background job
+# gets its own process group, ensuring descendants cannot outlive the deadline.
+function run_with_deadline() (
   local seconds="$1"; shift
+
+  set -m
   "$@" &
   local cmd_pid=$!
-  ( sleep "$seconds" && kill "$cmd_pid" 2>/dev/null ) &
+
+  (
+    sleep "$seconds"
+    kill -TERM -- "-$cmd_pid" 2>/dev/null || exit 0
+    sleep 1
+    kill -KILL -- "-$cmd_pid" 2>/dev/null || true
+  ) &
   local watcher_pid=$!
+
   wait "$cmd_pid" 2>/dev/null
   local status=$?
-  kill "$watcher_pid" 2>/dev/null
-  wait "$watcher_pid" 2>/dev/null || true
+
+  if kill -0 -- "-$cmd_pid" 2>/dev/null; then
+    wait "$watcher_pid" 2>/dev/null || true
+  else
+    kill -TERM -- "-$watcher_pid" 2>/dev/null || true
+    wait "$watcher_pid" 2>/dev/null || true
+  fi
+
   return "$status"
-}
+)
 
 # Shorthand for reading env config
 function plugin_read_config() {

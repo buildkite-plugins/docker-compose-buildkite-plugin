@@ -17,9 +17,17 @@ setup () {
   assert_output "done"
 }
 
-@test "run_with_deadline terminates a command that exceeds the deadline" {
-  run run_with_deadline 1 sleep 100
+@test "run_with_deadline terminates a hanging command within the deadline" {
+  local start=$SECONDS
+  run run_with_deadline 2 sleep 100
   assert_failure
+  [[ $((SECONDS - start)) -lt 5 ]]
+}
+
+@test "run_with_deadline kills descendant processes after the deadline" {
+  run run_with_deadline 1 bash -c 'sleep 9999 & wait'
+  assert_failure
+  ! pgrep -f "sleep 9999" >/dev/null 2>&1
 }
 
 @test "Default cleanup of docker-compose" {
