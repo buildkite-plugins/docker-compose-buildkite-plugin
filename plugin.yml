@@ -20,6 +20,8 @@ configuration:
     args:
       type: [ string, array ]
       minimum: 1
+    bake:
+      type: boolean
     build-alias:
       type: [ string, array ]
       minimum: 1
@@ -193,6 +195,7 @@ configuration:
   dependencies:
     ansi: [ run ]
     args: [ build ]
+    bake: [ build ]
     build-alias: [ push ]
     build-labels: [ build ]
     build-parallel: [ build ]

@@ -396,6 +396,22 @@ Assuming you have a compatible Docker installation and configuration in the agen
 
 You may want to also add `BUILDKIT_INLINE_CACHE=1` to your build arguments (`args` option in this plugin), but know that [there are known issues with it](https://github.com/moby/buildkit/issues/2274).
 
+#### `bake` (build only, boolean)
+
+Build the services with [`docker buildx bake`](https://docs.docker.com/build/bake/) instead of `docker compose build`, pushing the resulting image(s) straight to the registry (`bake --push`) rather than loading them into the local Docker daemon.
+
+This is useful with the `docker-container` and `remote` build [drivers](https://docs.docker.com/build/builders/drivers/): with those drivers the built image lives in BuildKit's own store, so `docker compose build` must export it as a tarball and import it into the daemon before it can be pushed. For large images — Windows containers are the extreme case, with multi-gigabyte base layers — that load dominates the step even on a full cache hit. Pushing directly from BuildKit skips it entirely.
+
+The image tags, `cache-from`, `cache-to`, `target` and `build-labels` options are honoured (bake reads them from the Compose config and the generated override file), as are `builder`, `no-cache`, `skip-pull`, `ssh`, `buildkit-inline-cache` and `args`. Because the image is pushed rather than loaded, the pushed image is recorded in the build metadata (unless `push-metadata` is `false`) so later `run` and `push` steps use it, just like a regular `push`.
+
+Notes:
+
+- The service must define an `image` with a registry reference to push to, and the agent must be authenticated for that registry.
+- As bake pushes during the build, you do not need a separate `push` entry for the same service in this step.
+- Requires BuildKit; it has no effect with `cli-version: 1` unless `buildkit` is also enabled.
+
+Default: `false`
+
 #### `ssh` (build only, boolean or string)
 
 It will add the `--ssh` option to the build command with the passed value (if `true` it will use `default`). Note that it assumes you have a compatible Docker installation and configuration in the agent (meaning you are using BuildKit and it is correctly setup).

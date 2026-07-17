@@ -357,3 +357,65 @@ setup_file() {
 
   unstub docker
 }
+
+@test "Build with bake builds, pushes and records metadata" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
+
+  stub docker \
+    "buildx bake --file docker-compose.yml --pull --push myservice : echo baked myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 config : printf '%s\n' '  myservice:' '    image: myimage'"
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice myimage : echo recorded metadata"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "baked myservice"
+  assert_output --partial "recorded metadata"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Build with bake honours builder, no-cache, inline cache and args" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_METADATA=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=mybuilder
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_USE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_NO_CACHE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKIT_INLINE_CACHE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ARGS_0=MYARG=myvalue
+
+  stub docker \
+    "buildx bake --file docker-compose.yml --builder mybuilder --no-cache --push --set *.args.BUILDKIT_INLINE_CACHE=1 --set *.args.MYARG=myvalue myservice : echo baked myservice"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "baked myservice"
+
+  unstub docker
+}
+
+@test "Build with bake passes the cache-from override file" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_METADATA=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
+
+  stub docker \
+    "buildx bake --file tests/composefiles/docker-compose.v3.2.yml --file docker-compose.buildkite-1-override.yml --pull --push helloworld : echo baked helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "- my.repository/myservice_cache:latest"
+  assert_output --partial "baked helloworld"
+
+  unstub docker
+}

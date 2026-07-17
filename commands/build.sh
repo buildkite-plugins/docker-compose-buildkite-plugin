@@ -105,6 +105,13 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
+# When `bake` is enabled, build (and push) with `docker buildx bake` instead of
+# `docker compose build`, which avoids loading the image into the local daemon.
+if [[ "$(plugin_read_config BAKE "false")" == "true" ]] ; then
+  build_with_bake "${services[@]}"
+  return 0
+fi
+
 if [[ -f "${override_file}" ]]; then
   build_params+=(-f "${override_file}")
 fi

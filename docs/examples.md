@@ -441,3 +441,27 @@ steps:
 The first Step will build the Image using a Builder Instance with the `docker-container` driver and push the image cache to the remote registry, as specified by `cache-to`, with additional cache export options being used to export all the layers of intermediate steps with the image manifests. More details cache export options [here](https://github.com/moby/buildkit?tab=readme-ov-file#registry-push-image-and-cache-separately).
 
 The second Step will build the Image using a Builder Instance with the `docker-container` driver and use remote registry for the image cache, as specified by `cache-from`, speeding up Image building process.
+
+### Building and pushing directly with bake
+
+With the `docker-container` and `remote` build drivers, `docker compose build` has to export the built image as a tarball and load it into the Docker daemon before it can be pushed. For large images this load can dominate the step even when every layer is cached — Windows containers are the worst case, with multi-gigabyte base layers. The `bake` option builds with `docker buildx bake` and pushes straight to the registry, so the image never round-trips through the daemon:
+
+```yaml
+steps:
+  - label: ":docker: Build and push the image with bake"
+    plugins:
+      - docker-compose#v5.13.0:
+          build: app
+          bake: true
+          cache-from:
+            - "app:type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
+          cache-to:
+            - "app:type=inline"
+          builder:
+            name: container
+            use: true
+            create: true
+            driver: docker-container
+```
+
+The `app` service must define an `image` with a registry reference to push to, and the agent must be authenticated for that registry. Because the image is pushed during the build, there is no need for a separate `push` entry, and the pushed image is recorded in the build metadata so later `run` and `push` steps use it just like a regular `push`.
