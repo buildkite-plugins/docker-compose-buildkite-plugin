@@ -68,28 +68,6 @@ function run_with_deadline() (
   return "$status"
 )
 
-# Split the agent's signal grace period across the container stop in the signal
-# handler and the three Docker Compose operations in pre-exit. Reserve 10% for
-# hook and process overhead. Agent v3 exports the resolved grace period here.
-function cancellation_command_deadline() {
-  local grace="${BUILDKITE_SIGNAL_GRACE_PERIOD_SECONDS:-9}"
-  if ! [[ "$grace" =~ ^[0-9]+$ ]]; then
-    grace=9
-  fi
-
-  local reserve=$((grace / 10))
-  if ((reserve < 1)); then
-    reserve=1
-  fi
-
-  local deadline=$(((grace - reserve) / 4))
-  if ((deadline < 0)); then
-    deadline=0
-  fi
-
-  echo "$deadline"
-}
-
 # Shorthand for reading env config
 function plugin_read_config() {
   local var="BUILDKITE_PLUGIN_DOCKER_COMPOSE_${1}"

@@ -11,15 +11,6 @@ setup () {
   }
 }
 
-@test "cancellation deadline fits four commands inside the agent signal grace" {
-  export BUILDKITE_SIGNAL_GRACE_PERIOD_SECONDS=9
-
-  run cancellation_command_deadline
-
-  assert_success
-  assert_output "2"
-}
-
 @test "run_with_deadline allows a fast command to complete" {
   run run_with_deadline 5 echo "done"
   assert_success
@@ -50,7 +41,6 @@ setup () {
 
 @test "Cancelled cleanup shares the agent signal grace across compose commands" {
   export BUILDKITE_JOB_CANCELLED=true
-  export BUILDKITE_SIGNAL_GRACE_PERIOD_SECONDS=9
 
   run_with_deadline() {
     echo "deadline=$1"

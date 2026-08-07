@@ -4,7 +4,7 @@ compose_cleanup() {
   local FAILURES=0
   local deadline="${_CLEANUP_DEADLINE:-30}"
   if [[ "${BUILDKITE_JOB_CANCELLED:-false}" == "true" ]]; then
-    deadline="${_CLEANUP_DEADLINE:-$(cancellation_command_deadline)}"
+    deadline="${_CLEANUP_DEADLINE:-2}"
   fi
 
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "false" ]]; then
