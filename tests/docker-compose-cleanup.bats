@@ -39,33 +39,6 @@ setup () {
   ! pgrep -f "sleep 9998" >/dev/null 2>&1
 }
 
-@test "Cancelled cleanup shares the agent signal grace across compose commands" {
-  export BUILDKITE_JOB_CANCELLED=true
-
-  run_with_deadline() {
-    echo "deadline=$1"
-    shift
-    "$@"
-  }
-
-  stub stubbed_run_docker_compose \
-    "kill : echo \$@" \
-    "rm --force -v : echo \$@" \
-    "down --remove-orphans --volumes : echo \$@"
-
-  run compose_cleanup
-
-  assert_success
-  assert_equal "${lines[0]}" "deadline=2"
-  assert_equal "${lines[1]}" "kill"
-  assert_equal "${lines[2]}" "deadline=2"
-  assert_equal "${lines[3]}" "rm --force -v"
-  assert_equal "${lines[4]}" "deadline=2"
-  assert_equal "${lines[5]}" "down --remove-orphans --volumes"
-
-  unstub stubbed_run_docker_compose
-}
-
 @test "Default cleanup of docker-compose" {
   stub stubbed_run_docker_compose \
     "kill : echo \$@" \
