@@ -478,9 +478,7 @@ fi
 
 ensure_stopped() {
   echo '+++ :warning: Signal received, stopping container'
-  run_with_deadline 8 docker stop "${container_name}" || true
-  echo '~~~ Last log lines that may be missing above (if container was not already removed)'
-  run_with_deadline 2 docker logs "${container_name}" || true
+  run_with_deadline "$(cancellation_command_deadline)" docker stop "${container_name}" || true
   exitcode='TRAP'
 }
 

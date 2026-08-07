@@ -39,32 +39,56 @@ function plugin_prompt_and_must_run() {
 # does not finish in time. Uses a subshell with job control so each background job
 # gets its own process group, ensuring descendants cannot outlive the deadline.
 function run_with_deadline() (
-  local seconds="$1"; shift
+  local seconds="$1"
+  shift
+  local term_after=$((seconds > 1 ? seconds - 1 : 0))
 
   set -m
   "$@" &
-  local cmd_pid=$!
+  local command_pid=$!
 
   (
-    sleep "$seconds"
-    kill -TERM -- "-$cmd_pid" 2>/dev/null || exit 0
-    sleep 1
-    kill -KILL -- "-$cmd_pid" 2>/dev/null || true
+    sleep "$term_after"
+    kill -TERM -- "-$command_pid" 2>/dev/null || exit 0
+    sleep "$((seconds - term_after))"
+    kill -KILL -- "-$command_pid" 2>/dev/null || true
   ) &
-  local watcher_pid=$!
+  local watchdog_pid=$!
 
-  wait "$cmd_pid" 2>/dev/null
+  wait "$command_pid" 2>/dev/null
   local status=$?
 
-  if kill -0 -- "-$cmd_pid" 2>/dev/null; then
-    wait "$watcher_pid" 2>/dev/null || true
+  if kill -0 -- "-$command_pid" 2>/dev/null; then
+    wait "$watchdog_pid" 2>/dev/null || true
   else
-    kill -TERM -- "-$watcher_pid" 2>/dev/null || true
-    wait "$watcher_pid" 2>/dev/null || true
+    kill -TERM -- "-$watchdog_pid" 2>/dev/null || true
+    wait "$watchdog_pid" 2>/dev/null || true
   fi
 
   return "$status"
 )
+
+# Split the agent's signal grace period across the container stop in the signal
+# handler and the three Docker Compose operations in pre-exit. Reserve 10% for
+# hook and process overhead. Agent v3 exports the resolved grace period here.
+function cancellation_command_deadline() {
+  local grace="${BUILDKITE_SIGNAL_GRACE_PERIOD_SECONDS:-9}"
+  if ! [[ "$grace" =~ ^[0-9]+$ ]]; then
+    grace=9
+  fi
+
+  local reserve=$((grace / 10))
+  if ((reserve < 1)); then
+    reserve=1
+  fi
+
+  local deadline=$(((grace - reserve) / 4))
+  if ((deadline < 0)); then
+    deadline=0
+  fi
+
+  echo "$deadline"
+}
 
 # Shorthand for reading env config
 function plugin_read_config() {
