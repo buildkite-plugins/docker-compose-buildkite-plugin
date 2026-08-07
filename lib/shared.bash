@@ -39,30 +39,29 @@ function plugin_prompt_and_must_run() {
 # does not finish in time. Uses a subshell with job control so each background job
 # gets its own process group, ensuring descendants cannot outlive the deadline.
 function run_with_deadline() (
-  local seconds="$1"
-  shift
+  local seconds="$1"; shift
   local term_after=$((seconds > 1 ? seconds - 1 : 0))
 
   set -m
   "$@" &
-  local command_pid=$!
+  local cmd_pid=$!
 
   (
     sleep "$term_after"
-    kill -TERM -- "-$command_pid" 2>/dev/null || exit 0
+    kill -TERM -- "-$cmd_pid" 2>/dev/null || exit 0
     sleep "$((seconds - term_after))"
-    kill -KILL -- "-$command_pid" 2>/dev/null || true
+    kill -KILL -- "-$cmd_pid" 2>/dev/null || true
   ) &
-  local watchdog_pid=$!
+  local watcher_pid=$!
 
-  wait "$command_pid" 2>/dev/null
+  wait "$cmd_pid" 2>/dev/null
   local status=$?
 
-  if kill -0 -- "-$command_pid" 2>/dev/null; then
-    wait "$watchdog_pid" 2>/dev/null || true
+  if kill -0 -- "-$cmd_pid" 2>/dev/null; then
+    wait "$watcher_pid" 2>/dev/null || true
   else
-    kill -TERM -- "-$watchdog_pid" 2>/dev/null || true
-    wait "$watchdog_pid" 2>/dev/null || true
+    kill -TERM -- "-$watcher_pid" 2>/dev/null || true
+    wait "$watcher_pid" 2>/dev/null || true
   fi
 
   return "$status"
