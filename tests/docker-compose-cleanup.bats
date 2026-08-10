@@ -38,7 +38,20 @@ setup () {
   [[ $((SECONDS - start)) -lt 6 ]]
   ! pgrep -f "sleep 9998" >/dev/null 2>&1
 }
+@test "run_with_deadline includes escalation in the deadline" {
+     local sleep_calls="${BATS_TEST_TMPDIR}/sleep-calls"
 
+     sleep() {
+       printf '%s\n' "$1" >> "$sleep_calls"
+     }
+
+     run run_with_deadline 5 bash -c 'trap "" TERM; while :; do :; done'
+     assert_failure
+
+     run cat "$sleep_calls"
+     assert_success
+     assert_output $'4\n1'
+   }
 @test "Default cleanup of docker-compose" {
   stub stubbed_run_docker_compose \
     "kill : echo \$@" \
