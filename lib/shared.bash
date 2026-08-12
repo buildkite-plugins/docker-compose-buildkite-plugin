@@ -35,6 +35,38 @@ function plugin_prompt_and_must_run() {
   plugin_prompt_and_run "$@" || exit $?
 }
 
+# Runs a command with a wall-clock deadline, killing its entire process group if it
+# does not finish in time. Uses a subshell with job control so each background job
+# gets its own process group, ensuring descendants cannot outlive the deadline.
+function run_with_deadline() (
+     local seconds="$1"; shift
+     local term_after=$((seconds > 1 ? seconds - 1 : 0))
+
+     set -m
+     "$@" &
+     local cmd_pid=$!
+
+     (
+       sleep "$term_after"
+       kill -TERM -- "-$cmd_pid" 2>/dev/null || exit 0
+       sleep "$((seconds - term_after))"
+       kill -KILL -- "-$cmd_pid" 2>/dev/null || true
+     ) &
+     local watcher_pid=$!
+
+     wait "$cmd_pid" 2>/dev/null
+     local status=$?
+
+     if kill -0 -- "-$cmd_pid" 2>/dev/null; then
+       wait "$watcher_pid" 2>/dev/null || true
+     else
+       kill -TERM -- "-$watcher_pid" 2>/dev/null || true
+       wait "$watcher_pid" 2>/dev/null || true
+     fi
+
+     return "$status"
+   )
+
 # Shorthand for reading env config
 function plugin_read_config() {
   local var="BUILDKITE_PLUGIN_DOCKER_COMPOSE_${1}"

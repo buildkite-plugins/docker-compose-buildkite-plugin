@@ -2,6 +2,7 @@
 
 compose_cleanup() {
   local FAILURES=0
+  local deadline="${_CLEANUP_DEADLINE:-30}"
 
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "false" ]]; then
     SIGNAL="kill"
@@ -10,7 +11,7 @@ compose_cleanup() {
   fi
 
   # Send all containers the corresponding signal
-  if ! run_docker_compose "${SIGNAL}"; then
+  if ! run_with_deadline "$deadline" run_docker_compose "${SIGNAL}"; then
     FAILURES=$((FAILURES + 1))
   fi
 
@@ -20,7 +21,7 @@ compose_cleanup() {
     RM_PARAMS+=(-v)
   fi
 
-  if ! run_docker_compose "${RM_PARAMS[@]}"; then
+  if ! run_with_deadline "$deadline" run_docker_compose "${RM_PARAMS[@]}"; then
     FAILURES=$((FAILURES + 1))
   fi
 
@@ -30,7 +31,7 @@ compose_cleanup() {
     DOWN_PARAMS+=(--volumes)
   fi
 
-  if ! run_docker_compose "${DOWN_PARAMS[@]}"; then
+  if ! run_with_deadline "$deadline" run_docker_compose "${DOWN_PARAMS[@]}"; then
     FAILURES=$((FAILURES + 1))
   fi
 

@@ -11,6 +11,47 @@ setup () {
   }
 }
 
+@test "run_with_deadline allows a fast command to complete" {
+  run run_with_deadline 5 echo "done"
+  assert_success
+  assert_output "done"
+}
+
+@test "run_with_deadline terminates a hanging command within the deadline" {
+  local start=$SECONDS
+  run run_with_deadline 2 sleep 100
+  assert_failure
+  [[ $((SECONDS - start)) -lt 5 ]]
+}
+
+@test "run_with_deadline kills descendant processes after the deadline" {
+  run run_with_deadline 1 bash -c 'sleep 9999 & wait'
+  assert_failure
+  ! pgrep -f "sleep 9999" >/dev/null 2>&1
+}
+
+@test "run_with_deadline kills TERM-resistant processes via SIGKILL escalation" {
+  local start=$SECONDS
+  # bash ignores SIGTERM; only SIGKILL from the escalation path can stop it
+  run run_with_deadline 2 bash -c 'trap "" TERM; while true; do sleep 9998; done'
+  assert_failure
+  [[ $((SECONDS - start)) -lt 6 ]]
+  ! pgrep -f "sleep 9998" >/dev/null 2>&1
+}
+@test "run_with_deadline includes escalation in the deadline" {
+     local sleep_calls="${BATS_TEST_TMPDIR}/sleep-calls"
+
+     sleep() {
+       printf '%s\n' "$1" >> "$sleep_calls"
+     }
+
+     run run_with_deadline 5 bash -c 'trap "" TERM; while :; do :; done'
+     assert_failure
+
+     run cat "$sleep_calls"
+     assert_success
+     assert_output $'4\n1'
+   }
 @test "Default cleanup of docker-compose" {
   stub stubbed_run_docker_compose \
     "kill : echo \$@" \
