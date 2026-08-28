@@ -97,6 +97,8 @@ Only the list format supports bare keys (e.g. `- ANOTHER_VAR`) that inherit thei
 
 When using map format, keys containing consecutive underscores may also set a collapsed-underscore alias on the agent, and both forms can be passed to the container. Prefer list format for keys with consecutive underscores.
 
+Environment variables can also be applied to every container the agent runs, without editing any pipeline, via the `BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT` agent environment variable. See [Agent-level defaults](#agent-level-defaults).
+
 #### `env-propagation-list` (run only)
 
 If you set this to `VALUE`, and `VALUE` is an environment variable containing a space-separated list of environment variables such as `A B C D`, then A, B, C, and D will all be propagated to the container. This is helpful when you've set up an `environment` hook to export secrets as environment variables, and you'd also like to programmatically ensure that secrets get propagated to containers, instead of listing them all out.
@@ -223,7 +225,7 @@ Note that there is a single build command run for all services so the target val
 
 A list of volumes to mount into the container. If a matching volume exists in the Docker Compose config file, this option will override that definition.
 
-Additionally, volumes may be specified via the agent environment variable `BUILDKITE_DOCKER_DEFAULT_VOLUMES`, a `;` (semicolon) delimited list of mounts in the `-v` syntax. (Ex. `buildkite:/buildkite;./app:/app`).
+Volumes can also be mounted into every container the agent runs, without editing any pipeline, via the `BUILDKITE_DOCKER_DEFAULT_VOLUMES` agent environment variable. See [Agent-level defaults](#agent-level-defaults).
 
 #### `expand-push-vars` (push only, boolean, unsafe)
 
@@ -495,6 +497,42 @@ The default is `false`.
 If set to true will use Builder Instance specified by `name`.
 
 The default is `false`.
+
+### Agent-level defaults
+
+The following are not plugin options: they are environment variables read from the agent's own environment when the `run` command executes. Exporting them from an agent `environment` or `pre-command` hook applies volumes and environment variables to every container the plugin runs, on every pipeline, without editing any pipeline's configuration.
+
+Both are `;` (semicolon) delimited lists. Each entry is trimmed of leading and trailing whitespace and empty entries are ignored, so stray or repeated delimiters are harmless. That makes it safe for several hooks to append to the same variable, even when none of them ran first:
+
+```bash
+export BUILDKITE_DOCKER_DEFAULT_VOLUMES="/usr/local/bin/my-tool:/usr/local/bin/my-tool:ro; ${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
+```
+
+If either variable is unset or empty, nothing is added.
+
+#### `BUILDKITE_DOCKER_DEFAULT_VOLUMES` (run only)
+
+A list of mounts in the raw `-v` syntax, each passed to the container as a `-v` argument. (Ex. `buildkite:/buildkite;./app:/app`). Suffixes such as `:ro` are passed through as-is.
+
+The first `./` in an entry is replaced with the job's working directory (the checkout), so `./app:/app` mounts the repository's `app` directory. If the step activates the (unsafe) `expand-volume-vars` option, variables in these entries are interpolated as well.
+
+These mounts are added in addition to the step's `volumes` option; the agent-level list does not replace what a pipeline configures.
+
+```bash
+# in the agent's environment hook
+export BUILDKITE_DOCKER_DEFAULT_VOLUMES="/usr/local/bin/build-helper:/usr/local/bin/build-helper:ro;/etc/ssl/certs/internal-ca.crt:/etc/ssl/certs/internal-ca.crt:ro"
+```
+
+#### `BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT` (run only)
+
+A list of environment variables, each passed to the container as an `-e` argument. Entries can be a bare `KEY`, whose value is inherited from the agent environment, or an explicit `KEY=VALUE`. A value may contain spaces (`KEY=some value`); only the entry's leading and trailing whitespace is trimmed.
+
+These are added after the values from the step's `env`/`environment` option, so where the same key is set in both, the agent-level entry is the last `-e` Docker receives and is the one that applies.
+
+```bash
+# in the agent's environment hook
+export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="DOCKER_REGISTRY=registry.internal.example.com;OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.internal:4318;HTTPS_PROXY"
+```
 
 ## Developing
 
