@@ -1,0 +1,12 @@
+services:
+  helloworld:
+    image: localhost:5005/helloworld:zstd
+    build:
+      context: .
+      args:
+        version: 73.976.3
+      x-bake:
+        output: type=image,name=localhost:5005/helloworld:zstd,oci-mediatypes=true,compression=zstd,compression-level=3,force-compression=true,push=true
+
+
+version: "3.2"

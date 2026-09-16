@@ -32,6 +32,48 @@ setup_file() {
   unstub buildkite-agent
 }
 
+@test "Push a single service resolving its digest with image-digest" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_DIGEST=true
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-app \* : echo tagged \$4"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0" \
+    "compose -f docker-compose.yml -p buildkite1111 push app : echo pushed app" \
+    "image inspect --format {{.RepoDigests}} somewhere.dkr.ecr.some-region.amazonaws.com/blah : echo [somewhere.dkr.ecr.some-region.amazonaws.com/blah@sha256:deadbeef]"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "pushed app"
+  assert_output --partial "Resolved digest for app: somewhere.dkr.ecr.some-region.amazonaws.com/blah@sha256:deadbeef"
+  assert_output --partial "tagged somewhere.dkr.ecr.some-region.amazonaws.com/blah@sha256:deadbeef"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Push a single service fails when the digest can't be resolved with image-digest" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=app
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_IMAGE_DIGEST=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : cat $PWD/tests/composefiles/docker-compose.config.v3.2.yml" \
+    "image inspect somewhere.dkr.ecr.some-region.amazonaws.com/blah : exit 0" \
+    "compose -f docker-compose.yml -p buildkite1111 push app : echo pushed app" \
+    "image inspect --format {{.RepoDigests}} somewhere.dkr.ecr.some-region.amazonaws.com/blah : echo []"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "Could not resolve a digest for pushed image somewhere.dkr.ecr.some-region.amazonaws.com/blah"
+
+  unstub docker
+}
+
 @test "Push a prebuilt image with a repository and a tag" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice:my.repository/myservice:llamas
 
