@@ -197,6 +197,14 @@ Whether to set the metadata about the image for a service being pushed.
 
 Default: `true`.
 
+#### `image-digest` (push only, boolean)
+
+Whether to resolve and store the image's registry digest (`repo@sha256:...`) instead of its tag (`repo:tag`) when setting the prebuilt-image metadata for a pushed service. Since a digest identifies an exact, immutable image, later `run` or `push` steps that pick up this metadata will use precisely the image that was pushed, rather than whatever a mutable tag currently points to.
+
+This requires `push` to be configured, since a digest only exists once an image has been pushed to a registry. If the digest can't be resolved after a push (for example, the registry didn't return one), the step fails.
+
+Default: `false`.
+
 #### `push-retries` (push only, integer)
 
 A number of times to retry failed docker push. Defaults to 0.
