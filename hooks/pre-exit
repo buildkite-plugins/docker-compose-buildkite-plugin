@@ -20,9 +20,7 @@ if [[ -n "$(plugin_read_list RUN)" ]] && [[ "$(plugin_read_config CLEANUP "true"
   . "$DIR/../lib/run.bash"
 
   echo "~~~ :docker: Cleaning up after docker-compose" >&2
-  if ! compose_cleanup; then
-    FAILURES="$?"
-  fi
+  compose_cleanup || FAILURES=$?
 fi
 
 # clean up builder instances if specified
@@ -49,3 +47,5 @@ if [[ "${builder_remove}" == true ]]; then
     echo "~~~ :warning: Cannot remove Builder Instance '${builder_name}' as does not exist"
   fi
 fi
+
+exit "${FAILURES}"

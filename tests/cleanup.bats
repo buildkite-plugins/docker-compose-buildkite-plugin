@@ -28,3 +28,25 @@ load '../lib/run'
 
   unstub docker
 }
+
+@test "Cleanup failure causes pre-exit hook to fail with the number of failures" {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 kill : exit 1" \
+    "compose -f docker-compose.yml -p buildkite1111 rm --force -v : exit 1" \
+    "compose -f docker-compose.yml -p buildkite1111 down --remove-orphans --volumes : echo removing everything"
+
+  run "$PWD"/hooks/pre-exit
+
+  assert_failure 2
+  assert_output --partial "Cleaning up after docker-compose"
+
+  unstub docker
+}
