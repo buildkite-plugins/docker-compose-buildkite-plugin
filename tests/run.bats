@@ -806,6 +806,111 @@ cmd3"
   unstub buildkite-agent
 }
 
+@test "Run with default environment" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="FOO;BAR=baz"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -e FOO -e BAR=baz -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with environment"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with environment"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with default environment, extra delimiters" {
+  # Tests introduction of extra delimiters, as would occur if
+  # EXPORT BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="FOO; ${BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT:-}"
+  # was used with no existing value
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="FOO; BAR=baz;; ;   ;"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -e FOO -e BAR=baz -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with environment"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with environment"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with default environment and env option" {
+  # Agent-level defaults are appended after the step-level env/environment
+  # options, so docker's last-one-wins makes them authoritative
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ENV_0=MYENV=step
+  export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="MYENV=agent"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -e MYENV=step -e MYENV=agent -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with environment"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with environment"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Run with default environment containing a value with spaces" {
+  # Only the leading and trailing whitespace of an entry is trimmed (the space
+  # before FOO), the spaces inside a value are preserved and the whole entry is
+  # passed to docker as a single argument
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND=pwd
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="GREETING=hello world; FOO"
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull myservice : echo pulled myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml up -d --scale myservice=0 myservice : echo started dependencies for myservice" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 -e 'GREETING=hello world' -e FOO -T --rm myservice /bin/sh -e -c 'pwd' : echo ran myservice with environment"
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 0" \
+    "meta-data get docker-compose-plugin-built-image-tag-myservice : echo myimage"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran myservice with environment"
+  unstub docker
+  unstub buildkite-agent
+}
+
 @test "Run with multiple config files" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_COMMAND="echo hello world"
