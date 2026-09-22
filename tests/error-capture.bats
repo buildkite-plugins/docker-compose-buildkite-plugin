@@ -5,6 +5,13 @@ load "${BATS_PLUGIN_PATH}/load.bash"
 setup() {
   source "$PWD/lib/shared.bash"
   export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
+  export -f record_capture
+}
+
+function record_capture {
+  [[ "$1" == job && "$2" == capture-error && "$4" == --message && "$6" == --context && $# -eq 7 ]] || return 1
+  jq -nc --arg code "$3" --arg message "$5" --argjson context "$7" \
+    '{code:$code,message:$message,context:$context}' >>"$payload_file"
 }
 
 function configure_compose_hook {
@@ -47,7 +54,7 @@ function configure_compose_hook {
   export payload_file
   function buildkite-agent() {
     if [[ "$1" == job ]]; then
-      printf '%s' "$3" >"$payload_file"
+      record_capture "$@"
       echo 'Unknown command: capture-error' >&2
       return 22
     fi
@@ -76,7 +83,7 @@ function configure_compose_hook {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   payload_file="$BATS_TEST_TMPDIR/payload"
   export payload_file
-  function buildkite-agent() { printf '%s' "$3" >"$payload_file"; return 22; }
+  function buildkite-agent() { record_capture "$@"; return 22; }
   export -f buildkite-agent
   stub docker \
     "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo build-failed >&2; exit 17"
@@ -94,7 +101,7 @@ function configure_compose_hook {
   export payload_file
   function buildkite-agent() {
     if [[ "$1" == job ]]; then
-      printf '%s' "$3" >"$payload_file"
+      record_capture "$@"
       return 22
     fi
     return 1
@@ -128,7 +135,7 @@ function configure_compose_hook {
   export BUILDKITE_AGENT_JOB_API_TOKEN=token
   payload_file="$BATS_TEST_TMPDIR/payload"
   export payload_file
-  function buildkite-agent() { printf '%s' "$3" >"$payload_file"; }
+  function buildkite-agent() { record_capture "$@"; }
 
   run capture_compose_error service_start_failed dependency_start 18 api 'service "db" failed'
 
