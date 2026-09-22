@@ -407,8 +407,7 @@ function json_escape {
   printf '%s' "$value"
 }
 
-# Reporting is deliberately silent and status-neutral for old agents and for
-# jobs where the authenticated Local Job API is unavailable.
+# Reporting is best-effort and preserves Docker Compose's original exit status.
 function capture_compose_error {
   local code="$1" operation="$2" exit_status="$3" service="$4" message="$5" payload
   [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
