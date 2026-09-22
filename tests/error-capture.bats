@@ -68,12 +68,40 @@ function configure_compose_hook {
   run "$PWD/hooks/command"
 
   assert_failure 23
-  [[ "$(jq -r '.code' "$payload_file")" == "container_process_failed" ]]
-  [[ "$(jq -r '.message' "$payload_file")" == "Failed to run service command" ]]
+  [[ "$(jq -r '.code' "$payload_file")" == "compose_run_failed" ]]
+  [[ "$(jq -r '.message' "$payload_file")" == "Docker Compose run failed" ]]
   [[ "$(grep -c '^process-failed$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
   [[ "$output" != *'Unknown command'* ]]
   ! grep -q process-failed "$payload_file"
+  unstub docker
+}
+
+@test "dependency failure inside Compose run does not claim a process ran" {
+  configure_compose_hook
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PRE_RUN_DEPENDENCIES=false
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() {
+    if [[ "$1" == job ]]; then
+      record_capture "$@"
+      return 22
+    fi
+    return 1
+  }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -T --rm myservice /bin/sh -e -c 'echo hello world' : echo dependency-failed >&2; exit 18"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 18
+  [[ "$(jq -r '.code' "$payload_file")" == "compose_run_failed" ]]
+  [[ "$(jq -r '.message' "$payload_file")" == "Docker Compose run failed" ]]
+  [[ "$(jq -r '.context.operation' "$payload_file")" == "run" ]]
+  [[ "$(jq -r '.context.exit_status' "$payload_file")" == "18" ]]
+  [[ "$(grep -c '^dependency-failed$' <<<"$output")" -eq 1 ]]
+  [[ "$(wc -l <"$payload_file")" -eq 1 ]]
   unstub docker
 }
 
@@ -158,7 +186,7 @@ function configure_compose_hook {
       unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
     fi
 
-    run capture_compose_error container_process_failed run 42 app diagnostic
+    run capture_compose_error compose_run_failed run 42 app diagnostic
 
     assert_success
     [[ ! -e "$marker" ]]
@@ -173,7 +201,7 @@ function configure_compose_hook {
     export BUILDKITE_AGENT_JOB_API_TOKEN=token
     unset "$missing"
 
-    run capture_compose_error container_process_failed run 42 app diagnostic
+    run capture_compose_error compose_run_failed run 42 app diagnostic
 
     assert_success
     [[ ! -e "$marker" ]]

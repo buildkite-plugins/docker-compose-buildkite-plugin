@@ -499,8 +499,8 @@ set +e
   run_docker_compose "${run_params[@]}"
   compose_run_exitcode=$?
   if [[ ${exitcode:-} != "TRAP" && $compose_run_exitcode -ne 0 ]]; then
-    capture_compose_error "container_process_failed" "run" "$compose_run_exitcode" "$run_service" \
-      "Failed to run service command"
+    capture_compose_error "compose_run_failed" "run" "$compose_run_exitcode" "$run_service" \
+      "Docker Compose run failed"
   fi
   exit "$compose_run_exitcode"
 )
