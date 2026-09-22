@@ -4,6 +4,7 @@ load "${BATS_PLUGIN_PATH}/load.bash"
 
 setup() {
   source "$PWD/lib/shared.bash"
+  export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
 }
 
 function configure_compose_hook {
@@ -137,6 +138,24 @@ function configure_compose_hook {
   [[ "$(jq -r '.context.service' "$payload_file")" == "api" ]]
   [[ "$(jq -r '.message' "$payload_file")" == 'service "db" failed' ]]
   [[ "$(jq -r 'has("command") or (.context | has("command"))' "$payload_file")" == "false" ]]
+}
+
+@test "capture is skipped unless the agent advertises support" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  marker="$BATS_TEST_TMPDIR/called"
+  function buildkite-agent() { printf called >"$marker"; }
+  for capability in unset false; do
+    export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR="$capability"
+    if [[ "$capability" == unset ]]; then
+      unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
+    fi
+
+    run capture_compose_error container_process_failed run 42 app diagnostic
+
+    assert_success
+    [[ ! -e "$marker" ]]
+  done
 }
 
 @test "capture is skipped when the Local Job API is unavailable" {

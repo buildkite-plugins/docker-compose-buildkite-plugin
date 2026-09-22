@@ -411,6 +411,7 @@ function json_escape {
 # jobs where the authenticated Local Job API is unavailable.
 function capture_compose_error {
   local code="$1" operation="$2" exit_status="$3" service="$4" message="$5" payload
+  [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
   [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
 
   payload=$(printf '{"code":"%s","message":"%s","context":{"plugin":"docker-compose","operation":"%s","service":"%s","exit_status":%d}}' \
