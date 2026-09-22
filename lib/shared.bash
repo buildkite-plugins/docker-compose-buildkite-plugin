@@ -396,6 +396,29 @@ function retry {
   done
 }
 
+function json_escape {
+  local value="$1"
+  value="$(printf '%s' "$value" | LC_ALL=C tr -d '\000-\010\013\014\016-\037')"
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  value=${value//$'\r'/\\r}
+  value=${value//$'\n'/\\n}
+  value=${value//$'\t'/\\t}
+  printf '%s' "$value"
+}
+
+# Reporting is deliberately silent and status-neutral for old agents and for
+# jobs where the authenticated Local Job API is unavailable.
+function capture_compose_error {
+  local code="$1" operation="$2" exit_status="$3" service="$4" message="$5" payload
+  [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
+
+  payload=$(printf '{"code":"%s","message":"%s","context":{"plugin":"docker-compose","operation":"%s","service":"%s","exit_status":%d}}' \
+    "$(json_escape "$code")" "$(json_escape "$message")" "$(json_escape "$operation")" \
+    "$(json_escape "$service")" "$exit_status")
+  buildkite-agent job capture-error "$payload" >/dev/null 2>&1 || true
+}
+
 function is_windows() {
   [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]]
 }

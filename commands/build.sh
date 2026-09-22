@@ -154,4 +154,10 @@ while read -r arg ; do
 done <<< "$(plugin_read_list ARGS)"
 
 echo "${group_type} :docker: Building services ${services[*]}"
-run_docker_compose "${build_params[@]}" "${services[@]}"
+build_exitcode=0
+run_docker_compose "${build_params[@]}" "${services[@]}" || build_exitcode=$?
+if [[ $build_exitcode -ne 0 ]]; then
+  capture_compose_error "image_build_failed" "build" "$build_exitcode" "${services[*]}" \
+    "Failed to build services"
+  exit "$build_exitcode"
+fi
