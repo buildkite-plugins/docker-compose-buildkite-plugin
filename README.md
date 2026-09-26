@@ -191,9 +191,9 @@ Default: `false`
 
 A number of times to retry failed docker pull. Defaults to 0.
 
-#### `push-metadata` (push only, boolean)
+#### `push-metadata` (push or bake only, boolean)
 
-Whether to set the metadata about the image for a service being pushed.
+Whether to set the metadata about the image for a service being pushed (by `push`, or by `build` with `bake` enabled).
 
 Default: `true`.
 
@@ -402,15 +402,17 @@ Build the services with [`docker buildx bake`](https://docs.docker.com/build/bak
 
 This is useful with the `docker-container` and `remote` build [drivers](https://docs.docker.com/build/builders/drivers/): with those drivers the built image lives in BuildKit's own store, so `docker compose build` must export it as a tarball and import it into the daemon before it can be pushed. For large images — Windows containers are the extreme case, with multi-gigabyte base layers — that load dominates the step even on a full cache hit. Pushing directly from BuildKit skips it entirely.
 
-The image tags, `cache-from`, `cache-to`, `target` and `build-labels` options are honoured (bake reads them from the Compose config and the generated override file), as are `builder`, `no-cache`, `skip-pull`, `ssh`, `buildkit-inline-cache` and `args`. Because the image is pushed rather than loaded, the pushed image is recorded in the build metadata (unless `push-metadata` is `false`) so later `run` and `push` steps use it, just like a regular `push`.
+The Compose config (including the generated override file) is first resolved with `docker compose config` and handed to bake as a single file, so relative build contexts and `.env` files resolve exactly as they do for `docker compose build`, and the image tags, `cache-from`, `cache-to`, `target` and `build-labels` options are honored. `builder`, `no-cache`, `skip-pull`, `ssh`, `buildkit-inline-cache` and `args` are honored too. Because the image is pushed rather than loaded, the pushed image is recorded in the build metadata (unless `push-metadata` is `false`) so later `run` steps use it, just like a regular `push`.
 
 Notes:
 
 - The service must define an `image` with a registry reference to push to, and the agent must be authenticated for that registry.
-- As bake pushes during the build, you do not need a separate `push` entry for the same service in this step.
+- Every service listed in `build` must have a `build` section; bake fails on services that only define an `image`.
+- As bake pushes during the build, `push` must not be used in the same step: with the `docker-container` and `remote` drivers the image is never loaded into the daemon, so a `push` would not find it. The plugin fails early if both are set.
 - `docker buildx bake` always uses BuildKit, independently of the `cli-version` and `buildkit` options.
 - `with-dependencies` is not supported with bake (bake only builds the targets it is given); list the dependent services in `build` instead.
 - `build-parallel` has no effect with bake, which always builds its targets in parallel.
+- bake is invoked directly rather than through `docker compose`, so the `progress`, `push-retries`, `verbose`, `ansi`, `compatibility` and `disable-host-otel-tracing` options do not apply to the bake command itself (they still apply to the `docker compose config` call that resolves the configuration).
 
 Default: `false`
 

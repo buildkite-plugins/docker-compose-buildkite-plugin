@@ -115,6 +115,14 @@ if [[ "$(plugin_read_config BAKE "false")" == "true" ]] ; then
     exit 1
   fi
 
+  # bake pushes the image itself and, with the docker-container/remote drivers,
+  # never loads it into the daemon, so a `push` in the same step would fail to
+  # find it (and is redundant anyway).
+  if [[ -n "$(plugin_read_list PUSH)" ]] ; then
+    echo "🚨 The push option can not be combined with bake in the same step, as bake already pushes the built image"
+    exit 1
+  fi
+
   build_with_bake "${override_file}" "${group_type}" "${services[@]}"
   return 0
 fi

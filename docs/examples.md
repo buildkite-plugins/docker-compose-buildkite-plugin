@@ -456,7 +456,7 @@ steps:
           cache-from:
             - "app:type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
           cache-to:
-            - "app:type=inline"
+            - "app:type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
           builder:
             name: container
             use: true
@@ -464,4 +464,4 @@ steps:
             driver: docker-container
 ```
 
-The `app` service must define an `image` with a registry reference to push to, and the agent must be authenticated for that registry. Because the image is pushed during the build, there is no need for a separate `push` entry, and the pushed image is recorded in the build metadata so later `run` and `push` steps use it just like a regular `push`.
+The `app` service must define an `image` with a registry reference to push to, and the agent must be authenticated for that registry. Because the image is pushed during the build, a `push` entry must not be used in the same step, and the pushed image is recorded in the build metadata so later `run` steps use it just like a regular `push`.

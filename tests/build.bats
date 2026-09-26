@@ -358,13 +358,13 @@ setup_file() {
   unstub docker
 }
 
-@test "Build with bake builds, pushes and records metadata" {
+@test "Build with bake resolves the config, builds, pushes and records metadata" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
 
   stub docker \
-    "buildx bake --file docker-compose.yml --pull --push myservice : echo baked myservice" \
-    "compose -f docker-compose.yml -p buildkite1111 config : printf '%s\n' '  myservice:' '    image: myimage'"
+    "compose -f docker-compose.yml -p buildkite1111 config : printf '%s\n' '  myservice:' '    image: myimage'" \
+    "buildx bake --file docker-compose.buildkite-1-bake-override.yml --pull --push myservice : echo baked myservice"
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice myimage : echo recorded metadata"
@@ -374,12 +374,13 @@ setup_file() {
   assert_success
   assert_output --partial "baked myservice"
   assert_output --partial "recorded metadata"
+  assert_equal "$(cat docker-compose.buildkite-1-bake-override.yml)" "$(printf '%s\n' '  myservice:' '    image: myimage')"
 
   unstub docker
   unstub buildkite-agent
 }
 
-@test "Build with bake honours builder, no-cache, inline cache and args" {
+@test "Build with bake honors builder, no-cache, inline cache, ssh and args" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_METADATA=false
@@ -388,10 +389,12 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL=true
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_NO_CACHE=true
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDKIT_INLINE_CACHE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=true
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_ARGS_0=MYARG=myvalue
 
   stub docker \
-    "buildx bake --file docker-compose.yml --builder mybuilder --no-cache --push --set *.args.BUILDKIT_INLINE_CACHE=1 --set *.args.MYARG=myvalue myservice : echo baked myservice"
+    "compose -f docker-compose.yml -p buildkite1111 config : echo resolved config" \
+    "buildx bake --file docker-compose.buildkite-1-bake-override.yml --builder mybuilder --no-cache --push --set '*.args.BUILDKIT_INLINE_CACHE=1' --set '*.ssh=default' --set '*.args.MYARG=myvalue' myservice : echo baked myservice"
 
   run "$PWD"/hooks/command
 
@@ -401,7 +404,25 @@ setup_file() {
   unstub docker
 }
 
-@test "Build with bake passes the cache-from override file" {
+@test "Build with bake passes a named ssh context" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH_METADATA=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SSH=mykey=/path/to/key
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : echo resolved config" \
+    "buildx bake --file docker-compose.buildkite-1-bake-override.yml --pull --push --set '*.ssh=mykey=/path/to/key' myservice : echo baked myservice"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "baked myservice"
+
+  unstub docker
+}
+
+@test "Build with bake resolves the cache-from override file into the bake config" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
@@ -409,7 +430,8 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:my.repository/myservice_cache:latest
 
   stub docker \
-    "buildx bake --file tests/composefiles/docker-compose.v3.2.yml --file docker-compose.buildkite-1-override.yml --pull --push helloworld : echo baked helloworld"
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml config : echo resolved config" \
+    "buildx bake --file docker-compose.buildkite-1-bake-override.yml --pull --push helloworld : echo baked helloworld"
 
   run "$PWD"/hooks/command
 
@@ -426,8 +448,8 @@ setup_file() {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
 
   stub docker \
-    "buildx bake --file docker-compose.yml --pull --push myservice1 myservice2 : echo baked myservice1 myservice2" \
-    "compose -f docker-compose.yml -p buildkite1111 config : printf '%s\n' '  myservice1:' '    image: myimage1' '  myservice2:' '    image: myimage2'"
+    "compose -f docker-compose.yml -p buildkite1111 config : printf '%s\n' '  myservice1:' '    image: myimage1' '  myservice2:' '    image: myimage2'" \
+    "buildx bake --file docker-compose.buildkite-1-bake-override.yml --pull --push myservice1 myservice2 : echo baked myservice1 myservice2"
 
   stub buildkite-agent \
     "meta-data set docker-compose-plugin-built-image-tag-myservice1 myimage1 : echo recorded metadata for myservice1" \
@@ -444,6 +466,23 @@ setup_file() {
   unstub buildkite-agent
 }
 
+@test "Build with bake skips metadata for a service without an image" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 config : printf '%s\n' '  myservice:' '    build: .'" \
+    "buildx bake --file docker-compose.buildkite-1-bake-override.yml --pull --push myservice : echo baked myservice"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "baked myservice"
+  refute_output --partial "meta-data"
+
+  unstub docker
+}
+
 @test "Build with bake and with-dependencies fails" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
@@ -453,4 +492,15 @@ setup_file() {
 
   assert_failure
   assert_output --partial "with-dependencies option is not supported together with bake"
+}
+
+@test "Build with bake and push in the same step fails" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PUSH=myservice
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "push option can not be combined with bake"
 }

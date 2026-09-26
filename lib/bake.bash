@@ -19,9 +19,13 @@ BAKE_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # registry exporter, so the image goes from BuildKit to the registry directly and
 # the daemon is never involved.
 #
-# The generated override file and the Compose config files carry the image tags,
-# cache_from/cache_to, target and labels, and bake reads them through `--file`,
-# so those options apply unchanged.
+# bake resolves relative build contexts and `.env` files from the current
+# directory, whereas Compose resolves them from the directory of the Compose
+# file. To make sure bake builds exactly what `docker compose build` would, the
+# Compose config (including the generated override file, so image tags,
+# cache_from/cache_to, target and labels all apply) is resolved by Compose first
+# into a single file with absolute contexts and interpolated values, and bake is
+# given that file. The same file provides the image names recorded in metadata.
 #
 # Usage: build_with_bake <override_file> <group_type> <service>...
 # `override_file` and `group_type` are computed by commands/build.sh and passed
@@ -32,16 +36,16 @@ function build_with_bake() {
   shift 2
   local services=("$@")
 
-  local bake_params=(buildx bake)
+  local resolved_config="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-bake-override.yml"
 
-  local file
-  for file in $(docker_compose_config_files) ; do
-    bake_params+=(--file "$file")
-  done
-
+  echo "~~~ :docker: Resolving the docker-compose config for bake"
   if [[ -f "${override_file}" ]]; then
-    bake_params+=(--file "${override_file}")
+    run_docker_compose -f "${override_file}" config > "${resolved_config}"
+  else
+    run_docker_compose config > "${resolved_config}"
   fi
+
+  local bake_params=(buildx bake --file "${resolved_config}")
 
   if [[ -n "$(plugin_read_config BUILDER_NAME "")" ]] && [[ "$(plugin_read_config BUILDER_USE "false")" == "true" ]]; then
     bake_params+=(--builder "$(plugin_read_config BUILDER_NAME "")")
@@ -82,15 +86,14 @@ function build_with_bake() {
   echo "${group_type} :docker: Building and pushing services with bake: ${services[*]}"
   plugin_prompt_and_must_run docker "${bake_params[@]}"
 
-  # Record the pushed image for each service so later run/push steps pull it
-  # instead of falling back to a rebuild (mirrors the push command's behaviour).
-  #
-  # The resolved Compose config is fetched once and reused for every service,
-  # rather than running `docker compose config` per service.
+  # Record the pushed image for each service so later run steps pull it instead
+  # of falling back to a rebuild (mirrors the push command's behaviour). The
+  # image names come from the config resolved above, so `docker compose config`
+  # runs once regardless of the number of services.
   if [[ "$(plugin_read_config PUSH_METADATA "true")" == "true" ]] ; then
     local prebuilt_image_namespace compose_config service image
     prebuilt_image_namespace="$(plugin_read_config PREBUILT_IMAGE_NAMESPACE 'docker-compose-plugin-')"
-    compose_config="$(run_docker_compose config)"
+    compose_config="$(cat "${resolved_config}")"
     for service in "${services[@]}" ; do
       image="$(compose_image_for_service "$service" "$compose_config")"
       if [[ -n "$image" ]] ; then
