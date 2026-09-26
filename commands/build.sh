@@ -105,6 +105,28 @@ while read -r line ; do
   [[ -n "$line" ]] && services+=("$line")
 done <<< "$(plugin_read_list BUILD)"
 
+# When `bake` is enabled, build (and push) with `docker buildx bake` instead of
+# `docker compose build`, which avoids loading the image into the local daemon.
+if [[ "$(plugin_read_config BAKE "false")" == "true" ]] ; then
+  # `docker buildx bake` has no equivalent of `--with-dependencies`: it only
+  # builds the targets it is given. Fail loudly rather than silently skipping.
+  if [[ "$(plugin_read_config WITH_DEPENDENCIES "false")" == "true" ]] ; then
+    echo "🚨 The with-dependencies option is not supported together with bake; list the dependencies in the build option instead"
+    exit 1
+  fi
+
+  # bake pushes the image itself and, with the docker-container/remote drivers,
+  # never loads it into the daemon, so a `push` in the same step would fail to
+  # find it (and is redundant anyway).
+  if [[ -n "$(plugin_read_list PUSH)" ]] ; then
+    echo "🚨 The push option can not be combined with bake in the same step, as bake already pushes the built image"
+    exit 1
+  fi
+
+  build_with_bake "${override_file}" "${group_type}" "${services[@]}"
+  return 0
+fi
+
 if [[ -f "${override_file}" ]]; then
   build_params+=(-f "${override_file}")
 fi
