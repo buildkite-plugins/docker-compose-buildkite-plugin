@@ -22,15 +22,15 @@ BAKE_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The generated override file and the Compose config files carry the image tags,
 # cache_from/cache_to, target and labels, and bake reads them through `--file`,
 # so those options apply unchanged.
+#
+# Usage: build_with_bake <override_file> <group_type> <service>...
+# `override_file` and `group_type` are computed by commands/build.sh and passed
+# in so both build paths share the same values.
 function build_with_bake() {
+  local override_file="$1"
+  local group_type="$2"
+  shift 2
   local services=("$@")
-
-  local override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
-
-  local group_type="+++"
-  if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_LOGS:-false}" == "true" ]]; then
-    group_type="---"
-  fi
 
   local bake_params=(buildx bake)
 
@@ -84,11 +84,15 @@ function build_with_bake() {
 
   # Record the pushed image for each service so later run/push steps pull it
   # instead of falling back to a rebuild (mirrors the push command's behaviour).
+  #
+  # The resolved Compose config is fetched once and reused for every service,
+  # rather than running `docker compose config` per service.
   if [[ "$(plugin_read_config PUSH_METADATA "true")" == "true" ]] ; then
-    local prebuilt_image_namespace service image
+    local prebuilt_image_namespace compose_config service image
     prebuilt_image_namespace="$(plugin_read_config PREBUILT_IMAGE_NAMESPACE 'docker-compose-plugin-')"
+    compose_config="$(run_docker_compose config)"
     for service in "${services[@]}" ; do
-      image="$(compose_image_for_service "$service")"
+      image="$(compose_image_for_service "$service" "$compose_config")"
       if [[ -n "$image" ]] ; then
         set_prebuilt_image "${prebuilt_image_namespace}" "${service}" "${image}"
       fi

@@ -419,3 +419,38 @@ setup_file() {
 
   unstub docker
 }
+
+@test "Build with bake resolves the compose config once for multiple services" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=myservice1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_1=myservice2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
+
+  stub docker \
+    "buildx bake --file docker-compose.yml --pull --push myservice1 myservice2 : echo baked myservice1 myservice2" \
+    "compose -f docker-compose.yml -p buildkite1111 config : printf '%s\n' '  myservice1:' '    image: myimage1' '  myservice2:' '    image: myimage2'"
+
+  stub buildkite-agent \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice1 myimage1 : echo recorded metadata for myservice1" \
+    "meta-data set docker-compose-plugin-built-image-tag-myservice2 myimage2 : echo recorded metadata for myservice2"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "baked myservice1 myservice2"
+  assert_output --partial "recorded metadata for myservice1"
+  assert_output --partial "recorded metadata for myservice2"
+
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Build with bake and with-dependencies fails" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BAKE=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_WITH_DEPENDENCIES=true
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "with-dependencies option is not supported together with bake"
+}

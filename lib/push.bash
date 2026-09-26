@@ -1,10 +1,18 @@
 #!/bin/bash
 
+# Prints the `image` of the given service from the resolved Compose config.
+# An already-resolved config (the output of `docker compose config`) can be
+# passed as the second argument to avoid re-running it for every service.
 compose_image_for_service() {
   local service="$1"
+  local compose_config="${2:-}"
   local image=""
 
-  image=$(run_docker_compose config \
+  if [[ -z "$compose_config" ]] ; then
+    compose_config=$(run_docker_compose config)
+  fi
+
+  image=$(printf '%s\n' "$compose_config" \
     | grep -E "^(  [._[:alnum:]-]+:|    image:)" \
     | grep -E "(  ${service}:)" -A 1 \
     | grep -oE '  image: (.+)' \

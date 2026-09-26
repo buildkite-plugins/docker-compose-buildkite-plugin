@@ -450,7 +450,7 @@ With the `docker-container` and `remote` build drivers, `docker compose build` h
 steps:
   - label: ":docker: Build and push the image with bake"
     plugins:
-      - docker-compose#v5.13.0:
+      - docker-compose#v5.14.0:
           build: app
           bake: true
           cache-from:

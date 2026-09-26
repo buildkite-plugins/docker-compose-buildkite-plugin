@@ -408,7 +408,9 @@ Notes:
 
 - The service must define an `image` with a registry reference to push to, and the agent must be authenticated for that registry.
 - As bake pushes during the build, you do not need a separate `push` entry for the same service in this step.
-- Requires BuildKit; it has no effect with `cli-version: 1` unless `buildkit` is also enabled.
+- `docker buildx bake` always uses BuildKit, independently of the `cli-version` and `buildkit` options.
+- `with-dependencies` is not supported with bake (bake only builds the targets it is given); list the dependent services in `build` instead.
+- `build-parallel` has no effect with bake, which always builds its targets in parallel.
 
 Default: `false`
 
