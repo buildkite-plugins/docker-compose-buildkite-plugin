@@ -1,0 +1,209 @@
+#!/usr/bin/env bats
+
+load "${BATS_PLUGIN_PATH}/load.bash"
+
+setup() {
+  source "$PWD/lib/shared.bash"
+  export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
+  export -f record_capture
+}
+
+function record_capture {
+  [[ "$1" == job && "$2" == capture-error && "$4" == --message && "$6" == --context && $# -eq 7 ]] || return 1
+  jq -nc --arg code "$3" --arg message "$5" --argjson context "$7" \
+    '{code:$code,message:$message,context:$context}' >>"$payload_file"
+}
+
+function configure_compose_hook {
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_LABELS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  export BUILDKITE_COMMAND='echo hello world'
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+}
+
+@test "successful Compose run emits no captured error" {
+  configure_compose_hook
+  marker="$BATS_TEST_TMPDIR/called"
+  export marker
+  function buildkite-agent() {
+    [[ "$1" == job ]] && printf called >"$marker"
+    return 1
+  }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo dependencies started" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -T --rm myservice /bin/sh -e -c 'echo hello world' : echo command ran"
+
+  run "$PWD/hooks/command"
+
+  assert_success
+  assert_output --partial "command ran"
+  [[ ! -e "$marker" ]]
+  unstub docker
+}
+
+@test "failed Compose run captures classification without changing status" {
+  configure_compose_hook
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() {
+    if [[ "$1" == job ]]; then
+      record_capture "$@"
+      echo 'Unknown command: capture-error' >&2
+      return 22
+    fi
+    return 1
+  }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo dependencies started" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -T --rm myservice /bin/sh -e -c 'echo hello world' : echo command-stdout; echo process-failed >&2; exit 23"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 23
+  [[ "$(jq -r '.code' "$payload_file")" == "compose_run_failed" ]]
+  [[ "$(jq -r '.message' "$payload_file")" == "Docker Compose run failed" ]]
+  [[ "$(grep -c '^process-failed$' <<<"$output")" -eq 1 ]]
+  [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
+  [[ "$output" != *'Unknown command'* ]]
+  ! grep -q process-failed "$payload_file"
+  unstub docker
+}
+
+@test "dependency failure inside Compose run does not claim a process ran" {
+  configure_compose_hook
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PRE_RUN_DEPENDENCIES=false
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() {
+    if [[ "$1" == job ]]; then
+      record_capture "$@"
+      return 22
+    fi
+    return 1
+  }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -T --rm myservice /bin/sh -e -c 'echo hello world' : echo dependency-failed >&2; exit 18"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 18
+  [[ "$(jq -r '.code' "$payload_file")" == "compose_run_failed" ]]
+  [[ "$(jq -r '.message' "$payload_file")" == "Docker Compose run failed" ]]
+  [[ "$(jq -r '.context.operation' "$payload_file")" == "run" ]]
+  [[ "$(jq -r '.context.exit_status' "$payload_file")" == "18" ]]
+  [[ "$(grep -c '^dependency-failed$' <<<"$output")" -eq 1 ]]
+  [[ "$(wc -l <"$payload_file")" -eq 1 ]]
+  unstub docker
+}
+
+@test "failed Compose build captures image failure without changing status" {
+  configure_compose_hook
+  unset BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; return 22; }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo build-failed >&2; exit 17"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 17
+  [[ "$(jq -r '.code' "$payload_file")" == "image_build_failed" ]]
+  unstub docker
+}
+
+@test "failed dependency startup captures service failure without changing status" {
+  configure_compose_hook
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() {
+    if [[ "$1" == job ]]; then
+      record_capture "$@"
+      return 22
+    fi
+    return 1
+  }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo dependency-failed >&2; exit 18"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 18
+  [[ "$(jq -r '.code' "$payload_file")" == "service_start_failed" ]]
+  unstub docker
+}
+
+@test "capture reporting failure is ignored" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  marker="$BATS_TEST_TMPDIR/called"
+  export marker
+  function buildkite-agent() { printf called >"$marker"; return 19; }
+
+  run capture_compose_error service_start_failed dependency_start 42 app diagnostic
+
+  assert_success
+  [[ "$(cat "$marker")" == "called" ]]
+}
+
+@test "capture sends structured context without command arguments" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+
+  run capture_compose_error service_start_failed dependency_start 18 api 'service "db" failed'
+
+  assert_success
+  [[ "$(jq -r '.code' "$payload_file")" == "service_start_failed" ]]
+  [[ "$(jq -r '.context.exit_status' "$payload_file")" == "18" ]]
+  [[ "$(jq -r '.context.service' "$payload_file")" == "api" ]]
+  [[ "$(jq -r '.message' "$payload_file")" == 'service "db" failed' ]]
+  [[ "$(jq -r 'has("command") or (.context | has("command"))' "$payload_file")" == "false" ]]
+}
+
+@test "capture is skipped unless the agent advertises support" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  marker="$BATS_TEST_TMPDIR/called"
+  function buildkite-agent() { printf called >"$marker"; }
+  for capability in unset false; do
+    export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR="$capability"
+    if [[ "$capability" == unset ]]; then
+      unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
+    fi
+
+    run capture_compose_error compose_run_failed run 42 app diagnostic
+
+    assert_success
+    [[ ! -e "$marker" ]]
+  done
+}
+
+@test "capture is skipped when the Local Job API is unavailable" {
+  marker="$BATS_TEST_TMPDIR/called"
+  function buildkite-agent() { printf called >"$marker"; return 99; }
+  for missing in BUILDKITE_AGENT_JOB_API_SOCKET BUILDKITE_AGENT_JOB_API_TOKEN; do
+    export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+    export BUILDKITE_AGENT_JOB_API_TOKEN=token
+    unset "$missing"
+
+    run capture_compose_error compose_run_failed run 42 app diagnostic
+
+    assert_success
+    [[ ! -e "$marker" ]]
+  done
+}
