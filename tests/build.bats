@@ -139,6 +139,73 @@ setup_file() {
   unstub docker
 }
 
+@test "Build with cache-to-default-branch-only on the default branch" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:type=registry,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,mode=max,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_DEFAULT_BRANCH_ONLY=true
+  export BUILDKITE_BRANCH=main
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "cache_to:"
+  assert_output --partial "- type=registry,mode=max,ref=my.repository/myservice:cache"
+  refute_output --partial "Skipping cache-to"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with cache-to-default-branch-only on another branch" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:type=registry,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,mode=max,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_DEFAULT_BRANCH_ONLY=true
+  export BUILDKITE_BRANCH=feature/new-thing
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Skipping cache-to: branch 'feature/new-thing' is not the default branch 'main'"
+  assert_output --partial "- type=registry,ref=my.repository/myservice:cache"
+  refute_output --partial "cache_to:"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with cache-to-default-branch-only when the default branch is unknown" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,mode=max,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_DEFAULT_BRANCH_ONLY=true
+  export BUILDKITE_BRANCH=main
+  unset BUILDKITE_PIPELINE_DEFAULT_BRANCH
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Skipping cache-to"
+  refute_output --partial "cache_to:"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
 @test "Build with a cache-from image with no-cache also set" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
