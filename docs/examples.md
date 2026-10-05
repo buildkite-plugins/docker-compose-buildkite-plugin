@@ -442,6 +442,28 @@ The first Step will build the Image using a Builder Instance with the `docker-co
 
 The second Step will build the Image using a Builder Instance with the `docker-container` driver and use remote registry for the image cache, as specified by `cache-from`, speeding up Image building process.
 
+#### Exporting the cache only from the default branch
+
+A step that both reads and writes the same cache runs on every branch, so pull request builds overwrite the cache that default-branch builds import. Set `cache-to-default-branch-only` to export the cache only when the build is on the pipeline's default branch; builds of other branches still read it:
+
+```yaml
+steps:
+  - label: ":docker: Build an image with a default-branch cache"
+    plugins:
+      - docker-compose#v5.14.0:
+          build: app
+          cache-from:
+            - "app:type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
+          cache-to:
+            - "app:type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
+          cache-to-default-branch-only: true
+          builder:
+            name: container
+            use: true
+            create: true
+            driver: docker-container
+```
+
 ### Building and pushing directly with bake
 
 With the `docker-container` and `remote` build drivers, `docker compose build` has to export the built image as a tarball and load it into the Docker daemon before it can be pushed. For large images this load can dominate the step even when every layer is cached — Windows containers are the worst case, with multi-gigabyte base layers. The `bake` option builds with `docker buildx bake` and pushes straight to the registry, so the image never round-trips through the daemon:

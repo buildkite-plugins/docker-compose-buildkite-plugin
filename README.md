@@ -213,6 +213,12 @@ A list of export locations to be used to share build cache with future builds in
 
 They will be mapped directly to `cache-to` elements in the build according to the spec so any valid format there should be allowed.
 
+#### `cache-to-default-branch-only` (build only, boolean)
+
+Only export the `cache-to` caches when the build is on the pipeline's default branch (`BUILDKITE_BRANCH` equals `BUILDKITE_PIPELINE_DEFAULT_BRANCH`). Builds of other branches still read `cache-from`, but skip `cache-to`, so they can't overwrite the cache that default-branch builds import. Pull requests run code that hasn't been reviewed yet, and a later default-branch build would reuse whatever layers they exported.
+
+The default is `false`.
+
 #### `target` (build only)
 
 Allow for intermediate builds as if building with Docker's `--target VALUE` options.

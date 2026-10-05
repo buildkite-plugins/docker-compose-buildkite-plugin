@@ -71,6 +71,8 @@ configuration:
     cache-to:
       type: [ string, array ]
       minimum: 1
+    cache-to-default-branch-only:
+      type: boolean
     cli-version:
       oneOf:
         - type: string
@@ -203,6 +205,7 @@ configuration:
     buildkit-inline-cache: [ build ]
     cache-from: [ build ]
     cache-to: [ build ]
+    cache-to-default-branch-only: [ cache-to ]
     command: [ run ]
     dependencies: [ run ]
     entrypoint: [ run ]

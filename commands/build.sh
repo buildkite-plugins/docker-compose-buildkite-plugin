@@ -38,6 +38,11 @@ get_caches_for_service() {
 get_caches_to_service() {
   local service="$1"
 
+  # If cache-to is disabled for this branch skip exporting the caches
+  if [[ "${cache_to_enabled}" != "true" ]] ; then
+    return
+  fi
+
   # Read any cache-to parameters provided
   for line in $(plugin_read_list CACHE_TO) ; do
     IFS=':' read -r -a tokens <<< "$line"
@@ -49,6 +54,15 @@ get_caches_to_service() {
     fi
   done
 }
+
+# With cache-to-default-branch-only, only builds of the pipeline's default
+# branch export caches, so other branches can read them but never overwrite them
+cache_to_enabled="true"
+if [[ "$(plugin_read_config CACHE_TO_DEFAULT_BRANCH_ONLY "false")" == "true" ]] && \
+  { [[ -z "${BUILDKITE_PIPELINE_DEFAULT_BRANCH:-}" ]] || [[ "${BUILDKITE_BRANCH:-}" != "${BUILDKITE_PIPELINE_DEFAULT_BRANCH}" ]]; } ; then
+  cache_to_enabled="false"
+  echo "Skipping cache-to: branch '${BUILDKITE_BRANCH:-}' is not the default branch '${BUILDKITE_PIPELINE_DEFAULT_BRANCH:-}'"
+fi
 
 
 # Run through all images in the build property, either a single item or a list
