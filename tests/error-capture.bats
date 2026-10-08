@@ -303,7 +303,7 @@ function configure_compose_hook {
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf '%01000d\n' 0 >"$stderr_file"
+  printf '%0750d\n' 0 >"$stderr_file"
 
   run capture_compose_error image_build_failed "Failed to build services" "$stderr_file"
 
