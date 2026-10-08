@@ -177,9 +177,11 @@ done <<< "$(plugin_read_list ARGS)"
 
 echo "${group_type} :docker: Building services ${services[*]}"
 build_exitcode=0
-run_docker_compose "${build_params[@]}" "${services[@]}" || build_exitcode=$?
+build_stderr_file=$(mktemp)
+run_docker_compose_copying_stderr "$build_stderr_file" "${build_params[@]}" "${services[@]}" || build_exitcode=$?
 if [[ $build_exitcode -ne 0 ]]; then
-  capture_compose_error "image_build_failed" "build" "$build_exitcode" "${services[*]}" \
-    "Failed to build services"
+  capture_compose_error "image_build_failed" "Failed to build services" "$build_stderr_file"
+  rm -f "$build_stderr_file"
   exit "$build_exitcode"
 fi
+rm -f "$build_stderr_file"
