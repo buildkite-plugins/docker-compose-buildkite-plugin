@@ -154,28 +154,16 @@ function configure_compose_hook {
   unstub docker
 }
 
-@test "Compose keeps the interactive progress display on a terminal" {
+@test "Compose progress is not forced when stderr is copied" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
   export TERM=xterm
-  function stderr_is_terminal() { return 0; }
   function run_docker_compose() { echo "progress=${COMPOSE_PROGRESS:-unset}"; }
 
   run run_docker_compose_copying_stderr "$BATS_TEST_TMPDIR/stderr" build
 
   assert_success
-  assert_output "progress=tty"
-}
-
-@test "Compose leaves progress unforced when ANSI is disabled" {
-  export TERM=xterm
-  function stderr_is_terminal() { return 0; }
-  function run_docker_compose() { echo "progress=${COMPOSE_PROGRESS:-unset}"; }
-
-  for setting in BUILDKITE_PLUGIN_DOCKER_COMPOSE_ANSI=false COMPOSE_ANSI=never NO_COLOR=1 TERM=dumb BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROGRESS=plain; do
-    run env "$setting" bash -c "$(declare -f plugin_read_config run_copying_stderr run_docker_compose_copying_stderr stderr_is_terminal run_docker_compose); run_docker_compose_copying_stderr '$BATS_TEST_TMPDIR/stderr' build"
-
-    assert_success
-    assert_output "progress=unset"
-  done
+  assert_output "progress=unset"
 }
 
 @test "Compose build message leaves out the command line and its build args" {
@@ -220,7 +208,7 @@ function configure_compose_hook {
   assert_failure 18
   assert_captured service_start_failed "Failed to start dependencies: dependency-failed"
   [[ "$(grep -c '^dependency-failed$' <<<"$output")" -eq 1 ]]
-  # stderr is not a terminal here, so Compose's progress display is left alone.
+  # Compose's progress display isn't forced.
   assert_output --partial "progress=unset"
   unstub docker
 }

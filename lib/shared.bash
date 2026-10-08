@@ -426,24 +426,14 @@ function capture_stderr_file {
   mktemp 2>/dev/null || true
 }
 
-function stderr_is_terminal {
-  [[ -t 2 ]]
-}
-
 # Runs Docker Compose and also saves its stderr to a file. The command line
 # shown before it is left out of the file, as it can include build args.
+# Because stderr is piped, Compose shows plain progress output.
 function run_docker_compose_copying_stderr {
   local stderr_file="$1"; shift
   if [[ -z "$stderr_file" ]]; then
     run_docker_compose "$@"
     return
-  fi
-  # Compose shows plain progress when stderr isn't a terminal. Keep the
-  # interactive display, unless progress or plain output is configured.
-  if stderr_is_terminal && [[ -z "$(plugin_read_config PROGRESS)" && -z "${COMPOSE_PROGRESS:-}" \
-    && "$(plugin_read_config ANSI "true")" != "false" && "${COMPOSE_ANSI:-}" != "never" \
-    && -z "${NO_COLOR:-}" && "${TERM:-}" != "dumb" ]]; then
-    local -x COMPOSE_PROGRESS=tty
   fi
   PLUGIN_PROMPT_FD=4 run_copying_stderr "$stderr_file" run_docker_compose "$@" 4>&2
 }
