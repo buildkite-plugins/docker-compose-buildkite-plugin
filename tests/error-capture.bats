@@ -134,6 +134,50 @@ function configure_compose_hook {
   unstub docker
 }
 
+@test "Compose build still runs when a temporary file can't be created" {
+  configure_compose_hook
+  unset BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  export TMPDIR="$BATS_TEST_TMPDIR/missing"
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo build-failed >&2; exit 17"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 17
+  assert_captured image_build_failed "Failed to build services"
+  [[ "$(grep -c '^build-failed$' <<<"$output")" -eq 1 ]]
+  unstub docker
+}
+
+@test "Compose keeps the interactive progress display on a terminal" {
+  export TERM=xterm
+  function stderr_is_terminal() { return 0; }
+  function run_docker_compose() { echo "progress=${COMPOSE_PROGRESS:-unset}"; }
+
+  run run_docker_compose_copying_stderr "$BATS_TEST_TMPDIR/stderr" build
+
+  assert_success
+  assert_output "progress=tty"
+}
+
+@test "Compose leaves progress unforced when ANSI is disabled" {
+  export TERM=xterm
+  function stderr_is_terminal() { return 0; }
+  function run_docker_compose() { echo "progress=${COMPOSE_PROGRESS:-unset}"; }
+
+  for setting in BUILDKITE_PLUGIN_DOCKER_COMPOSE_ANSI=false COMPOSE_ANSI=never NO_COLOR=1 TERM=dumb BUILDKITE_PLUGIN_DOCKER_COMPOSE_PROGRESS=plain; do
+    run env "$setting" bash -c "$(declare -f plugin_read_config run_copying_stderr run_docker_compose_copying_stderr stderr_is_terminal run_docker_compose); run_docker_compose_copying_stderr '$BATS_TEST_TMPDIR/stderr' build"
+
+    assert_success
+    assert_output "progress=unset"
+  done
+}
+
 @test "Compose build message leaves out the command line and its build args" {
   configure_compose_hook
   unset BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN
@@ -217,20 +261,29 @@ function configure_compose_hook {
   assert_output '0123456789'
 }
 
-@test "stderr error line counts HTML characters as JSON escapes" {
+@test "stderr error line limit counts characters, not bytes" {
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf 'a>&b\n' >"$stderr_file"
+  printf 'café <&>\n' >"$stderr_file"
 
-  # "a>&b" is 14 bytes once escaped: 2 plain characters plus 2 six-byte escapes.
-  run stderr_error_line "$stderr_file" 13
+  run stderr_error_line "$stderr_file" 7
 
   assert_success
   assert_output ''
 
-  run stderr_error_line "$stderr_file" 14
+  run stderr_error_line "$stderr_file" 8
 
   assert_success
-  assert_output 'a>&b'
+  assert_output 'café <&>'
+}
+
+@test "stderr error line removes colon-form colour codes and other control characters" {
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  printf 'Error: sec\033[38:2::255:0:0mret\033[0m den\001ied\n' >"$stderr_file"
+
+  run stderr_error_line "$stderr_file" 100
+
+  assert_success
+  assert_output 'Error: secret denied'
 }
 
 @test "stderr error line is empty for empty stderr" {
@@ -250,7 +303,7 @@ function configure_compose_hook {
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf '%01100d\n' 0 >"$stderr_file"
+  printf '%01000d\n' 0 >"$stderr_file"
 
   run capture_compose_error image_build_failed "Failed to build services" "$stderr_file"
 
@@ -328,4 +381,48 @@ function configure_compose_hook {
     assert_success
     [[ ! -e "$marker" ]]
   done
+}
+
+@test "stderr is not copied when error capture is unavailable" {
+  unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
+
+  run capture_stderr_file
+
+  assert_success
+  assert_output ''
+}
+
+@test "stderr is not copied when a temporary file can't be created" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  export TMPDIR="$BATS_TEST_TMPDIR/missing"
+
+  run capture_stderr_file
+
+  assert_success
+  assert_output ''
+}
+
+@test "run_copying_stderr runs the command normally without a file" {
+  function noisy() { echo out; echo err >&2; return 7; }
+
+  run --separate-stderr run_copying_stderr "" noisy
+
+  assert_failure 7
+  [[ "$output" == out ]]
+  [[ "$stderr" == err ]]
+}
+
+@test "run_copying_stderr keeps the command's status when the copy can't be written" {
+  function noisy() { echo err >&2; return 7; }
+  function quiet() { echo err >&2; }
+
+  run --separate-stderr run_copying_stderr "$BATS_TEST_TMPDIR/missing/stderr" noisy
+
+  assert_failure 7
+  [[ "$stderr" == *err* ]]
+
+  run --separate-stderr run_copying_stderr "$BATS_TEST_TMPDIR/missing/stderr" quiet
+
+  assert_success
 }

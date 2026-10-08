@@ -373,13 +373,13 @@ dependency_exitcode=0
 if [[ "${run_dependencies}" == "true" ]] ; then
   # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
-  dependency_stderr_file=$(mktemp)
+  dependency_stderr_file=$(capture_stderr_file)
   run_docker_compose_copying_stderr "$dependency_stderr_file" "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
 fi
 
 if [[ $dependency_exitcode -ne 0 ]] ; then
-  capture_compose_error "service_start_failed" "Failed to start dependencies" "$dependency_stderr_file"
-  rm -f "$dependency_stderr_file"
+  capture_compose_error "service_start_failed" "Failed to start dependencies" "${dependency_stderr_file:-}"
+  [[ -z "${dependency_stderr_file:-}" ]] || rm -f "$dependency_stderr_file"
   # Dependent services failed to start.
   echo "^^^ +++"
   echo "+++ 🚨 Failed to start dependencies"
@@ -392,7 +392,7 @@ if [[ $dependency_exitcode -ne 0 ]] ; then
 
   return $dependency_exitcode
 fi
-rm -f "${dependency_stderr_file:-}"
+[[ -z "${dependency_stderr_file:-}" ]] || rm -f "$dependency_stderr_file"
 
 shell=()
 shell_disabled=1

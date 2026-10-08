@@ -408,19 +408,41 @@ function json_escape {
 }
 
 # Runs a command and also saves its stderr to a file. Output and exit status
-# are unchanged.
+# are unchanged. Without a file, the command runs normally.
 function run_copying_stderr {
   local stderr_file="$1"; shift
+  if [[ -z "$stderr_file" ]]; then
+    "$@"
+    return
+  fi
   { "$@" 2>&1 1>&3 3>&- | tee "$stderr_file" >&2 3>&-; return "${PIPESTATUS[0]}"; } 3>&1
+}
+
+# Prints a temporary file path for a stderr copy, or nothing if error capture
+# is unavailable or a file can't be created.
+function capture_stderr_file {
+  [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
+  [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
+  mktemp 2>/dev/null || true
+}
+
+function stderr_is_terminal {
+  [[ -t 2 ]]
 }
 
 # Runs Docker Compose and also saves its stderr to a file. The command line
 # shown before it is left out of the file, as it can include build args.
-# Compose switches to plain progress output when stderr isn't a terminal, so
-# keep the interactive display unless a progress option is set.
 function run_docker_compose_copying_stderr {
   local stderr_file="$1"; shift
-  if [[ -t 2 && -z "$(plugin_read_config PROGRESS)" && -z "${COMPOSE_PROGRESS:-}" ]]; then
+  if [[ -z "$stderr_file" ]]; then
+    run_docker_compose "$@"
+    return
+  fi
+  # Compose shows plain progress when stderr isn't a terminal. Keep the
+  # interactive display, unless progress or plain output is configured.
+  if stderr_is_terminal && [[ -z "$(plugin_read_config PROGRESS)" && -z "${COMPOSE_PROGRESS:-}" \
+    && "$(plugin_read_config ANSI "true")" != "false" && "${COMPOSE_ANSI:-}" != "never" \
+    && -z "${NO_COLOR:-}" && "${TERM:-}" != "dumb" ]]; then
     local -x COMPOSE_PROGRESS=tty
   fi
   PLUGIN_PROMPT_FD=4 run_copying_stderr "$stderr_file" run_docker_compose "$@" 4>&2
@@ -428,29 +450,27 @@ function run_docker_compose_copying_stderr {
 
 # Prints the last non-blank line of a stderr file, which is usually the error,
 # without terminal escape codes. Prints nothing if the line is longer than
-# max_bytes, because cutting it could leave part of a secret that can no longer
-# be redacted.
+# max_chars, because cutting it could leave part of a secret that can no
+# longer be redacted.
 function stderr_error_line {
-  local stderr_file="$1" max_bytes="$2" line escaped html
-  local LC_ALL=C
+  local stderr_file="$1" max_chars="$2" line
   [[ -s "$stderr_file" ]] || return 0
   line=$(tr '\r' '\n' <"$stderr_file" \
-    | sed -e $'s/\x1b\\[[0-9;?]*[ -/]*[@-~]//g' \
+    | sed -e $'s/\x1b\\[[0-?]*[ -/]*[@-~]//g' \
       -e $'s/\x1b][^\x07\x1b]*\x07//g' -e $'s/\x1b][^\x07\x1b]*\x1b\\\\//g' \
       -e $'s/\x1b[()][0-9A-Za-z]//g' \
       -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
+    | tr -d '\000-\010\013-\037\177' \
     | grep -v '^$' \
     | tail -n 1) || true
-  escaped=$(json_escape "$line")
-  # The agent sends <, > and & as six-byte escapes, so count the extra bytes.
-  html=${escaped//[^<>&]/}
-  if (( ${#escaped} + 5 * ${#html} <= max_bytes )); then
+  if (( $(printf '%s' "$line" | wc -m) <= max_chars )); then
     printf '%s' "$line"
   fi
 }
 
-# Leaves room under the agent's message limit for [REDACTED] replacements.
-CAPTURED_ERROR_MESSAGE_MAX_BYTES=1024
+# The agent accepts up to 1,500 characters. This leaves room for [REDACTED]
+# replacements.
+CAPTURED_ERROR_MESSAGE_MAX_CHARS=1000
 
 # Captures a job error. If stderr_file is given, Docker Compose's error is added to
 # the message. Reporting failures are ignored.
@@ -460,7 +480,7 @@ function capture_compose_error {
   [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
 
   if [[ -n "$stderr_file" ]]; then
-    detail=$(stderr_error_line "$stderr_file" "$((CAPTURED_ERROR_MESSAGE_MAX_BYTES - ${#message} - 2))")
+    detail=$(stderr_error_line "$stderr_file" "$((CAPTURED_ERROR_MESSAGE_MAX_CHARS - ${#message} - 2))")
     if [[ -n "$detail" ]]; then
       message+=": $detail"
     fi
