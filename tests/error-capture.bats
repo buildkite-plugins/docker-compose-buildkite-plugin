@@ -217,7 +217,7 @@ function configure_compose_hook {
   stderr_file="$BATS_TEST_TMPDIR/stderr"
   printf 'earlier line\r\n\033[1;33m \t Error: "quoted"  failure\033[0m \t\r\n\n\t\n  \n' >"$stderr_file"
 
-  run stderr_error_line "$stderr_file" 100
+  run stderr_error_line "$stderr_file"
 
   assert_success
   # Spaces inside the line are kept so redaction still matches secrets.
@@ -228,47 +228,49 @@ function configure_compose_hook {
   stderr_file="$BATS_TEST_TMPDIR/stderr"
   printf '\033]0;title\007\033(BError\033]8;;https://example.invalid\033\\: denied\n' >"$stderr_file"
 
-  run stderr_error_line "$stderr_file" 100
+  run stderr_error_line "$stderr_file"
 
   assert_success
   assert_output 'Error: denied'
 }
 
-@test "stderr error line is omitted rather than cut when it is too long" {
+@test "captured message keeps a long error line for the agent to shorten" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf 'short\n0123456789\n' >"$stderr_file"
+  line="$(printf 'x%.0s' {1..1500})"
+  printf 'earlier\n%s\n' "$line" >"$stderr_file"
 
-  run stderr_error_line "$stderr_file" 9
-
-  assert_success
-  assert_output ''
-
-  run stderr_error_line "$stderr_file" 10
+  run capture_compose_error image_build_failed "Failed to build services" "$stderr_file"
 
   assert_success
-  assert_output '0123456789'
+  assert_captured image_build_failed "Failed to build services: $line"
 }
 
-@test "stderr error line limit counts characters, not bytes" {
+@test "captured message leaves out an error line too large for the agent to accept" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf 'café <&>\n' >"$stderr_file"
+  # 6,000 three-byte characters: under 16,000 characters, but over 16 KiB.
+  printf '€%.0s' {1..6000} >"$stderr_file"
 
-  run stderr_error_line "$stderr_file" 7
-
-  assert_success
-  assert_output ''
-
-  run stderr_error_line "$stderr_file" 8
+  run capture_compose_error image_build_failed "Failed to build services" "$stderr_file"
 
   assert_success
-  assert_output 'café <&>'
+  assert_captured image_build_failed "Failed to build services"
 }
 
 @test "stderr error line removes colon-form colour codes and other control characters" {
   stderr_file="$BATS_TEST_TMPDIR/stderr"
   printf 'Error: sec\033[38:2::255:0:0mret\033[0m den\001ied\n' >"$stderr_file"
 
-  run stderr_error_line "$stderr_file" 100
+  run stderr_error_line "$stderr_file"
 
   assert_success
   assert_output 'Error: secret denied'
@@ -278,25 +280,10 @@ function configure_compose_hook {
   stderr_file="$BATS_TEST_TMPDIR/stderr"
   : >"$stderr_file"
 
-  run stderr_error_line "$stderr_file" 100
+  run stderr_error_line "$stderr_file"
 
   assert_success
   assert_output ''
-}
-
-@test "captured message keeps the generic message when the error line is too long" {
-  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
-  export BUILDKITE_AGENT_JOB_API_TOKEN=token
-  payload_file="$BATS_TEST_TMPDIR/payload"
-  export payload_file
-  function buildkite-agent() { record_capture "$@"; }
-  stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf '%0750d\n' 0 >"$stderr_file"
-
-  run capture_compose_error image_build_failed "Failed to build services" "$stderr_file"
-
-  assert_success
-  assert_captured image_build_failed "Failed to build services"
 }
 
 @test "run_copying_stderr preserves output streams and exit status without pipefail" {
