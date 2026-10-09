@@ -396,17 +396,6 @@ function retry {
   done
 }
 
-function json_escape {
-  local value="$1"
-  value="$(printf '%s' "$value" | LC_ALL=C tr -d '\000-\010\013\014\016-\037')"
-  value=${value//\\/\\\\}
-  value=${value//\"/\\\"}
-  value=${value//$'\r'/\\r}
-  value=${value//$'\n'/\\n}
-  value=${value//$'\t'/\\t}
-  printf '%s' "$value"
-}
-
 # Runs a command and also saves its stderr to a file. Output and exit status
 # are unchanged. Without a file, the command runs normally.
 function run_copying_stderr {
@@ -439,28 +428,24 @@ function run_docker_compose_copying_stderr {
 }
 
 # Prints the last non-blank line of a stderr file, which is usually the error,
-# without terminal escape codes. Prints nothing if the line is longer than
-# max_chars, because cutting it could leave part of a secret that can no
-# longer be redacted.
+# without terminal escape codes.
 function stderr_error_line {
-  local stderr_file="$1" max_chars="$2" line
+  local stderr_file="$1"
   [[ -s "$stderr_file" ]] || return 0
-  line=$(tr '\r' '\n' <"$stderr_file" \
+  tr '\r' '\n' <"$stderr_file" \
     | sed -e $'s/\x1b\\[[0-?]*[ -/]*[@-~]//g' \
       -e $'s/\x1b][^\x07\x1b]*\x07//g' -e $'s/\x1b][^\x07\x1b]*\x1b\\\\//g' \
       -e $'s/\x1b[()][0-9A-Za-z]//g' \
       -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
     | tr -d '\000-\010\013-\037\177' \
     | grep -v '^$' \
-    | tail -n 1) || true
-  if (( $(printf '%s' "$line" | wc -m) <= max_chars )); then
-    printf '%s' "$line"
-  fi
+    | tail -n 1 || true
 }
 
-# The agent accepts up to 1,000 characters. This leaves room for [REDACTED]
-# replacements.
-CAPTURED_ERROR_MESSAGE_MAX_CHARS=750
+# The agent shortens long messages itself, but rejects any request over
+# 32 KiB, which would lose the whole error. Lines longer than this are left
+# out of the message.
+CAPTURED_ERROR_DETAIL_MAX_BYTES=16384
 
 # Captures a job error. If stderr_file is given, Docker Compose's error is added to
 # the message. Reporting failures are ignored.
@@ -470,8 +455,8 @@ function capture_compose_error {
   [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
 
   if [[ -n "$stderr_file" ]]; then
-    detail=$(stderr_error_line "$stderr_file" "$((CAPTURED_ERROR_MESSAGE_MAX_CHARS - ${#message} - 2))")
-    if [[ -n "$detail" ]]; then
+    detail=$(stderr_error_line "$stderr_file")
+    if [[ -n "$detail" ]] && (( $(printf '%s' "$detail" | wc -c) <= CAPTURED_ERROR_DETAIL_MAX_BYTES )); then
       message+=": $detail"
     fi
   fi
