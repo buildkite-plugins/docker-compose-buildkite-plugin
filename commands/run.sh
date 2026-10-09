@@ -373,12 +373,13 @@ dependency_exitcode=0
 if [[ "${run_dependencies}" == "true" ]] ; then
   # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
-  run_docker_compose "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
+  dependency_stderr_file=$(capture_stderr_file)
+  run_docker_compose_copying_stderr "$dependency_stderr_file" "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
 fi
 
 if [[ $dependency_exitcode -ne 0 ]] ; then
-  capture_compose_error "service_start_failed" "dependency_start" "$dependency_exitcode" "$run_service" \
-    "Failed to start dependencies"
+  capture_compose_error "service_start_failed" "Failed to start dependencies" "${dependency_stderr_file:-}"
+  [[ -z "${dependency_stderr_file:-}" ]] || rm -f "$dependency_stderr_file"
   # Dependent services failed to start.
   echo "^^^ +++"
   echo "+++ 🚨 Failed to start dependencies"
@@ -391,6 +392,7 @@ if [[ $dependency_exitcode -ne 0 ]] ; then
 
   return $dependency_exitcode
 fi
+[[ -z "${dependency_stderr_file:-}" ]] || rm -f "$dependency_stderr_file"
 
 shell=()
 shell_disabled=1
@@ -499,8 +501,7 @@ set +e
   run_docker_compose "${run_params[@]}"
   compose_run_exitcode=$?
   if [[ ${exitcode:-} != "TRAP" && $compose_run_exitcode -ne 0 ]]; then
-    capture_compose_error "compose_run_failed" "run" "$compose_run_exitcode" "$run_service" \
-      "Docker Compose run failed"
+    capture_compose_error "compose_run_failed" "Docker Compose run failed"
   fi
   exit "$compose_run_exitcode"
 )

@@ -3,15 +3,15 @@
 # Show a prompt for a command
 function plugin_prompt() {
   if [[ -z "${HIDE_PROMPT:-}" ]] ; then
-    echo -ne '\033[90m$\033[0m' >&2
+    echo -ne '\033[90m$\033[0m' >&"${PLUGIN_PROMPT_FD:-2}"
     for arg in "${@}" ; do
       if [[ $arg =~ [[:space:]] ]] ; then
-        echo -n " '$arg'" >&2
+        echo -n " '$arg'" >&"${PLUGIN_PROMPT_FD:-2}"
       else
-        echo -n " $arg" >&2
+        echo -n " $arg" >&"${PLUGIN_PROMPT_FD:-2}"
       fi
     done
-    echo >&2
+    echo >&"${PLUGIN_PROMPT_FD:-2}"
   fi
 }
 
@@ -396,27 +396,71 @@ function retry {
   done
 }
 
-function json_escape {
-  local value="$1"
-  value="$(printf '%s' "$value" | LC_ALL=C tr -d '\000-\010\013\014\016-\037')"
-  value=${value//\\/\\\\}
-  value=${value//\"/\\\"}
-  value=${value//$'\r'/\\r}
-  value=${value//$'\n'/\\n}
-  value=${value//$'\t'/\\t}
-  printf '%s' "$value"
+# Runs a command and also saves its stderr to a file. Output and exit status
+# are unchanged. Without a file, the command runs normally.
+function run_copying_stderr {
+  local stderr_file="$1"; shift
+  if [[ -z "$stderr_file" ]]; then
+    "$@"
+    return
+  fi
+  { "$@" 2>&1 1>&3 3>&- | tee "$stderr_file" >&2 3>&-; return "${PIPESTATUS[0]}"; } 3>&1
 }
 
-# Reporting is best-effort and preserves Docker Compose's original exit status.
+# Prints a temporary file path for a stderr copy, or nothing if error capture
+# is unavailable or a file can't be created.
+function capture_stderr_file {
+  [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
+  [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
+  mktemp 2>/dev/null || true
+}
+
+# Runs Docker Compose and also saves its stderr to a file. The command line
+# shown before it is left out of the file, as it can include build args.
+# Because stderr is piped, Compose shows plain progress output.
+function run_docker_compose_copying_stderr {
+  local stderr_file="$1"; shift
+  if [[ -z "$stderr_file" ]]; then
+    run_docker_compose "$@"
+    return
+  fi
+  PLUGIN_PROMPT_FD=4 run_copying_stderr "$stderr_file" run_docker_compose "$@" 4>&2
+}
+
+# Prints the last non-blank line of a stderr file, which is usually the error,
+# without terminal escape codes.
+function stderr_error_line {
+  local stderr_file="$1"
+  [[ -s "$stderr_file" ]] || return 0
+  tr '\r' '\n' <"$stderr_file" \
+    | sed -e $'s/\x1b\\[[0-?]*[ -/]*[@-~]//g' \
+      -e $'s/\x1b][^\x07\x1b]*\x07//g' -e $'s/\x1b][^\x07\x1b]*\x1b\\\\//g' \
+      -e $'s/\x1b[()][0-9A-Za-z]//g' \
+      -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
+    | tr -d '\000-\010\013-\037\177' \
+    | grep -v '^$' \
+    | tail -n 1 || true
+}
+
+# The agent shortens long messages itself, but rejects any request over
+# 32 KiB, which would lose the whole error. Lines longer than this are left
+# out of the message.
+CAPTURED_ERROR_DETAIL_MAX_BYTES=16384
+
+# Captures a job error. If stderr_file is given, Docker Compose's error is added to
+# the message. Reporting failures are ignored.
 function capture_compose_error {
-  local error_code="$1" operation="$2" exit_status="$3" service="$4" message="$5" context
+  local error_code="$1" message="$2" stderr_file="${3:-}" detail
   [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
   [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
 
-  context=$(printf '{"plugin":"docker-compose","operation":"%s","service":"%s","exit_status":%d}' \
-    "$(json_escape "$operation")" \
-    "$(json_escape "$service")" "$exit_status")
-  buildkite-agent job capture-error "$error_code" --message "$message" --context "$context" >/dev/null 2>&1 || true
+  if [[ -n "$stderr_file" ]]; then
+    detail=$(stderr_error_line "$stderr_file")
+    if [[ -n "$detail" ]] && (( $(printf '%s' "$detail" | wc -c) <= CAPTURED_ERROR_DETAIL_MAX_BYTES )); then
+      message+=": $detail"
+    fi
+  fi
+  buildkite-agent job capture-error "$error_code" --message "$message" >/dev/null 2>&1 || true
 }
 
 function is_windows() {
