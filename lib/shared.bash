@@ -443,9 +443,10 @@ function stderr_error_line {
 }
 
 # The agent shortens long messages itself, but rejects any request over
-# 32 KiB, which would lose the whole error. Lines longer than this are left
-# out of the message.
-CAPTURED_ERROR_DETAIL_MAX_BYTES=16384
+# 32 KiB after JSON encoding, which would lose the whole error. Encoding can
+# make each byte up to six bytes (e.g. & becomes \u0026), so lines longer than
+# this are left out of the message.
+CAPTURED_ERROR_DETAIL_MAX_BYTES=5000
 
 # Captures a job error. If stderr_file is given, Docker Compose's error is added to
 # the message. Reporting failures are ignored.

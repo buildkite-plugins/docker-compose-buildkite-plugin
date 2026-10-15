@@ -257,13 +257,29 @@ function configure_compose_hook {
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  # 6,000 three-byte characters: under 16,000 characters, but over 16 KiB.
-  printf '€%.0s' {1..6000} >"$stderr_file"
+  # 5,001 bytes; JSON encodes each & as six bytes, which would exceed 32 KiB.
+  printf '&%.0s' {1..5001} >"$stderr_file"
 
   run capture_compose_error buildkite.docker_compose_build_failed "Failed to build services" "$stderr_file"
 
   assert_success
   assert_captured buildkite.docker_compose_build_failed "Failed to build services"
+}
+
+@test "captured message keeps an error line at the size limit" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  line="$(printf '&%.0s' {1..5000})"
+  printf '%s\n' "$line" >"$stderr_file"
+
+  run capture_compose_error buildkite.docker_compose_build_failed "Failed to build services" "$stderr_file"
+
+  assert_success
+  assert_captured buildkite.docker_compose_build_failed "Failed to build services: $line"
 }
 
 @test "stderr error line removes colon-form colour codes and other control characters" {
