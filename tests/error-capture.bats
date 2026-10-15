@@ -82,7 +82,7 @@ function configure_compose_hook {
   run "$PWD/hooks/command"
 
   assert_failure 23
-  assert_captured compose_run_failed "Docker Compose run failed"
+  assert_captured buildkite.docker_compose_run_failed "Docker Compose run failed"
   [[ "$(grep -c '^process-failed$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
   [[ "$output" != *'Unknown command'* ]]
@@ -109,7 +109,7 @@ function configure_compose_hook {
   run "$PWD/hooks/command"
 
   assert_failure 18
-  assert_captured compose_run_failed "Docker Compose run failed"
+  assert_captured buildkite.docker_compose_run_failed "Docker Compose run failed"
   [[ "$(grep -c '^dependency-failed$' <<<"$output")" -eq 1 ]]
   unstub docker
 }
@@ -128,7 +128,7 @@ function configure_compose_hook {
   run "$PWD/hooks/command"
 
   assert_failure 17
-  assert_captured image_build_failed "Failed to build services: failed to solve: exit code: 3"
+  assert_captured buildkite.docker_compose_build_failed "Failed to build services: failed to solve: exit code: 3"
   [[ "$(grep -c '^build-stdout$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c 'failed to solve' <<<"$output")" -eq 1 ]]
   unstub docker
@@ -149,7 +149,7 @@ function configure_compose_hook {
   run "$PWD/hooks/command"
 
   assert_failure 17
-  assert_captured image_build_failed "Failed to build services"
+  assert_captured buildkite.docker_compose_build_failed "Failed to build services"
   [[ "$(grep -c '^build-failed$' <<<"$output")" -eq 1 ]]
   unstub docker
 }
@@ -183,7 +183,7 @@ function configure_compose_hook {
   assert_failure 17
   assert_output --partial "docker compose -f docker-compose.yml -p buildkite1111 build --pull --build-arg REGISTRY_ARG=build-arg-value myservice"
   # Compose writes no stderr, so a leaked command line would become the message.
-  assert_captured image_build_failed "Failed to build services"
+  assert_captured buildkite.docker_compose_build_failed "Failed to build services"
   ! grep -q build-arg-value "$payload_file"
   unstub docker
 }
@@ -206,7 +206,7 @@ function configure_compose_hook {
   run "$PWD/hooks/command"
 
   assert_failure 18
-  assert_captured service_start_failed "Failed to start dependencies: dependency-failed"
+  assert_captured buildkite.docker_compose_service_start_failed "Failed to start dependencies: dependency-failed"
   [[ "$(grep -c '^dependency-failed$' <<<"$output")" -eq 1 ]]
   # Compose's progress display isn't forced.
   assert_output --partial "progress=unset"
@@ -244,10 +244,10 @@ function configure_compose_hook {
   line="$(printf 'x%.0s' {1..1500})"
   printf 'earlier\n%s\n' "$line" >"$stderr_file"
 
-  run capture_compose_error image_build_failed "Failed to build services" "$stderr_file"
+  run capture_compose_error buildkite.docker_compose_build_failed "Failed to build services" "$stderr_file"
 
   assert_success
-  assert_captured image_build_failed "Failed to build services: $line"
+  assert_captured buildkite.docker_compose_build_failed "Failed to build services: $line"
 }
 
 @test "captured message leaves out an error line too large for the agent to accept" {
@@ -260,10 +260,10 @@ function configure_compose_hook {
   # 6,000 three-byte characters: under 16,000 characters, but over 16 KiB.
   printf '€%.0s' {1..6000} >"$stderr_file"
 
-  run capture_compose_error image_build_failed "Failed to build services" "$stderr_file"
+  run capture_compose_error buildkite.docker_compose_build_failed "Failed to build services" "$stderr_file"
 
   assert_success
-  assert_captured image_build_failed "Failed to build services"
+  assert_captured buildkite.docker_compose_build_failed "Failed to build services"
 }
 
 @test "stderr error line removes colon-form colour codes and other control characters" {
@@ -306,7 +306,7 @@ function configure_compose_hook {
   export marker
   function buildkite-agent() { printf called >"$marker"; return 19; }
 
-  run capture_compose_error service_start_failed diagnostic
+  run capture_compose_error buildkite.docker_compose_service_start_failed diagnostic
 
   assert_success
   [[ "$(cat "$marker")" == "called" ]]
@@ -319,10 +319,10 @@ function configure_compose_hook {
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
 
-  run capture_compose_error service_start_failed 'Failed to start dependencies'
+  run capture_compose_error buildkite.docker_compose_service_start_failed 'Failed to start dependencies'
 
   assert_success
-  assert_captured service_start_failed 'Failed to start dependencies'
+  assert_captured buildkite.docker_compose_service_start_failed 'Failed to start dependencies'
 }
 
 @test "capture is skipped unless the agent advertises support" {
@@ -336,7 +336,7 @@ function configure_compose_hook {
       unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
     fi
 
-    run capture_compose_error compose_run_failed diagnostic
+    run capture_compose_error buildkite.docker_compose_run_failed diagnostic
 
     assert_success
     [[ ! -e "$marker" ]]
@@ -351,7 +351,7 @@ function configure_compose_hook {
     export BUILDKITE_AGENT_JOB_API_TOKEN=token
     unset "$missing"
 
-    run capture_compose_error compose_run_failed diagnostic
+    run capture_compose_error buildkite.docker_compose_run_failed diagnostic
 
     assert_success
     [[ ! -e "$marker" ]]

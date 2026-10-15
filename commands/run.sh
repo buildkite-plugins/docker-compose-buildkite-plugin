@@ -378,7 +378,7 @@ if [[ "${run_dependencies}" == "true" ]] ; then
 fi
 
 if [[ $dependency_exitcode -ne 0 ]] ; then
-  capture_compose_error "service_start_failed" "Failed to start dependencies" "${dependency_stderr_file:-}"
+  capture_compose_error "buildkite.docker_compose_service_start_failed" "Failed to start dependencies" "${dependency_stderr_file:-}"
   [[ -z "${dependency_stderr_file:-}" ]] || rm -f "$dependency_stderr_file"
   # Dependent services failed to start.
   echo "^^^ +++"
@@ -501,7 +501,7 @@ set +e
   run_docker_compose "${run_params[@]}"
   compose_run_exitcode=$?
   if [[ ${exitcode:-} != "TRAP" && $compose_run_exitcode -ne 0 ]]; then
-    capture_compose_error "compose_run_failed" "Docker Compose run failed"
+    capture_compose_error "buildkite.docker_compose_run_failed" "Docker Compose run failed"
   fi
   exit "$compose_run_exitcode"
 )
