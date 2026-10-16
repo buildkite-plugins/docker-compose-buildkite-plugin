@@ -106,6 +106,8 @@ configuration:
       type: boolean
     graceful-shutdown:
       type: boolean
+    image-digest:
+      type: boolean
     leave-volumes:
       type: boolean
     mount-buildkite-agent:
@@ -212,6 +214,7 @@ configuration:
     expand-push-vars: [ push ]
     expand-volume-vars: [ volumes ]
     graceful-shutdown: [ run ]
+    image-digest: [ push ]
     leave-volumes: [ run ]
     mount-buildkite-agent: [ run ]
     mount-checkout: [ run ]

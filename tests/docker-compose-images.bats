@@ -77,3 +77,38 @@ setup() {
   assert_success
   assert_output "buildkite_helper"
 }
+
+@test "Resolve image digest for a pushed image" {
+  stub docker \
+    "image inspect --format {{.RepoDigests}} my.repository/myservice:llamas : echo [my.repository/myservice@sha256:deadbeef]"
+
+  run resolve_image_digest "my.repository/myservice:llamas"
+
+  assert_success
+  assert_output "my.repository/myservice@sha256:deadbeef"
+
+  unstub docker
+}
+
+@test "Resolve image digest picks the digest matching the pushed repository" {
+  stub docker \
+    "image inspect --format {{.RepoDigests}} my.repository/myservice:llamas : echo [other.repository/myservice@sha256:aaaa my.repository/myservice@sha256:deadbeef]"
+
+  run resolve_image_digest "my.repository/myservice:llamas"
+
+  assert_success
+  assert_output "my.repository/myservice@sha256:deadbeef"
+
+  unstub docker
+}
+
+@test "Resolve image digest fails when no matching digest is returned" {
+  stub docker \
+    "image inspect --format {{.RepoDigests}} my.repository/myservice:llamas : echo []"
+
+  run resolve_image_digest "my.repository/myservice:llamas"
+
+  assert_failure
+
+  unstub docker
+}
