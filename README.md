@@ -217,6 +217,8 @@ They will be mapped directly to `cache-to` elements in the build according to th
 
 Only export the `cache-to` caches when the build is on the pipeline's default branch (`BUILDKITE_BRANCH` equals `BUILDKITE_PIPELINE_DEFAULT_BRANCH`). Builds of other branches still read `cache-from`, but skip `cache-to`, so they can't overwrite the cache that default-branch builds import. Pull requests run code that hasn't been reviewed yet, and a later default-branch build would reuse whatever layers they exported.
 
+Tag builds also skip `cache-to`, because Buildkite sets `BUILDKITE_BRANCH` to the tag name for them. So does any build where the default branch can't be identified (`BUILDKITE_PIPELINE_DEFAULT_BRANCH` is empty), rather than risk letting an untrusted build overwrite the cache.
+
 The default is `false`.
 
 #### `target` (build only)
