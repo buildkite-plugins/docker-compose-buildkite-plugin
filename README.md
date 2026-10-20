@@ -219,6 +219,21 @@ Only export the `cache-to` caches when the build is on the pipeline's default br
 
 Tag builds also skip `cache-to`, because Buildkite sets `BUILDKITE_BRANCH` to the tag name for them. So does any build where the default branch can't be identified (`BUILDKITE_PIPELINE_DEFAULT_BRANCH` is empty), rather than risk letting an untrusted build overwrite the cache.
 
+If `cache-per-branch` is also set, it takes precedence and this option is ignored.
+
+The default is `false`.
+
+#### `cache-per-branch` (build only, boolean)
+
+Give builds of each branch their own registry cache, so they can't overwrite the cache that default-branch builds import. On the pipeline's default branch (`BUILDKITE_BRANCH` equals `BUILDKITE_PIPELINE_DEFAULT_BRANCH`), `cache-from` and `cache-to` are used as they are. On any other branch, the tag of every `type=registry` cache `ref` gets the branch name appended, with characters that aren't valid in a tag replaced by `-`, e.g. `ref=registry/app:cache` becomes `ref=registry/app:cache-feature-x` for the `feature/x` branch. These builds then:
+
+* read their own branch cache first and fall back to the default-branch cache, as BuildKit imports both;
+* write only their own branch cache, and skip any `cache-to` entry that isn't a `type=registry` cache with a tagged `ref`.
+
+Tag builds write to a cache named after the tag, because Buildkite sets `BUILDKITE_BRANCH` to the tag name for them. Builds where the default branch can't be identified (`BUILDKITE_PIPELINE_DEFAULT_BRANCH` is empty) are treated as builds of another branch. Branch caches aren't removed when a branch is deleted, so consider a registry lifecycle policy that expires them.
+
+This option takes precedence over `cache-to-default-branch-only`: if both are set, builds of other branches still write their own branch cache.
+
 The default is `false`.
 
 #### `target` (build only)

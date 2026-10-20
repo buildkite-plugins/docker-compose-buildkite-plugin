@@ -464,6 +464,28 @@ steps:
             driver: docker-container
 ```
 
+#### Keeping a separate cache for each branch
+
+Set `cache-per-branch` instead to give builds of other branches their own cache. On the `feature/x` branch this step reads `cache-feature-x` and falls back to `cache`, but writes only `cache-feature-x`; the default branch reads and writes `cache` as before:
+
+```yaml
+steps:
+  - label: ":docker: Build an image with per-branch caches"
+    plugins:
+      - docker-compose#v5.14.0:
+          build: app
+          cache-from:
+            - "app:type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
+          cache-to:
+            - "app:type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
+          cache-per-branch: true
+          builder:
+            name: container
+            use: true
+            create: true
+            driver: docker-container
+```
+
 ### Building and pushing directly with bake
 
 With the `docker-container` and `remote` build drivers, `docker compose build` has to export the built image as a tarball and load it into the Docker daemon before it can be pushed. For large images this load can dominate the step even when every layer is cached — Windows containers are the worst case, with multi-gigabyte base layers. The `bake` option builds with `docker buildx bake` and pushes straight to the registry, so the image never round-trips through the daemon:
