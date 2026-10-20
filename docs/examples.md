@@ -472,7 +472,7 @@ Set `cache-per-branch` instead to give builds of other branches their own cache.
 steps:
   - label: ":docker: Build an image with per-branch caches"
     plugins:
-      - docker-compose#v5.14.0:
+      - docker-compose#v5.16.0:
           build: app
           cache-from:
             - "app:type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
