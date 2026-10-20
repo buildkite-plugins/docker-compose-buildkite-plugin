@@ -72,8 +72,8 @@ branch_cache() {
 }
 
 # With cache-to-default-branch-only, only builds of the pipeline's default
-# branch export caches, so other branches can read them but never overwrite them.
-# cache-per-branch takes precedence, as it never writes the default-branch cache either.
+# branch export caches, so other branches can read them but never overwrite them
+# (cache-per-branch takes precedence, as it never writes the default-branch cache either)
 cache_to_enabled="true"
 if [[ "$(plugin_read_config CACHE_TO_DEFAULT_BRANCH_ONLY "false")" == "true" ]] && \
   [[ "$(plugin_read_config CACHE_PER_BRANCH "false")" != "true" ]] && \
