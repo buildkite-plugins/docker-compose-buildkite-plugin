@@ -450,7 +450,7 @@ A step that both reads and writes the same cache runs on every branch, so pull r
 steps:
   - label: ":docker: Build an image with a default-branch cache"
     plugins:
-      - docker-compose#v5.14.0:
+      - docker-compose#v5.16.0:
           build: app
           cache-from:
             - "app:type=registry,ref=${DOCKER_REGISTRY}/${IMAGE_REPO}:cache"
