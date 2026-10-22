@@ -68,6 +68,8 @@ configuration:
     cache-from:
       type: [ string, array ]
       minimum: 1
+    cache-per-branch:
+      type: boolean
     cache-to:
       type: [ string, array ]
       minimum: 1
@@ -204,6 +206,7 @@ configuration:
     buildkit: [ build ]
     buildkit-inline-cache: [ build ]
     cache-from: [ build ]
+    cache-per-branch: [ build ]
     cache-to: [ build ]
     cache-to-default-branch-only: [ cache-to ]
     command: [ run ]

@@ -29,6 +29,7 @@ get_caches_for_service() {
       service_image=$(IFS=':'; echo "${tokens[*]:1}")
 
       if [ "${service_name}" == "${service}" ]; then
+        [[ -n "${cache_branch_suffix}" ]] && branch_cache "$service_image"
         echo "$service_image"
       fi
     done
@@ -50,18 +51,44 @@ get_caches_to_service() {
     service_image=$(IFS=':'; echo "${tokens[*]:1}")
 
     if [ "${service_name}" == "${service}" ]; then
-      echo "$service_image"
+      if [[ -z "${cache_branch_suffix}" ]] ; then
+        echo "$service_image"
+      else
+        branch_cache "$service_image"
+      fi
     fi
   done
 }
 
+# Points a registry cache at the branch's own tag, e.g. ref=registry/app:cache
+# becomes ref=registry/app:cache-feature-x. Prints nothing for other caches.
+branch_cache() {
+  local cache="$1" ref tag
+  ref="${cache#*ref=}"
+  ref="${ref%%,*}"
+  [[ "${cache}" == *"type=registry"* ]] && [[ "${ref##*/}" == *:* ]] || return 0
+  tag="${ref##*:}${cache_branch_suffix}"
+  echo "${cache/"ref=${ref}"/"ref=${ref%:*}:${tag:0:128}"}"
+}
+
 # With cache-to-default-branch-only, only builds of the pipeline's default
 # branch export caches, so other branches can read them but never overwrite them
+# (cache-per-branch takes precedence, as it never writes the default-branch cache either)
 cache_to_enabled="true"
 if [[ "$(plugin_read_config CACHE_TO_DEFAULT_BRANCH_ONLY "false")" == "true" ]] && \
+  [[ "$(plugin_read_config CACHE_PER_BRANCH "false")" != "true" ]] && \
   { [[ -z "${BUILDKITE_PIPELINE_DEFAULT_BRANCH:-}" ]] || [[ "${BUILDKITE_BRANCH:-}" != "${BUILDKITE_PIPELINE_DEFAULT_BRANCH}" ]]; } ; then
   cache_to_enabled="false"
   echo "Skipping cache-to: branch '${BUILDKITE_BRANCH:-}' is not the default branch '${BUILDKITE_PIPELINE_DEFAULT_BRANCH:-}'"
+fi
+
+# With cache-per-branch, builds of other branches read their own cache before the
+# default-branch one and write only their own, so they never overwrite it
+cache_branch_suffix=""
+if [[ "$(plugin_read_config CACHE_PER_BRANCH "false")" == "true" ]] && \
+  { [[ -z "${BUILDKITE_PIPELINE_DEFAULT_BRANCH:-}" ]] || [[ "${BUILDKITE_BRANCH:-}" != "${BUILDKITE_PIPELINE_DEFAULT_BRANCH}" ]]; } ; then
+  cache_branch_suffix="-${BUILDKITE_BRANCH//[^A-Za-z0-9_.-]/-}"
+  echo "Using per-branch caches with tag suffix '${cache_branch_suffix}'"
 fi
 
 
