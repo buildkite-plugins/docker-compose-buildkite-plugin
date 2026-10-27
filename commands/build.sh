@@ -190,13 +190,4 @@ while read -r arg ; do
 done <<< "$(plugin_read_list ARGS)"
 
 echo "${group_type} :docker: Building services ${services[*]}"
-build_exitcode=0
-build_stderr_file=$(capture_stderr_file)
-run_docker_compose_copying_stderr "$build_stderr_file" "${build_params[@]}" "${services[@]}" || build_exitcode=$?
-if [[ $build_exitcode -ne 0 ]]; then
-  capture_compose_error "buildkite.docker_compose_build_failed" "Failed to build services" "$build_stderr_file"
-fi
-[[ -z "$build_stderr_file" ]] || rm -f "$build_stderr_file"
-if [[ $build_exitcode -ne 0 ]]; then
-  exit "$build_exitcode"
-fi
+run_docker_compose "${build_params[@]}" "${services[@]}"
