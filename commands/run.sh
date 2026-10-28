@@ -373,13 +373,10 @@ dependency_exitcode=0
 if [[ "${run_dependencies}" == "true" ]] ; then
   # Start up service dependencies in a different header to keep the main run with less noise
   echo "~~~ :docker: Starting dependencies"
-  dependency_stderr_file=$(capture_stderr_file)
-  run_docker_compose_copying_stderr "$dependency_stderr_file" "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
+  run_docker_compose "${up_params[@]}" -d --scale "${run_service}=0" "${run_service}" || dependency_exitcode=$?
 fi
 
 if [[ $dependency_exitcode -ne 0 ]] ; then
-  capture_compose_error "buildkite.docker_compose_service_start_failed" "Failed to start dependencies" "${dependency_stderr_file:-}"
-  [[ -z "${dependency_stderr_file:-}" ]] || rm -f "$dependency_stderr_file"
   # Dependent services failed to start.
   echo "^^^ +++"
   echo "+++ 🚨 Failed to start dependencies"
@@ -392,7 +389,6 @@ if [[ $dependency_exitcode -ne 0 ]] ; then
 
   return $dependency_exitcode
 fi
-[[ -z "${dependency_stderr_file:-}" ]] || rm -f "$dependency_stderr_file"
 
 shell=()
 shell_disabled=1
@@ -499,11 +495,6 @@ set +e
 ( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)
   echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
   run_docker_compose "${run_params[@]}"
-  compose_run_exitcode=$?
-  if [[ ${exitcode:-} != "TRAP" && $compose_run_exitcode -ne 0 ]]; then
-    capture_compose_error "buildkite.docker_compose_run_failed" "Docker Compose run failed"
-  fi
-  exit "$compose_run_exitcode"
 )
 exitcode=$?
 

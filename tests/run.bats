@@ -43,6 +43,62 @@ teardown() {
   unstub buildkite-agent
 }
 
+@test "Failed Compose run preserves output and status without reporting a job error" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  # Old agents may still advertise capture support during the rollout.
+  export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  export job_calls="$BATS_TEST_TMPDIR/job-calls"
+  function buildkite-agent() {
+    [[ "$1" != job ]] || echo "$*" >>"$job_calls"
+    return 1
+  }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo dependencies started" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 -T --rm myservice /bin/sh -e -c 'echo hello world' : echo command-stdout; echo process-failed >&2; exit 23"
+
+  run "$PWD"/hooks/command
+
+  assert_failure 23
+  assert_output --partial "Failed to run command, exited with 23"
+  [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
+  [[ "$(grep -c '^process-failed$' <<<"$output")" -eq 1 ]]
+  [[ ! -e "$job_calls" ]]
+  unstub docker
+}
+
+@test "Failed dependency startup preserves diagnostics and status without reporting a job error" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLEANUP=false
+  # Old agents may still advertise capture support during the rollout.
+  export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  export job_calls="$BATS_TEST_TMPDIR/job-calls"
+  function buildkite-agent() {
+    [[ "$1" != job ]] || echo "$*" >>"$job_calls"
+    return 1
+  }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 up -d --scale myservice=0 myservice : echo dependency-stdout; echo dependency-failed >&2; exit 18"
+
+  run "$PWD"/hooks/command
+
+  assert_failure 18
+  assert_output --partial "Failed to start dependencies"
+  [[ "$(grep -c '^dependency-stdout$' <<<"$output")" -eq 1 ]]
+  [[ "$(grep -c '^dependency-failed$' <<<"$output")" -eq 1 ]]
+  [[ ! -e "$job_calls" ]]
+  unstub docker
+}
+
 @test "Fail running without a prebuilt image and require-prebuild" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_COMMAND="echo hello world"
