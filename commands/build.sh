@@ -29,7 +29,9 @@ get_caches_for_service() {
       service_image=$(IFS=':'; echo "${tokens[*]:1}")
 
       if [ "${service_name}" == "${service}" ]; then
-        [[ -n "${cache_branch_suffix}" ]] && branch_cache "$service_image"
+        if [[ -n "${cache_branch_suffix}" ]] ; then
+          branch_cache "$service_image" || true
+        fi
         echo "$service_image"
       fi
     done
@@ -53,22 +55,25 @@ get_caches_to_service() {
     if [ "${service_name}" == "${service}" ]; then
       if [[ -z "${cache_branch_suffix}" ]] ; then
         echo "$service_image"
-      else
-        branch_cache "$service_image"
+      elif ! branch_cache "$service_image" ; then
+        echo "Skipping cache-to '${service_image}': cache-per-branch only exports type=registry caches with a tagged ref" >&2
       fi
     fi
   done
 }
 
 # Points a registry cache at the branch's own tag, e.g. ref=registry/app:cache
-# becomes ref=registry/app:cache-feature-x. Prints nothing for other caches.
+# becomes ref=registry/app:cache-feature-x-53981c21. Fails for other caches,
+# including digest refs (registry/app@sha256:...), which have no tag to extend.
 branch_cache() {
   local cache="$1" ref tag
   ref="${cache#*ref=}"
   ref="${ref%%,*}"
-  [[ "${cache}" == *"type=registry"* ]] && [[ "${ref##*/}" == *:* ]] || return 0
-  tag="${ref##*:}${cache_branch_suffix}"
-  echo "${cache/"ref=${ref}"/"ref=${ref%:*}:${tag:0:128}"}"
+  [[ "${cache}" == *"type=registry"* ]] && [[ "${ref}" != *@* ]] && [[ "${ref##*/}" == *:* ]] || return 1
+  tag="${ref##*:}"
+  # Shorten the original tag rather than the suffix to stay within Docker's 128-character limit
+  tag="${tag:0:$((128 - ${#cache_branch_suffix}))}${cache_branch_suffix}"
+  echo "${cache/"ref=${ref}"/"ref=${ref%:*}:${tag}"}"
 }
 
 # With cache-to-default-branch-only, only builds of the pipeline's default
@@ -82,12 +87,15 @@ if [[ "$(plugin_read_config CACHE_TO_DEFAULT_BRANCH_ONLY "false")" == "true" ]] 
   echo "Skipping cache-to: branch '${BUILDKITE_BRANCH:-}' is not the default branch '${BUILDKITE_PIPELINE_DEFAULT_BRANCH:-}'"
 fi
 
-# With cache-per-branch, builds of other branches read their own cache before the
+# With cache-per-branch, builds of other branches read both their own cache and the
 # default-branch one and write only their own, so they never overwrite it
 cache_branch_suffix=""
 if [[ "$(plugin_read_config CACHE_PER_BRANCH "false")" == "true" ]] && \
   { [[ -z "${BUILDKITE_PIPELINE_DEFAULT_BRANCH:-}" ]] || [[ "${BUILDKITE_BRANCH:-}" != "${BUILDKITE_PIPELINE_DEFAULT_BRANCH}" ]]; } ; then
-  cache_branch_suffix="-${BUILDKITE_BRANCH//[^A-Za-z0-9_.-]/-}"
+  # The hash keeps branches apart whose names sanitize or shorten to the same value
+  read -r cache_branch_hash _ < <(printf '%s' "${BUILDKITE_BRANCH:-}" | cksum)
+  cache_branch_name="${BUILDKITE_BRANCH//[^A-Za-z0-9_.-]/-}"
+  cache_branch_suffix="$(printf -- '-%.40s-%08x' "${cache_branch_name}" "${cache_branch_hash}")"
   echo "Using per-branch caches with tag suffix '${cache_branch_suffix}'"
 fi
 

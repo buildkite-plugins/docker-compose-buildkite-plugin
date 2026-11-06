@@ -466,7 +466,7 @@ steps:
 
 #### Keeping a separate cache for each branch
 
-Set `cache-per-branch` instead to give builds of other branches their own cache. On the `feature/x` branch this step reads `cache-feature-x` and falls back to `cache`, but writes only `cache-feature-x`; the default branch reads and writes `cache` as before:
+Set `cache-per-branch` instead to give builds of other branches their own cache. On the `feature/x` branch this step imports both `cache-feature-x-53981c21` and `cache`, but writes only `cache-feature-x-53981c21`; the default branch reads and writes `cache` as before:
 
 ```yaml
 steps:
