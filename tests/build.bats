@@ -31,6 +31,30 @@ setup_file() {
   unstub docker
 }
 
+@test "Failed Compose build preserves output and status without reporting a job error" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
+  # Old agents may still advertise capture support during the rollout.
+  export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  export job_calls="$BATS_TEST_TMPDIR/job-calls"
+  function buildkite-agent() {
+    [[ "$1" != job ]] || echo "$*" >>"$job_calls"
+    return 1
+  }
+  export -f buildkite-agent
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 build --pull myservice : echo build-stdout; echo build-failed >&2; exit 17"
+
+  run "$PWD"/hooks/command
+
+  assert_failure 17
+  [[ "$(grep -c '^build-stdout$' <<<"$output")" -eq 1 ]]
+  [[ "$(grep -c '^build-failed$' <<<"$output")" -eq 1 ]]
+  [[ ! -e "$job_calls" ]]
+  unstub docker
+}
+
 @test "Build with builder" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD=myservice
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILDER_NAME=mybuilder
