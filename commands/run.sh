@@ -121,6 +121,14 @@ done <<< "$(printf '%s\n%s' \
   "$(plugin_read_list_or_map ENV PROPAGATION_LIST)" \
   "$(plugin_read_list_or_map ENVIRONMENT)")"
 
+# Parse BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT delimited by semi-colons, normalized to
+# ignore spaces and leading or trailing semi-colons
+IFS=';' read -r -a default_environment <<< "${BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT:-}"
+for env in "${default_environment[@]:-}" ; do
+  trimmed_env="$(echo -n "$env" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//')"
+  [[ -n "$trimmed_env" ]] && run_params+=("-e" "$trimmed_env")
+done
+
 # Propagate all environment variables into the container if requested
 if [[ "$(plugin_read_config PROPAGATE_ENVIRONMENT "false")" =~ ^(true|on|1)$ ]] ; then
   if [[ -n "${BUILDKITE_ENV_FILE:-}" ]] ; then
