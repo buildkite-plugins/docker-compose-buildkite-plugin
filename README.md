@@ -219,6 +219,23 @@ Only export the `cache-to` caches when the build is on the pipeline's default br
 
 Tag builds also skip `cache-to`, because Buildkite sets `BUILDKITE_BRANCH` to the tag name for them. So does any build where the default branch can't be identified (`BUILDKITE_PIPELINE_DEFAULT_BRANCH` is empty), rather than risk letting an untrusted build overwrite the cache.
 
+If `cache-per-branch` is also set, it takes precedence and this option is ignored.
+
+The default is `false`.
+
+#### `cache-per-branch` (build only, boolean)
+
+Give builds of each branch their own registry cache, so they can't overwrite the cache that default-branch builds import. On the pipeline's default branch (`BUILDKITE_BRANCH` equals `BUILDKITE_PIPELINE_DEFAULT_BRANCH`), `cache-from` and `cache-to` are used as they are. On any other branch, the tag of every `type=registry` cache `ref` gets a branch suffix appended: the branch name with characters that aren't valid in a tag replaced by `-` and cut to 40 characters, followed by a short hash of the original branch name, e.g. `ref=registry/app:cache` becomes `ref=registry/app:cache-feature-x-53981c21` for the `feature/x` branch. The hash keeps branches such as `feature/x` and `feature-x` apart, and the original tag is shortened if needed so the suffix always fits Docker's 128-character tag limit. These builds then:
+
+* import both their own branch cache and the default-branch cache;
+* write only their own branch cache, and skip (with a message in the log) any `cache-to` entry that isn't a `type=registry` cache with a tagged `ref`.
+
+Digest refs (`ref=registry/app@sha256:...`) have no tag to extend, so `cache-from` keeps them unchanged and `cache-to` skips them.
+
+Tag builds write to a cache named after the tag, because Buildkite sets `BUILDKITE_BRANCH` to the tag name for them. Builds where the default branch can't be identified (`BUILDKITE_PIPELINE_DEFAULT_BRANCH` is empty) are treated as builds of another branch. Branch caches aren't removed when a branch is deleted, so consider a registry lifecycle policy that expires them.
+
+This option takes precedence over `cache-to-default-branch-only`: if both are set, builds of other branches still write their own branch cache.
+
 The default is `false`.
 
 #### `target` (build only)

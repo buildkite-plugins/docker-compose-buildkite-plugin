@@ -230,6 +230,171 @@ setup_file() {
   unstub docker
 }
 
+@test "Build with cache-per-branch on the default branch" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:type=registry,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,mode=max,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_PER_BRANCH=true
+  export BUILDKITE_BRANCH=main
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  refute_output --partial "Using per-branch caches"
+  assert_output --partial "- type=registry,ref=my.repository/myservice:cache"
+  assert_output --partial "- type=registry,mode=max,ref=my.repository/myservice:cache"
+  refute_output --partial "myservice:cache-"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with cache-per-branch on another branch" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:type=registry,ref=my.repository:5000/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,mode=max,ref=my.repository:5000/myservice:cache,image-manifest=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_PER_BRANCH=true
+  export BUILDKITE_BRANCH=feature/new-thing
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Using per-branch caches with tag suffix '-feature-new-thing-c539043f'"
+  assert_output --partial "        - type=registry,ref=my.repository:5000/myservice:cache-feature-new-thing-c539043f
+        - type=registry,ref=my.repository:5000/myservice:cache
+      cache_to:
+        - type=registry,mode=max,ref=my.repository:5000/myservice:cache-feature-new-thing-c539043f,image-manifest=true
+"
+  refute_output --partial "mode=max,ref=my.repository:5000/myservice:cache,"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with cache-per-branch overriding cache-to-default-branch-only" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,mode=max,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_PER_BRANCH=true
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_DEFAULT_BRANCH_ONLY=true
+  export BUILDKITE_BRANCH=feature/new-thing
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  refute_output --partial "Skipping cache-to"
+  assert_output --partial "- type=registry,mode=max,ref=my.repository/myservice:cache-feature-new-thing-c539043f"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with cache-per-branch skipping a non-registry cache-to on another branch" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:type=local,src=/tmp/cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=local,dest=/tmp/cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_PER_BRANCH=true
+  export BUILDKITE_BRANCH=feature/new-thing
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Skipping cache-to 'type=local,dest=/tmp/cache': cache-per-branch only exports type=registry caches with a tagged ref"
+  assert_output --partial "- type=local,src=/tmp/cache"
+  refute_output --partial "cache_to:"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with cache-per-branch and a maximum-length cache tag on another branch" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,ref=my.repository/myservice:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_PER_BRANCH=true
+  export BUILDKITE_BRANCH=feature/new-thing
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "- type=registry,ref=my.repository/myservice:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-feature-new-thing-c539043f
+"
+  refute_output --partial "myservice:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with cache-per-branch keeps branches that sanitize to the same name apart" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,ref=my.repository/myservice:cache
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_PER_BRANCH=true
+  export BUILDKITE_BRANCH=feature-new-thing
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "- type=registry,ref=my.repository/myservice:cache-feature-new-thing-32a11654"
+  refute_output --partial "cache-feature-new-thing-c539043f"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
+@test "Build with cache-per-branch keeping digest refs unchanged on another branch" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_FROM_0=helloworld:type=registry,ref=registry/app@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_TO_0=helloworld:type=registry,ref=registry/app@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CACHE_PER_BRANCH=true
+  export BUILDKITE_BRANCH=feature/new-thing
+  export BUILDKITE_PIPELINE_DEFAULT_BRANCH=main
+
+  stub docker \
+    "compose -f tests/composefiles/docker-compose.v3.2.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml build --pull helloworld : echo built helloworld"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Skipping cache-to 'type=registry,ref=registry/app@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef': cache-per-branch only exports type=registry caches with a tagged ref"
+  assert_output --partial "      cache_from:
+        - type=registry,ref=registry/app@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+"
+  refute_output --partial "abcdef-feature-new-thing"
+  refute_output --partial "cache_to:"
+  assert_output --partial "built helloworld"
+
+  unstub docker
+}
+
 @test "Build with a cache-from image with no-cache also set" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CONFIG="tests/composefiles/docker-compose.v3.2.yml"
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD_0=helloworld
