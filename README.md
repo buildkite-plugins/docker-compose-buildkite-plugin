@@ -193,29 +193,19 @@ A number of times to retry failed docker pull. Defaults to 0.
 
 #### `pull-timeout` (run only, integer)
 
-Opt in to a wall-clock deadline, in seconds, for each image pull attempt. Unset by default, preserving the existing pull behavior. Minimum: `2`.
+Maximum seconds per attempt to pull the run service, services listed in `pull`, and their dependencies (unless `dependencies: false`). Disables further service image pulls during container startup. Minimum: `2`.
 
-After resolving prebuilt image overrides, the plugin pulls the run service and any services listed in `pull`, with `--include-deps` unless `dependencies: false`. This covers dependency images even when `pre-run-dependencies: false`. The guarded pull uses `--policy always`; after it succeeds, both `up` and `run` use `--pull never`, overriding Compose pull policies so container startup cannot trigger another service image pull.
+Compose v2 only. Cannot be combined with `skip-pull: true` or `pull-retries`. Excludes Dockerfile builds and image-backed volumes (`type: image`).
 
-Requires Docker Compose v2 with support for `pull --policy`, `pull --include-deps`, and `up`/`run --pull never`. Cannot be combined with `skip-pull: true` or `pull-retries`; remove those settings when enabling guarded pulls. It does not apply to `build`, `push`, image downloads performed by Dockerfile builds, or image-backed volumes (`type: image`). Compose can pull missing volume images during `up`/`run` even with `--pull never`; those downloads are outside this deadline. Use prebuilt images for the services you want covered.
-
-The deadline includes cancellation: the plugin sends TERM to the Compose process group one second before the deadline, then KILL at the deadline if needed. Closing the Docker API connection cancels the daemon's pull request; other clients pulling the same image can keep a shared download alive. The deadline is not a progress/stall detector: a slow but progressing pull is also cancelled.
-
-When all attempts fail or time out, the command hook exits with **75**, before starting containers, and logs the number of attempts. Choose a deadline large enough for a normal cold pull. The plugin does not add a Buildkite automatic retry. Existing step timeouts still apply to the whole job and may interrupt the pull budget; existing automatic retries can repeat the entire budget, so exclude exit 75 from broad retry rules if that is not wanted.
-
-For example, these plugin settings bound the service image pull phase to **6 minutes 25 seconds** (3 × 120 seconds + at most 10 and 15 seconds between attempts), excluding scheduling overhead and later container startup, command execution, and cleanup:
-
-```yaml
-run: app
-pull-timeout: 120
-pull-attempts: 3
-```
+Default: unset (no timeout).
 
 #### `pull-attempts` (run only, integer)
 
-Total number of guarded pull attempts, including the first. Requires `pull-timeout`. Default: `3`. Minimum: `1` (no retries).
+Total pull attempts, including the first. Requires `pull-timeout`. Minimum: `1` (no retries).
 
-Failed attempts wait 5, 10, 20, then 30 seconds (capped), plus 0–5 seconds of random jitter, before retrying. Successfully downloaded layers can be reused on the next attempt. The limit applies to the whole Compose pull, including dependency images, not separately to each image.
+Failed attempts wait 5, 10, 20, then 30 seconds (capped), plus 0–5 seconds of random jitter. Exits with code **75** before starting containers if all attempts fail.
+
+Default: `3`.
 
 #### `push-metadata` (push or bake only, boolean)
 
