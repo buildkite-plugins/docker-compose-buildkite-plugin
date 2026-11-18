@@ -21,6 +21,145 @@ teardown() {
   rm -f docker-compose.buildkite*-override.yml
 }
 
+@test "Guarded pull includes dependencies without prebuilt metadata and disables implicit pulls" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_TIMEOUT=120
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_COMMAND=""
+
+  stub buildkite-agent "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 pull --policy always --include-deps myservice : echo guarded pull" \
+    "compose -f docker-compose.yml -p buildkite1111 up --pull never -d --scale myservice=0 myservice : echo dependencies started" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --pull never -T --rm myservice : echo command ran"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "command ran"
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Guarded prebuilt pull retries a timeout and protects run-managed dependencies" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_IMAGE=app:image
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_TIMEOUT=2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_ATTEMPTS=2
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PRE_RUN_DEPENDENCIES=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_COMMAND=""
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull --policy always --include-deps myservice : if test -e '${BATS_TEST_TMPDIR}/attempt'; then echo pulled; else touch '${BATS_TEST_TMPDIR}/attempt'; sleep 60; fi" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml run --name buildkite1111_myservice_build_1 --pull never -T --rm myservice : echo command ran"
+
+  local start=$SECONDS
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "attempt 2/2"
+  assert_output --partial "command ran"
+  [[ $((SECONDS - start)) -lt 20 ]]
+  unstub docker
+}
+
+@test "Guarded pull exhaustion returns 75 without starting containers" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN_IMAGE=app:image
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_TIMEOUT=120
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_ATTEMPTS=2
+  export BUILDKITE_COMMAND=""
+
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull --policy always --include-deps myservice : exit 1" \
+    "compose -f docker-compose.yml -p buildkite1111 -f docker-compose.buildkite-1-override.yml pull --policy always --include-deps myservice : exit 2"
+
+  run "$PWD"/hooks/command
+
+  assert_failure 75
+  assert_output --partial "Pull failed after 2 attempts"
+  unstub docker
+}
+
+@test "Guarded pull respects disabled dependencies and explicit pull services" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL=extra
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_TIMEOUT=120
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_ATTEMPTS=1
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_DEPENDENCIES=false
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CHECK_LINKED_CONTAINERS=false
+  export BUILDKITE_COMMAND=""
+
+  stub buildkite-agent \
+    "meta-data exists docker-compose-plugin-built-image-tag-myservice : exit 1" \
+    "meta-data exists docker-compose-plugin-built-image-tag-extra : exit 1"
+  stub docker \
+    "compose -f docker-compose.yml -p buildkite1111 pull --policy always extra myservice : echo pulled" \
+    "compose -f docker-compose.yml -p buildkite1111 run --name buildkite1111_myservice_build_1 --pull never -T --no-deps --rm myservice : echo command ran"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  unstub docker
+  unstub buildkite-agent
+}
+
+@test "Guarded pull rejects invalid settings before invoking Docker" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_TIMEOUT=120
+  export BUILDKITE_COMMAND=""
+
+  for invalid in 0 -1 abc 02; do
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_ATTEMPTS="$invalid"
+    run "$PWD"/hooks/command
+    assert_failure 1
+    assert_output --partial "pull-attempts must be a positive integer"
+  done
+  unset BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_ATTEMPTS
+
+  for invalid in 0 1 -1 abc 02; do
+    export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_TIMEOUT="$invalid"
+    run "$PWD"/hooks/command
+    assert_failure 1
+    assert_output --partial "pull-timeout must be an integer of at least 2 seconds"
+  done
+}
+
+@test "Guarded pull rejects conflicting settings and Compose v1" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_TIMEOUT=120
+  export BUILDKITE_COMMAND=""
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL=true
+  run "$PWD"/hooks/command
+  assert_failure 1
+  assert_output --partial "pull-timeout cannot be combined with skip-pull or pull-retries"
+  unset BUILDKITE_PLUGIN_DOCKER_COMPOSE_SKIP_PULL
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_RETRIES=0
+  run "$PWD"/hooks/command
+  assert_failure 1
+  assert_output --partial "pull-timeout cannot be combined with skip-pull or pull-retries"
+  unset BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_RETRIES
+
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_CLI_VERSION=1
+  run "$PWD"/hooks/command
+  assert_failure 1
+  assert_output --partial "pull-timeout requires Docker Compose v2"
+}
+
+@test "Pull attempts require a timeout" {
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
+  export BUILDKITE_PLUGIN_DOCKER_COMPOSE_PULL_ATTEMPTS=2
+  export BUILDKITE_COMMAND=""
+
+  run "$PWD"/hooks/command
+
+  assert_failure 1
+  assert_output --partial "pull-attempts requires pull-timeout"
+}
+
 @test "Run without a prebuilt image" {
   export BUILDKITE_PLUGIN_DOCKER_COMPOSE_RUN=myservice
   export BUILDKITE_COMMAND="echo hello world"
