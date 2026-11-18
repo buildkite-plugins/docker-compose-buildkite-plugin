@@ -140,6 +140,12 @@ configuration:
       minimum: 1
     pull-retries:
       type: integer
+    pull-timeout:
+      type: integer
+      minimum: 2
+    pull-attempts:
+      type: integer
+      minimum: 1
     push-metadata:
       type: boolean
     push-retries:
@@ -229,6 +235,8 @@ configuration:
     propagate-uid-gid: [ run ]
     pull: [ run ]
     pull-retries: [ run ]
+    pull-timeout: [ run ]
+    pull-attempts: [ run, pull-timeout ]
     push-metadata:
       anyOf:
         - required: [ push ]

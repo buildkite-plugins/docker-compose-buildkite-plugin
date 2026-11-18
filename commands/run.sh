@@ -8,8 +8,32 @@ run_service="$(plugin_read_config RUN)"
 container_name="$(docker_compose_project_name)_${run_service}_build_${BUILDKITE_BUILD_NUMBER}"
 override_file="docker-compose.buildkite-${BUILDKITE_BUILD_NUMBER}-override.yml"
 pull_retries="$(plugin_read_config PULL_RETRIES "0")"
+pull_timeout="$(plugin_read_config PULL_TIMEOUT)"
+pull_attempts="$(plugin_read_config PULL_ATTEMPTS "3")"
 mount_checkout="$(plugin_read_config MOUNT_CHECKOUT "false")"
 workdir=''
+
+if [[ -n "$pull_timeout" ]]; then
+  if [[ ! "$pull_timeout" =~ ^[1-9][0-9]*$ ]] || (( pull_timeout < 2 )); then
+    echo "+++ Error: pull-timeout must be an integer of at least 2 seconds"
+    exit 1
+  fi
+  if [[ ! "$pull_attempts" =~ ^[1-9][0-9]*$ ]]; then
+    echo "+++ Error: pull-attempts must be a positive integer"
+    exit 1
+  fi
+  if [[ "$(plugin_read_config CLI_VERSION "2")" != "2" ]]; then
+    echo "+++ Error: pull-timeout requires Docker Compose v2"
+    exit 1
+  fi
+  if [[ "$(plugin_read_config SKIP_PULL "false")" == "true" ]] || plugin_config_exists PULL_RETRIES; then
+    echo "+++ Error: pull-timeout cannot be combined with skip-pull or pull-retries"
+    exit 1
+  fi
+elif plugin_config_exists PULL_ATTEMPTS; then
+  echo "+++ Error: pull-attempts requires pull-timeout"
+  exit 1
+fi
 
 expand_headers_on_error() {
   echo "^^^ +++"
@@ -80,8 +104,16 @@ fi
 
 pull_params+=("pull")
 
-# If there are multiple services to pull, run it in parallel (although this is now the default)
-if [[ ${#pull_services[@]} -gt 1 ]] ; then
+if [[ -n "$pull_timeout" ]]; then
+  if ! in_array "$run_service" "${pull_services[@]+"${pull_services[@]}"}"; then
+    pull_services+=("$run_service")
+  fi
+  pull_params+=(--policy always)
+  if [[ "$(plugin_read_config DEPENDENCIES "true")" != "false" ]]; then
+    pull_params+=(--include-deps)
+  fi
+elif [[ ${#pull_services[@]} -gt 1 ]] ; then
+  # If there are multiple services to pull, run it in parallel (although this is now the default)
   pull_params+=("--parallel")
 fi
 
@@ -90,13 +122,33 @@ if [ "$(plugin_read_config QUIET_PULL "false")" == "true" ] ; then
 fi
 
 # Pull down specified services
-if [[ ${#pull_services[@]} -gt 0 ]] && [[ "$(plugin_read_config SKIP_PULL "false")" != "true" ]]; then
+if [[ -n "$pull_timeout" ]]; then
+  pull_delay=5
+  for ((pull_attempt=1; pull_attempt<=pull_attempts; pull_attempt++)); do
+    echo "~~~ :docker: Pull attempt ${pull_attempt}/${pull_attempts} (deadline ${pull_timeout}s)"
+    if run_with_deadline "$pull_timeout" run_docker_compose "${pull_params[@]}" "${pull_services[@]}"; then
+      break
+    fi
+    if (( pull_attempt == pull_attempts )); then
+      echo "+++ Error: Pull failed after ${pull_attempts} attempts; refusing to start containers (exit 75)"
+      exit 75
+    fi
+    pull_wait=$((pull_delay + RANDOM % 6))
+    echo "Pull failed or exceeded its deadline; retrying in ${pull_wait}s"
+    sleep "$pull_wait"
+    pull_delay=$((pull_delay * 2 < 30 ? pull_delay * 2 : 30))
+  done
+elif [[ ${#pull_services[@]} -gt 0 ]] && [[ "$(plugin_read_config SKIP_PULL "false")" != "true" ]]; then
   echo "~~~ :docker: Pulling services ${pull_services[0]}"
   retry "$pull_retries" run_docker_compose "${pull_params[@]}" "${pull_services[@]}"
 fi
 
 # We set a predictable container name so we can find it and inspect it later on
 run_params+=("run" "--name" "$container_name")
+
+if [[ -n "$pull_timeout" ]]; then
+  run_params+=(--pull never)
+fi
 
 if [[ "$(plugin_read_config RUN_LABELS "true")" =~ ^(true|on|1)$ ]]; then
   # Add useful labels to run container
@@ -360,6 +412,10 @@ fi
 run_params+=("$run_service")
 
 up_params+=("up")  # this ensures that the array has elements to avoid issues with bash 4.3
+
+if [[ -n "$pull_timeout" ]]; then
+  up_params+=(--pull never)
+fi
 
 if [[ "$(plugin_read_config WAIT "false")" == "true" ]] ; then
   up_params+=("--wait")

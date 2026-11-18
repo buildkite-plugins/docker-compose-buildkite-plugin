@@ -191,6 +191,22 @@ Default: `false`
 
 A number of times to retry failed docker pull. Defaults to 0.
 
+#### `pull-timeout` (run only, integer)
+
+Maximum seconds per attempt to pull the run service, services listed in `pull`, and their dependencies (unless `dependencies: false`). Disables further service image pulls during container startup. Minimum: `2`.
+
+Compose v2 only. Cannot be combined with `skip-pull: true` or `pull-retries`. Excludes Dockerfile builds and image-backed volumes (`type: image`).
+
+Default: unset (no timeout).
+
+#### `pull-attempts` (run only, integer)
+
+Total pull attempts, including the first. Requires `pull-timeout`. Minimum: `1` (no retries).
+
+Failed attempts wait 5, 10, 20, then 30 seconds (capped), plus 0–5 seconds of random jitter. Exits with code **75** before starting containers if all attempts fail.
+
+Default: `3`.
+
 #### `push-metadata` (push or bake only, boolean)
 
 Whether to set the metadata about the image for a service being pushed (by `push`, or by `build` with `bake` enabled).
