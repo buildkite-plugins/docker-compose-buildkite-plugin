@@ -33,7 +33,7 @@ steps:
       - secrets#v2.6.0:
           variables:
             GITHUB_TOKEN: GITHUB_TOKEN
-      - ossf-scorecard#v1.1.0:
+      - ossf-scorecard#v1.2.0:
           github_token: $$GITHUB_TOKEN
 
   # The rest of the steps are integration tests
