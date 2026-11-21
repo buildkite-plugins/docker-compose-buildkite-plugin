@@ -38,6 +38,7 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMPOSE_BUILD; then
 fi
 
 prebuilt_image_namespace="$(plugin_read_config PREBUILT_IMAGE_NAMESPACE 'docker-compose-plugin-')"
+image_digest="$(plugin_read_config IMAGE_DIGEST "false")"
 
 # Then we figure out what to push, and where
 for line in $(plugin_read_list PUSH) ; do
@@ -81,7 +82,6 @@ for line in $(plugin_read_list PUSH) ; do
   if [[ ${#tokens[@]} -eq 1 ]] ; then
     echo "${group_type} :docker: Pushing images for ${service_name}" >&2;
     retry "$push_retries" run_docker_compose "${push_command[@]}" "${service_name}"
-    set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${service_image}"
     target_image="${service_image}" # necessary for build-alias
   # push: "service-name:repo:tag"
   else
@@ -89,8 +89,19 @@ for line in $(plugin_read_list PUSH) ; do
     echo "${group_type} :docker: Pushing image $target_image" >&2;
     plugin_prompt_and_run docker tag "$service_image" "$target_image"
     retry "$push_retries" plugin_prompt_and_run docker "${push_command[@]}" "$target_image"
-    set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${target_image}"
   fi
+
+  if [[ "$image_digest" == "true" ]] ; then
+    resolved_digest=""
+    if ! resolved_digest="$(resolve_image_digest "${target_image}")" ; then
+      echo "+++ 🚨 Could not resolve a digest for pushed image ${target_image}"
+      exit 1
+    fi
+    target_image="$resolved_digest"
+    echo "~~~ :docker: Resolved digest for ${service_name}: ${target_image}"
+  fi
+
+  set_prebuilt_image "${prebuilt_image_namespace}" "${service_name}" "${target_image}"
 done
 
 # single image build
